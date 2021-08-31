@@ -1,0 +1,12 @@
+//
+//  Command.swift
+//  konashi-ios-sdk2
+//
+//  Created by Akira Matsuda on 2021/08/03.
+//
+
+import Foundation
+
+public protocol Command {
+    func compose() -> Data
+}
