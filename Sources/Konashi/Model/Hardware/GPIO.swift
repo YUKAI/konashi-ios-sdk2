@@ -105,7 +105,7 @@ public enum GPIO {
         func unwrap() -> (enabled: Bool, direction: Direction, wiredFunction: WiredFunction) {
             switch self {
             case .disable:
-                return (false, .output, .disabled)
+                return (false, .input, .disabled)
             case .input:
                 return (true, .input, .disabled)
             case .output:
