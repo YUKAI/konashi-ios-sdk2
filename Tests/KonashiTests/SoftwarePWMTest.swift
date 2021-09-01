@@ -1,6 +1,6 @@
 //
 //  SoftwarePWMTest.swift
-//  konashi-ios-sdkTests
+//  
 //
 //  Created by Akira Matsuda on 2021/08/28.
 //
