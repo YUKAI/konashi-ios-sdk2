@@ -36,7 +36,7 @@ public extension Peripheral {
             if mode == .inputPullUp {
                 return .pullUp
             }
-            return .pullDown
+            return .none
         }
         return write(
             characteristic: ConfigService.configCommand,
