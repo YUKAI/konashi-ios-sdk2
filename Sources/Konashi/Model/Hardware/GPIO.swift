@@ -70,6 +70,16 @@ public enum GPIO {
         case none
         case pullUp
         case pullDown
+        
+        static func compose(pullUp: Bool, pullDown: Bool) -> RegisterState {
+            if pullUp == false, pullDown == false {
+                return .none
+            }
+            if pullUp == true {
+                return .pullUp
+            }
+            return .pullDown
+        }
     }
 
     public enum PinMode {
