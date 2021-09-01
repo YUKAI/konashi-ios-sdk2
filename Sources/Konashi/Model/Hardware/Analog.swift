@@ -99,9 +99,6 @@ public enum Analog {
 
         func compose() -> [UInt8] {
             var bytes = [UInt8]()
-            if let payload = pinConfig {
-                bytes += payload.compose()
-            }
             if let payload = adcUpdatePeriod {
                 bytes += payload.compose()
             }
@@ -112,6 +109,9 @@ public enum Analog {
                 bytes += payload.compose()
             }
             if let payload = idacCurrentRangeConfig {
+                bytes += payload.compose()
+            }
+            if let payload = pinConfig {
                 bytes += payload.compose()
             }
 

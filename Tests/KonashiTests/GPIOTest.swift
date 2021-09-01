@@ -75,7 +75,7 @@ class GPIOTest: XCTestCase {
             pin: .pin4,
             isEnabled: true,
             notifyOnInputChange: false,
-            direction: .input,
+            direction: .output,
             wiredFunction: .wiredOr,
             pullUp: false,
             pullDown: false
@@ -90,7 +90,7 @@ class GPIOTest: XCTestCase {
             pin: .pin5,
             isEnabled: true,
             notifyOnInputChange: false,
-            direction: .input,
+            direction: .output,
             wiredFunction: .wiredOr,
             pullUp: false,
             pullDown: true
@@ -105,7 +105,7 @@ class GPIOTest: XCTestCase {
             pin: .pin6,
             isEnabled: true,
             notifyOnInputChange: false,
-            direction: .input,
+            direction: .output,
             wiredFunction: .wiredAnd,
             pullUp: false,
             pullDown: false
@@ -120,14 +120,14 @@ class GPIOTest: XCTestCase {
             pin: .pin7,
             isEnabled: true,
             notifyOnInputChange: false,
-            direction: .input,
+            direction: .output,
             wiredFunction: .wiredAnd,
             pullUp: true,
             pullDown: false
         )
         XCTAssertEqual(
             gpio7.compose(),
-            [0x61, 0x14]
+            [0x71, 0x16]
         )
 
         // Settings Command write:

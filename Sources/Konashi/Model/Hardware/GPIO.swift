@@ -94,7 +94,7 @@ public enum GPIO {
             if notifyOnInputChange {
                 secondByte |= 0x20
             }
-            secondByte |= (direction == .input ? 0 : 1) << 3
+            secondByte |= (direction == .input ? 0 : 1) << 4
             secondByte |= wiredFunction.rawValue << 2
             if pullUp {
                 secondByte |= 0x02
