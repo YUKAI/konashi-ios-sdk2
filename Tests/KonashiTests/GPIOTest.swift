@@ -13,12 +13,9 @@ class GPIOTest: XCTestCase {
         // GPIO0: enable, input, notify on input change -> 0x01 0x20
         let gpio0 = GPIO.ConfigPayload(
             pin: .pin0,
-            isEnabled: true,
-            notifyOnInputChange: true,
-            direction: .input,
-            wiredFunction: .disabled,
-            pullUp: false,
-            pullDown: false
+            mode: .input,
+            registerState: .none,
+            notifyOnInputChange: true
         )
         XCTAssertEqual(
             gpio0.compose(),
@@ -28,12 +25,7 @@ class GPIOTest: XCTestCase {
         // GPIO1: enable, output -> 0x11 0x10
         let gpio1 = GPIO.ConfigPayload(
             pin: .pin1,
-            isEnabled: true,
-            notifyOnInputChange: false,
-            direction: .output,
-            wiredFunction: .disabled,
-            pullUp: false,
-            pullDown: false
+            mode: .output
         )
         XCTAssertEqual(
             gpio1.compose(),
@@ -43,12 +35,8 @@ class GPIOTest: XCTestCase {
         // GPIO2: enable, output, pull-up -> 0x21 0x12
         let gpio2 = GPIO.ConfigPayload(
             pin: .pin2,
-            isEnabled: true,
-            notifyOnInputChange: false,
-            direction: .output,
-            wiredFunction: .disabled,
-            pullUp: true,
-            pullDown: false
+            mode: .output,
+            registerState: .pullUp
         )
         XCTAssertEqual(
             gpio2.compose(),
@@ -58,12 +46,8 @@ class GPIOTest: XCTestCase {
         // GPIO3: enable, output, pull-down -> 0x31 0x11
         let gpio3 = GPIO.ConfigPayload(
             pin: .pin3,
-            isEnabled: true,
-            notifyOnInputChange: false,
-            direction: .output,
-            wiredFunction: .disabled,
-            pullUp: false,
-            pullDown: true
+            mode: .output,
+            registerState: .pullDown
         )
         XCTAssertEqual(
             gpio3.compose(),
@@ -73,61 +57,43 @@ class GPIOTest: XCTestCase {
         // GPIO4: enable, open source (wired-or function) -> 0x41 0x18
         let gpio4 = GPIO.ConfigPayload(
             pin: .pin4,
-            isEnabled: true,
-            notifyOnInputChange: false,
-            direction: .output,
-            wiredFunction: .wiredOr,
-            pullUp: false,
-            pullDown: false
+            mode: .openSource
         )
         XCTAssertEqual(
             gpio4.compose(),
-            [0x41, 0x18]
+            [0x41, 0x08]
         )
 
         // GPIO5: enable, open source (wired-or function), pull-down -> 0x51 0x19
         let gpio5 = GPIO.ConfigPayload(
             pin: .pin5,
-            isEnabled: true,
-            notifyOnInputChange: false,
-            direction: .output,
-            wiredFunction: .wiredOr,
-            pullUp: false,
-            pullDown: true
+            mode: .openSource,
+            registerState: .pullDown
         )
         XCTAssertEqual(
             gpio5.compose(),
-            [0x51, 0x19]
+            [0x51, 0x09]
         )
 
         // GPIO6: enable, open drain (wired-and function) -> 0x61 0x14
         let gpio6 = GPIO.ConfigPayload(
             pin: .pin6,
-            isEnabled: true,
-            notifyOnInputChange: false,
-            direction: .output,
-            wiredFunction: .wiredAnd,
-            pullUp: false,
-            pullDown: false
+            mode: .openDrain
         )
         XCTAssertEqual(
             gpio6.compose(),
-            [0x61, 0x14]
+            [0x61, 0x04]
         )
 
         // GPIO7: enable, open drain (wired-and function), pull-up -> 0x71 0x16
         let gpio7 = GPIO.ConfigPayload(
             pin: .pin7,
-            isEnabled: true,
-            notifyOnInputChange: false,
-            direction: .output,
-            wiredFunction: .wiredAnd,
-            pullUp: true,
-            pullDown: false
+            mode: .openDrain,
+            registerState: .pullUp
         )
         XCTAssertEqual(
             gpio7.compose(),
-            [0x71, 0x16]
+            [0x71, 0x06]
         )
 
         // Settings Command write:
@@ -143,7 +109,7 @@ class GPIOTest: XCTestCase {
                 gpio6,
                 gpio7
             ]).compose()),
-            [0x01, 0x01, 0x20, 0x11, 0x10, 0x21, 0x12, 0x31, 0x11, 0x41, 0x18, 0x51, 0x19, 0x61, 0x14, 0x71, 0x16]
+            [0x01, 0x01, 0x20, 0x11, 0x10, 0x21, 0x12, 0x31, 0x11, 0x41, 0x08, 0x51, 0x09, 0x61, 0x04, 0x71, 0x06]
         )
     }
     
@@ -151,7 +117,7 @@ class GPIOTest: XCTestCase {
         // GPIO0: disable -> 0x00 0x00
         let gpio0 = GPIO.ConfigPayload(
             pin: .pin0,
-            isEnabled: false
+            mode: .disable
         )
         XCTAssertEqual(
             gpio0.compose(),

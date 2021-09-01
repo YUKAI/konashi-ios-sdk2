@@ -32,23 +32,20 @@ public extension Peripheral {
             }
             return false
         }
-        var pullUp: Bool {
+        var state: GPIO.RegisterState {
             if mode == .inputPullUp {
-                return true
+                return .pullUp
             }
-            return false
+            return .pullDown
         }
         return write(
             characteristic: ConfigService.configCommand,
             command: .gpio([
                 GPIO.ConfigPayload(
                     pin: pin,
-                    isEnabled: true,
-                    notifyOnInputChange: notifyOnInputChange,
-                    direction: direction,
-                    wiredFunction: wiredFunction,
-                    pullUp: pullUp,
-                    pullDown: !pullUp
+                    mode: .compose(enabled: true, direction: direction, wiredFunction: wiredFunction),
+                    registerState: state,
+                    notifyOnInputChange: notifyOnInputChange
                 )
             ])
         )
