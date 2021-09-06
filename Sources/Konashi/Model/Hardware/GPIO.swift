@@ -153,7 +153,7 @@ public enum GPIO {
         public let mode: PinMode
         public var registerState: RegisterState = .none
         public var notifyOnInputChange = false
-        public var function: Function? = nil
+        public var function: Function?
 
         func compose() -> [UInt8] {
             var firstByte: UInt8 = pin.rawValue << 4

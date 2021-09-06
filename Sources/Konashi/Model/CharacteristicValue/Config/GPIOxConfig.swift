@@ -37,7 +37,7 @@ public struct GPIOxConfig: CharacteristicValue, Hashable {
                 return .failure(CharacteristicValueParseError.invalidPinNumber)
             }
             var state: GPIO.RegisterState {
-                if second[0] == 0 && second[1] == 0 {
+                if second[0] == 0, second[1] == 0 {
                     return .none
                 }
                 if second[1] == 1 {
