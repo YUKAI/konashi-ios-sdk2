@@ -138,16 +138,6 @@ public enum GPIO {
         }
     }
 
-//    public struct PinConfig:  {
-//        public let pin: Pin
-//        public let function: Function
-//        public let notifyOnInputChange: Bool
-//        public let direction: Direction
-//        public let wiredFunction: WiredFunction
-//        public let pullUp: Bool
-//        public let pullDown: Bool
-//    }
-//
     public struct PinConfig: Hashable, Payload {
         public let pin: GPIO.Pin
         public let mode: PinMode
