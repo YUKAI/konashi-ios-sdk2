@@ -11,7 +11,7 @@ import XCTest
 class GPIOTest: XCTestCase {
     func testEnable() throws {
         // GPIO0: enable, input, notify on input change -> 0x01 0x20
-        let gpio0 = GPIO.ConfigPayload(
+        let gpio0 = GPIO.PinConfig(
             pin: .pin0,
             mode: .input,
             registerState: .none,
@@ -23,7 +23,7 @@ class GPIOTest: XCTestCase {
         )
 
         // GPIO1: enable, output -> 0x11 0x10
-        let gpio1 = GPIO.ConfigPayload(
+        let gpio1 = GPIO.PinConfig(
             pin: .pin1,
             mode: .output
         )
@@ -33,7 +33,7 @@ class GPIOTest: XCTestCase {
         )
 
         // GPIO2: enable, output, pull-up -> 0x21 0x12
-        let gpio2 = GPIO.ConfigPayload(
+        let gpio2 = GPIO.PinConfig(
             pin: .pin2,
             mode: .output,
             registerState: .pullUp
@@ -44,7 +44,7 @@ class GPIOTest: XCTestCase {
         )
 
         // GPIO3: enable, output, pull-down -> 0x31 0x11
-        let gpio3 = GPIO.ConfigPayload(
+        let gpio3 = GPIO.PinConfig(
             pin: .pin3,
             mode: .output,
             registerState: .pullDown
@@ -55,7 +55,7 @@ class GPIOTest: XCTestCase {
         )
 
         // GPIO4: enable, open source (wired-or function) -> 0x41 0x18
-        let gpio4 = GPIO.ConfigPayload(
+        let gpio4 = GPIO.PinConfig(
             pin: .pin4,
             mode: .openSource
         )
@@ -65,7 +65,7 @@ class GPIOTest: XCTestCase {
         )
 
         // GPIO5: enable, open source (wired-or function), pull-down -> 0x51 0x19
-        let gpio5 = GPIO.ConfigPayload(
+        let gpio5 = GPIO.PinConfig(
             pin: .pin5,
             mode: .openSource,
             registerState: .pullDown
@@ -76,7 +76,7 @@ class GPIOTest: XCTestCase {
         )
 
         // GPIO6: enable, open drain (wired-and function) -> 0x61 0x14
-        let gpio6 = GPIO.ConfigPayload(
+        let gpio6 = GPIO.PinConfig(
             pin: .pin6,
             mode: .openDrain
         )
@@ -86,7 +86,7 @@ class GPIOTest: XCTestCase {
         )
 
         // GPIO7: enable, open drain (wired-and function), pull-up -> 0x71 0x16
-        let gpio7 = GPIO.ConfigPayload(
+        let gpio7 = GPIO.PinConfig(
             pin: .pin7,
             mode: .openDrain,
             registerState: .pullUp
@@ -115,7 +115,7 @@ class GPIOTest: XCTestCase {
     
     func testDisable() throws {
         // GPIO0: disable -> 0x00 0x00
-        let gpio0 = GPIO.ConfigPayload(
+        let gpio0 = GPIO.PinConfig(
             pin: .pin0,
             mode: .disable
         )

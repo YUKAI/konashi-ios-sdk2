@@ -41,7 +41,7 @@ public extension Peripheral {
         return write(
             characteristic: ConfigService.configCommand,
             command: .gpio([
-                GPIO.ConfigPayload(
+                GPIO.PinConfig(
                     pin: pin,
                     mode: .compose(enabled: true, direction: direction, wiredFunction: wiredFunction),
                     registerState: state,

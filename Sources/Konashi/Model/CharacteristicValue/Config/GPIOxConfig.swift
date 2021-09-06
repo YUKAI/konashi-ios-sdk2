@@ -36,15 +36,25 @@ public struct GPIOxConfig: CharacteristicValue, Hashable {
             guard let pin = GPIO.Pin(rawValue: UInt8(index)) else {
                 return .failure(CharacteristicValueParseError.invalidPinNumber)
             }
+            var state: GPIO.RegisterState {
+                if second[0] == 0 && second[1] == 0 {
+                    return .none
+                }
+                if second[1] == 1 {
+                    return .pullUp
+                }
+                if second[0] == 1 {
+                    return .pullDown
+                }
+                return .none
+            }
             configs.append(
                 GPIO.PinConfig(
                     pin: pin,
-                    function: function,
+                    mode: .compose(enabled: function == .gpio, direction: direction, wiredFunction: wiredFunction),
+                    registerState: state,
                     notifyOnInputChange: second[4] == 1,
-                    direction: direction,
-                    wiredFunction: wiredFunction,
-                    pullUp: second[1] == 1,
-                    pullDown: second[0] == 1
+                    function: function
                 )
             )
         }

@@ -88,7 +88,7 @@ public struct ConfigService: Service {
     )
 
     public enum ConfigCommand: Command {
-        case gpio([GPIO.ConfigPayload])
+        case gpio([GPIO.PinConfig])
         case softwarePWM([PWM.Software.PinConfig])
         case hardwarePWM(config: PWM.Hardware.ConfigPayload)
         case analog(config: Analog.ConfigPayload)
