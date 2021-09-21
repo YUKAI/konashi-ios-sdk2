@@ -73,7 +73,7 @@ public enum PWM {
                 guard let info = info, let pin = info[InfoKey.pin.rawValue] as? PWM.Pin else {
                     return .failure(PayloadParseError.invalidInfo)
                 }
-                let first = data[0]
+                let first = data[0] & 0x0f
                 var driveConfig: PWM.Software.DriveConfig? {
                     switch first {
                     case 0x0:
@@ -84,7 +84,7 @@ public enum PWM {
                         )
                     case 0x02:
                         return .period(
-                            ratio: Float(UInt16.compose(fsb: data[1], lsb: data[2]) / 1000)
+                            ratio: Float(UInt16.compose(fsb: data[1], lsb: data[2])) / 1000.0
                         )
                     default:
                         return nil
@@ -216,7 +216,7 @@ public enum PWM {
 
                 return .success(PinConfig(
                     pin: pin,
-                    isEnabled: data[0] == 1
+                    isEnabled: data[0] & 0x01 == 1
                 ))
             }
 

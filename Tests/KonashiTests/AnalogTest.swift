@@ -18,9 +18,6 @@ class AnalogTest: XCTestCase {
         )
 
         // ADC voltage reference: 2V5 -> 0xe2
-        print(Analog.ADCVoltageReference.allCases.map {
-            $0.rawValue
-        })
         let adc = Analog.ADCVoltageReferenceConfig(reference: ._2V5)
         XCTAssertEqual(
             adc.compose(),
@@ -52,6 +49,13 @@ class AnalogTest: XCTestCase {
             aio0.compose(),
             [0x09]
         )
+        XCTAssertEqual(
+            aio0,
+            try? Analog.PinConfig.parse(
+                [0x09],
+                info: [Analog.PinConfig.InfoKey.pin.rawValue : Analog.Pin.pin0]
+            ).get()
+        )
 
         // Settings Command write: 0x04 0xf0 0x09 0xe2 0xd1 0xc2 0x09
         XCTAssertEqual(
@@ -81,7 +85,14 @@ class AnalogTest: XCTestCase {
             aio1.compose(),
             [0x1a]
         )
-
+        XCTAssertEqual(
+            aio1,
+            try? Analog.PinConfig.parse(
+                [0x1a],
+                info: [Analog.PinConfig.InfoKey.pin.rawValue : Analog.Pin.pin1]
+            ).get()
+        )
+        
         // AIO2: output -> 0x29
         let aio2 = Analog.PinConfig(
             pin: .pin2,
@@ -92,6 +103,13 @@ class AnalogTest: XCTestCase {
         XCTAssertEqual(
             aio2.compose(),
             [0x29]
+        )
+        XCTAssertEqual(
+            aio2,
+            try? Analog.PinConfig.parse(
+                [0x29],
+                info: [Analog.PinConfig.InfoKey.pin.rawValue : Analog.Pin.pin2]
+            ).get()
         )
 
         // Settings Command write: 0x04 0x1a 0x29

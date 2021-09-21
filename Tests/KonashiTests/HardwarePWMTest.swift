@@ -27,12 +27,26 @@ class HardwarePWMTest: XCTestCase {
             pwm0.compose(),
             [0x00]
         )
+        XCTAssertEqual(
+            pwm0,
+            try? PWM.Hardware.PinConfig.parse(
+                [0x00],
+                info: [PWM.Hardware.PinConfig.InfoKey.pin.rawValue : PWM.Pin.pin0]
+            ).get()
+        )
 
         // HardPWM1: enable -> 0x11
         let pwm1 = PWM.Hardware.PinConfig(pin: .pin1, isEnabled: true)
         XCTAssertEqual(
             pwm1.compose(),
             [0x11]
+        )
+        XCTAssertEqual(
+            pwm1,
+            try? PWM.Hardware.PinConfig.parse(
+                [0x11],
+                info: [PWM.Hardware.PinConfig.InfoKey.pin.rawValue : PWM.Pin.pin1]
+            ).get()
         )
 
         // HardPWM2: enable -> 0x21
@@ -41,7 +55,14 @@ class HardwarePWMTest: XCTestCase {
             pwm2.compose(),
             [0x21]
         )
-
+        XCTAssertEqual(
+            pwm2,
+            try? PWM.Hardware.PinConfig.parse(
+                [0x21],
+                info: [PWM.Hardware.PinConfig.InfoKey.pin.rawValue : PWM.Pin.pin2]
+            ).get()
+        )
+        
         // Settings Command write: 0x03 0xff 0x0a 0x7c 0x92 0x00 0x11 0x21
         XCTAssertEqual(
             [UInt8](
@@ -60,6 +81,13 @@ class HardwarePWMTest: XCTestCase {
         XCTAssertEqual(
             pwm3.compose(),
             [0x31]
+        )
+        XCTAssertEqual(
+            pwm3,
+            try? PWM.Hardware.PinConfig.parse(
+                [0x31],
+                info: [PWM.Hardware.PinConfig.InfoKey.pin.rawValue : PWM.Pin.pin3]
+            ).get()
         )
 
         // Settings Command write: 0x03 0x31

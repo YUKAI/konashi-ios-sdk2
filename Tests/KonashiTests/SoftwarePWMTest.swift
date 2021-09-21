@@ -10,26 +10,40 @@ import XCTest
 
 class SoftwarePWMTest: XCTestCase {
     func testDisable() throws {
-        let control = PWM.Software.PinConfig(
+        let pwm3 = PWM.Software.PinConfig(
             pin: .pin3,
             driveConfig: .disable
         )
         XCTAssertEqual(
-            control.compose(),
+            pwm3.compose(),
             [0x30, 0x00, 0x00]
+        )
+        XCTAssertEqual(
+            pwm3,
+            try? PWM.Software.PinConfig.parse(
+                [0x30, 0x00, 0x00],
+                info: [PWM.Hardware.PinConfig.InfoKey.pin.rawValue : PWM.Pin.pin3]
+            ).get()
         )
     }
 
     func testDutyCommand() throws {
         // SoftPWM0のConfigにduty controlと1000ｍｓの固定周期を設定
         // この設定でPWMの周期は1000msに固定されててControlからdutyを制御可能
-        let config = PWM.Software.PinConfig(
+        let pwm0 = PWM.Software.PinConfig(
             pin: .pin0,
             driveConfig: .duty(millisec: 1000)
         )
         XCTAssertEqual(
-            [UInt8](ConfigService.ConfigCommand.softwarePWM([config]).compose()),
+            [UInt8](ConfigService.ConfigCommand.softwarePWM([pwm0]).compose()),
             [0x02, 0x01, 0xE8, 0x03]
+        )
+        XCTAssertEqual(
+            pwm0,
+            try? PWM.Software.PinConfig.parse(
+                [0x01, 0xE8, 0x03],
+                info: [PWM.Hardware.PinConfig.InfoKey.pin.rawValue : PWM.Pin.pin0]
+            ).get()
         )
 
         // この場合SoftPWM0のControlに50%のdutyで制御
@@ -54,6 +68,13 @@ class SoftwarePWMTest: XCTestCase {
         XCTAssertEqual(
             [UInt8](ConfigService.ConfigCommand.softwarePWM([config]).compose()),
             [0x02, 0x12, 0xEE, 0x02]
+        )
+        XCTAssertEqual(
+            config,
+            try? PWM.Software.PinConfig.parse(
+                [0x12, 0xEE, 0x02],
+                info: [PWM.Hardware.PinConfig.InfoKey.pin.rawValue : PWM.Pin.pin1]
+            ).get()
         )
 
         // この場合SoftPWM1のControlに2000ｍｓの周期で制御

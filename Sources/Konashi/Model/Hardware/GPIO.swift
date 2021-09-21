@@ -155,7 +155,7 @@ public enum GPIO {
         public let mode: PinMode
         public var registerState: RegisterState = .none
         public var notifyOnInputChange = false
-        public var function: Function?
+        public var function: Function = .gpio
         public var direction: Direction {
             return mode.toDirection()
         }
@@ -173,7 +173,7 @@ public enum GPIO {
             }
             let first = data[0]
             let second = data[1].bits()
-            guard let function = GPIO.Function(rawValue: first) else {
+            guard let function = GPIO.Function(rawValue: first & 0x0f) else {
                 return .failure(GPIO.ParseError.invalidFunction)
             }
             guard let direction = Direction(rawValue: second[4]) else {
@@ -198,7 +198,7 @@ public enum GPIO {
                 pin: pin,
                 mode: .compose(enabled: function == .gpio, direction: direction, wiredFunction: wiredFunction),
                 registerState: state,
-                notifyOnInputChange: second[4] == 1,
+                notifyOnInputChange: second[5] == 1,
                 function: function
             ))
         }
