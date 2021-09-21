@@ -17,7 +17,15 @@ extension Array where Element == Service {
 
     func find(characteristic target: CBCharacteristic) -> Characteristic? {
         let service = first {
-            $0.uuid.uuidString == target.service.uuid.uuidString
+            #if compiler(>=5.5)
+                #if os(macOS)
+                    return $0.uuid.uuidString == target.service.uuid.uuidString
+                #else
+                    return $0.uuid.uuidString == target.service?.uuid.uuidString
+                #endif
+            #else
+                return $0.uuid.uuidString == target.service.uuid.uuidString
+            #endif
         }
         guard let service = service else {
             return nil
