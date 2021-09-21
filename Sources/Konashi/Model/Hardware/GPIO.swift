@@ -150,6 +150,7 @@ public enum GPIO {
         public var direction: Direction {
             return mode.toDirection()
         }
+
         public var wiredFunction: WiredFunction {
             return mode.toWiredFunction()
         }
