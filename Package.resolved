@@ -29,15 +29,6 @@
         }
       },
       {
-        "package": "XCTAssertResult",
-        "repositoryURL": "https://github.com/alex-apriamashvili/XCTAssertResult.git",
-        "state": {
-          "branch": null,
-          "revision": "437513c5b906b2b31bcf60bcbc2904161596c96a",
-          "version": "0.0.1"
-        }
-      },
-      {
         "package": "xctest-dynamic-overlay",
         "repositoryURL": "https://github.com/pointfreeco/xctest-dynamic-overlay",
         "state": {
