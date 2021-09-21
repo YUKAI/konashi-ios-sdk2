@@ -97,7 +97,10 @@ public enum GPIO {
                 if wiredFunction == .wiredOr {
                     return .openSource
                 }
-                return .openDrain
+                else if wiredFunction == .wiredAnd {
+                    return .openDrain
+                }
+                return .input
             }
             return .output
         }
@@ -144,6 +147,12 @@ public enum GPIO {
         public var registerState: RegisterState = .none
         public var notifyOnInputChange = false
         public var function: Function?
+        public var direction: Direction {
+            return mode.toDirection()
+        }
+        public var wiredFunction: WiredFunction {
+            return mode.toWiredFunction()
+        }
 
         func compose() -> [UInt8] {
             var firstByte: UInt8 = pin.rawValue << 4
@@ -154,8 +163,8 @@ public enum GPIO {
             if notifyOnInputChange {
                 secondByte |= 0x20
             }
-            secondByte |= mode.toDirection().rawValue << 4
-            secondByte |= mode.toWiredFunction().rawValue << 2
+            secondByte |= direction.rawValue << 4
+            secondByte |= wiredFunction.rawValue << 2
             if registerState == .pullUp {
                 secondByte |= 0x02
             }
