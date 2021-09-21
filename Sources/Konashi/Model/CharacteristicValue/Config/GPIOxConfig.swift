@@ -27,10 +27,10 @@ public struct GPIOxConfig: CharacteristicValue, Hashable {
             guard let function = GPIO.Function(rawValue: first) else {
                 return .failure(GPIO.ParseError.invalidFunction)
             }
-            guard let direction = Direction(rawValue: second[3]) else {
+            guard let direction = Direction(rawValue: second[4]) else {
                 return .failure(CharacteristicValueParseError.invalidDirection)
             }
-            guard let wiredFunction = GPIO.WiredFunction(rawValue: second[2]) else {
+            guard let wiredFunction = GPIO.WiredFunction(rawValue: (second[3] << 1 | second[2])) else {
                 return .failure(GPIO.ParseError.invalidWiredFunction)
             }
             guard let pin = GPIO.Pin(rawValue: UInt8(index)) else {
