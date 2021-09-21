@@ -42,17 +42,55 @@ public enum SPI {
         }
     }
 
-    public struct Config: Hashable {
-        public let isEnabled: Bool
-        public let endian: Endian
-        public let mode: Mode
-    }
+    public struct Config: ParsablePayload, Hashable {
+        static var byteSize: UInt {
+            return 5
+        }
 
-    public struct ConfigPayload: Payload {
         public let isEnabled: Bool
         public let endian: Endian
         public let mode: Mode
         public let bitrate: UInt32
+
+        static func parse(_ data: [UInt8], info: [String: Any]?) -> Result<SPI.Config, Error> {
+            if data.count != byteSize {
+                return .failure(PayloadParseError.invalidByteSize)
+            }
+            let first = data[0]
+            let (mfsb, lsfb) = first.split2()
+            guard let endian = SPI.Endian(rawValue: mfsb) else {
+                return .failure(SPI.ParseError.invalidEndian)
+            }
+            var mode: SPI.Mode? {
+                switch lsfb {
+                case 0x0:
+                    return .init(polarity: .low, phase: .low)
+                case 0x01:
+                    return .init(polarity: .low, phase: .high)
+                case 0x02:
+                    return .init(polarity: .high, phase: .low)
+                case 0x03:
+                    return .init(polarity: .high, phase: .high)
+                default:
+                    return nil
+                }
+            }
+            guard let mode = mode else {
+                return .failure(SPI.ParseError.invalidMode)
+            }
+            let flag = first.bits()
+            return .success(SPI.Config(
+                isEnabled: flag[7] == 1,
+                endian: endian,
+                mode: mode,
+                bitrate: UInt32.compose(
+                    first: data[4],
+                    second: data[3],
+                    third: data[2],
+                    forth: data[1]
+                )
+            ))
+        }
 
         func compose() -> [UInt8] {
             var firstByte: UInt8 = 0

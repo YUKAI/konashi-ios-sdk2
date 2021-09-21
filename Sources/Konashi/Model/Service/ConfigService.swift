@@ -92,9 +92,9 @@ public struct ConfigService: Service {
         case softwarePWM([PWM.Software.PinConfig])
         case hardwarePWM(config: PWM.Hardware.ConfigPayload)
         case analog(config: Analog.ConfigPayload)
-        case i2c(config: I2C.ConfigPayload)
-        case uart(config: UART.ConfigPayload)
-        case spi(config: SPI.ConfigPayload)
+        case i2c(config: I2C.Config)
+        case uart(config: UART.Config)
+        case spi(config: SPI.Config)
 
         func commandIdentifier() -> UInt8 {
             switch self {

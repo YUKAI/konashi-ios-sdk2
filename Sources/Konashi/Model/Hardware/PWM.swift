@@ -54,9 +54,50 @@ public enum PWM {
             public let transitionDuration: UInt32
         }
 
-        public struct PinConfig: Payload, Hashable {
+        public struct PinConfig: ParsablePayload, Hashable {
+            enum InfoKey: String {
+                case pin
+            }
+
+            static var byteSize: UInt {
+                return 3
+            }
+
             public let pin: PWM.Pin
             public let driveConfig: DriveConfig
+
+            static func parse(_ data: [UInt8], info: [String: Any]?) -> Result<PWM.Software.PinConfig, Error> {
+                if data.count != byteSize {
+                    return .failure(PayloadParseError.invalidByteSize)
+                }
+                guard let info = info, let pin = info[InfoKey.pin.rawValue] as? PWM.Pin else {
+                    return .failure(PayloadParseError.invalidInfo)
+                }
+                let first = data[0]
+                var driveConfig: PWM.Software.DriveConfig? {
+                    switch first {
+                    case 0x0:
+                        return .disable
+                    case 0x01:
+                        return .duty(
+                            millisec: UInt16.compose(fsb: data[1], lsb: data[2])
+                        )
+                    case 0x02:
+                        return .period(
+                            ratio: Float(UInt16.compose(fsb: data[1], lsb: data[2]) / 1000)
+                        )
+                    default:
+                        return nil
+                    }
+                }
+                guard let driveConfig = driveConfig else {
+                    return .failure(PWM.ParseError.invalidControlValue)
+                }
+                return .success(PWM.Software.PinConfig(
+                    pin: pin,
+                    driveConfig: driveConfig
+                ))
+            }
 
             func compose() -> [UInt8] {
                 var firstByte: UInt8 = pin.rawValue << 4
@@ -153,9 +194,31 @@ public enum PWM {
             case div1024
         }
 
-        public struct PinConfig: Payload, Hashable {
+        public struct PinConfig: ParsablePayload, Hashable {
+            enum InfoKey: String {
+                case pin
+            }
+
+            static var byteSize: UInt {
+                return 1
+            }
+
             public let pin: PWM.Pin
             public let isEnabled: Bool
+
+            static func parse(_ data: [UInt8], info: [String: Any]?) -> Result<PWM.Hardware.PinConfig, Error> {
+                if data.count != byteSize {
+                    return .failure(PayloadParseError.invalidInfo)
+                }
+                guard let info = info, let pin = info[InfoKey.pin.rawValue] as? PWM.Pin else {
+                    return .failure(PayloadParseError.invalidInfo)
+                }
+
+                return .success(PinConfig(
+                    pin: pin,
+                    isEnabled: data[0] == 1
+                ))
+            }
 
             func compose() -> [UInt8] {
                 var byte: UInt8 = pin.rawValue << 4

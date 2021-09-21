@@ -199,9 +199,10 @@ public extension Peripheral {
         return write(
             characteristic: ConfigService.configCommand,
             command: .uart(
-                config: UART.ConfigPayload(
+                config: UART.Config(
                     isEnabled: true,
-                    parity: parity, stopBit: stopBit,
+                    parity: parity,
+                    stopBit: stopBit,
                     baudrate: baudrate
                 )
             )
@@ -223,7 +224,7 @@ public extension Peripheral {
         return write(
             characteristic: ConfigService.configCommand,
             command: .spi(
-                config: SPI.ConfigPayload(
+                config: SPI.Config(
                     isEnabled: true,
                     endian: endian,
                     mode: mode,
@@ -248,7 +249,7 @@ public extension Peripheral {
         return write(
             characteristic: ConfigService.configCommand,
             command: .i2c(
-                config: I2C.ConfigPayload(
+                config: I2C.Config(
                     isEnabled: true,
                     mode: mode
                 )

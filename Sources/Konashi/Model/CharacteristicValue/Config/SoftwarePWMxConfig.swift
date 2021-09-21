@@ -21,36 +21,16 @@ public struct SoftwarePWMxConfig: CharacteristicValue, Hashable {
         }
         let chunk = bytes.chunked(by: 3)
         var configs = [PWM.Software.PinConfig]()
-        for (index, config) in chunk.enumerated() {
+        for (index, payload) in chunk.enumerated() {
             guard let pin = PWM.Pin(rawValue: UInt8(index)) else {
                 return .failure(CharacteristicValueParseError.invalidPinNumber)
             }
-            let first = config[0]
-            var driveConfig: PWM.Software.DriveConfig? {
-                switch first {
-                case 0x0:
-                    return .disable
-                case 0x01:
-                    return .duty(
-                        millisec: UInt16.compose(fsb: config[1], lsb: config[2])
-                    )
-                case 0x02:
-                    return .period(
-                        ratio: Float(UInt16.compose(fsb: config[1], lsb: config[2]) / 1000)
-                    )
-                default:
-                    return nil
-                }
+            switch PWM.Software.PinConfig.parse(payload, info: [PWM.Software.PinConfig.InfoKey.pin.rawValue: pin]) {
+            case let .success(config):
+                configs.append(config)
+            case let .failure(error):
+                return .failure(error)
             }
-            guard let driveConfig = driveConfig else {
-                return .failure(PWM.ParseError.invalidControlValue)
-            }
-            configs.append(
-                PWM.Software.PinConfig(
-                    pin: pin,
-                    driveConfig: driveConfig
-                )
-            )
         }
         return .success(SoftwarePWMxConfig(values: configs))
     }

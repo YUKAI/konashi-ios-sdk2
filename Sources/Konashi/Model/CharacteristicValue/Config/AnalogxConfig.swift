@@ -24,22 +24,16 @@ public struct AnalogxConfig: CharacteristicValue, Hashable {
             return .failure(CharacteristicValueParseError.invalidByteSize)
         }
         var configs = [Analog.PinConfig]()
-        for (index, config) in bytes[0 ..< 3].enumerated() {
+        for (index, payload) in bytes[0 ..< 3].enumerated() {
             guard let pin = Analog.Pin(rawValue: UInt8(index)) else {
                 return .failure(CharacteristicValueParseError.invalidPinNumber)
             }
-            let flag = config.bits()
-            guard let direction = Direction(rawValue: UInt8(flag[0])) else {
-                return .failure(CharacteristicValueParseError.invalidDirection)
+            switch Analog.PinConfig.parse([payload], info: [Analog.PinConfig.InfoKey.pin.rawValue: pin]) {
+            case let .success(config):
+                configs.append(config)
+            case let .failure(error):
+                return .failure(error)
             }
-            configs.append(
-                Analog.PinConfig(
-                    pin: pin,
-                    isEnabled: flag[3] == 1,
-                    notifyOnInputChange: flag[1] == 1,
-                    direction: direction
-                )
-            )
         }
         guard let adcVoltageReference = Analog.ADCVoltageReference(rawValue: bytes[4]) else {
             return .failure(Analog.ParseError.invalidADCVoltageReference)

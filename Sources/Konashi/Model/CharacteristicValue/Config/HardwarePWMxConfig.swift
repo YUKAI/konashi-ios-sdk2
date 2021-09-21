@@ -22,16 +22,16 @@ public struct HardwarePWMxConfig: CharacteristicValue, Hashable {
         }
 
         var configs = [PWM.Hardware.PinConfig]()
-        for (index, config) in bytes[0 ..< 4].enumerated() {
+        for (index, payload) in bytes[0 ..< 4].enumerated() {
             guard let pin = PWM.Pin(rawValue: UInt8(index)) else {
                 return .failure(CharacteristicValueParseError.invalidPinNumber)
             }
-            configs.append(
-                PWM.Hardware.PinConfig(
-                    pin: pin,
-                    isEnabled: config == 1
-                )
-            )
+            switch PWM.Hardware.PinConfig.parse([payload], info: [PWM.Hardware.PinConfig.InfoKey.pin.rawValue: pin]) {
+            case let .success(config):
+                configs.append(config)
+            case let .failure(error):
+                return .failure(error)
+            }
         }
 
         let configBytes = [UInt8](bytes[4 ..< 7])

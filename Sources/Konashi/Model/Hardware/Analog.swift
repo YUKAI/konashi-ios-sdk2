@@ -11,6 +11,7 @@ import Foundation
 
 public enum Analog {
     public enum ParseError: LocalizedError {
+        case invalidDirection
         case invalidADCVoltageReference
         case invalidVDACVoltageReference
         case invalidIDACCurrentStepSize
@@ -70,11 +71,38 @@ public enum Analog {
         public let step: UInt16
     }
 
-    public struct PinConfig: Payload, Hashable {
+    public struct PinConfig: ParsablePayload, Hashable {
+        enum InfoKey: String {
+            case pin
+        }
+
+        static var byteSize: UInt {
+            return 1
+        }
+
         public let pin: Analog.Pin
         public let isEnabled: Bool
         public let notifyOnInputChange: Bool
         public let direction: Direction
+
+        static func parse(_ data: [UInt8], info: [String: Any]?) -> Result<Analog.PinConfig, Error> {
+            if data.count != byteSize {
+                return .failure(PayloadParseError.invalidInfo)
+            }
+            guard let info = info, let pin = info[InfoKey.pin.rawValue] as? Analog.Pin else {
+                return .failure(PayloadParseError.invalidInfo)
+            }
+            let flag = data[0].bits()
+            guard let direction = Direction(rawValue: UInt8(flag[0])) else {
+                return .failure(Analog.ParseError.invalidDirection)
+            }
+            return .success(PinConfig(
+                pin: pin,
+                isEnabled: flag[3] == 1,
+                notifyOnInputChange: flag[1] == 1,
+                direction: direction
+            ))
+        }
 
         func compose() -> [UInt8] {
             var byte: UInt8 = pin.rawValue << 4

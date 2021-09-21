@@ -22,7 +22,6 @@ public enum ComparisonMethod {
 public enum CharacteristicValueParseError: LocalizedError {
     case invalidByteSize
     case invalidPinNumber
-    case invalidDirection
     case invalidLevel
     case invalidPHY
     case invalidPHYBitmask

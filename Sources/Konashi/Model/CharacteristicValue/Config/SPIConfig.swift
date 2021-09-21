@@ -19,35 +19,11 @@ public struct SPIConfig: CharacteristicValue, Hashable {
         if isValid(bytes: bytes, method: .equal) == false {
             return .failure(CharacteristicValueParseError.invalidByteSize)
         }
-        let first = bytes[0]
-        let (mfsb, lsfb) = first.split2()
-        guard let endian = SPI.Endian(rawValue: mfsb) else {
-            return .failure(SPI.ParseError.invalidEndian)
+        switch SPI.Config.parse(bytes, info: nil) {
+        case let .success(config):
+            return .success(SPIConfig(value: config))
+        case let .failure(error):
+            return .failure(error)
         }
-        var mode: SPI.Mode? {
-            switch lsfb {
-            case 0x0:
-                return .init(polarity: .low, phase: .low)
-            case 0x01:
-                return .init(polarity: .low, phase: .high)
-            case 0x02:
-                return .init(polarity: .high, phase: .low)
-            case 0x03:
-                return .init(polarity: .high, phase: .high)
-            default:
-                return nil
-            }
-        }
-        guard let mode = mode else {
-            return .failure(SPI.ParseError.invalidMode)
-        }
-        let flag = first.bits()
-        return .success(SPIConfig(
-            value: SPI.Config(
-                isEnabled: flag[7] == 1,
-                endian: endian,
-                mode: mode
-            )
-        ))
     }
 }

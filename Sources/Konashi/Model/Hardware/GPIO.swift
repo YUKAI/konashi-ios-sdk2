@@ -9,6 +9,7 @@ import Foundation
 
 public enum GPIO {
     public enum ParseError: LocalizedError {
+        case invalidDirection
         case invalidFunction
         case invalidWiredFunction
     }
@@ -141,7 +142,15 @@ public enum GPIO {
         }
     }
 
-    public struct PinConfig: Hashable, Payload {
+    public struct PinConfig: ParsablePayload, Hashable {
+        enum InfoKey: String {
+            case pin
+        }
+
+        static var byteSize: UInt {
+            return 2
+        }
+
         public let pin: GPIO.Pin
         public let mode: PinMode
         public var registerState: RegisterState = .none
@@ -153,6 +162,45 @@ public enum GPIO {
 
         public var wiredFunction: WiredFunction {
             return mode.toWiredFunction()
+        }
+
+        static func parse(_ data: [UInt8], info: [String: Any]?) -> Result<GPIO.PinConfig, Error> {
+            if data.count != byteSize {
+                return .failure(PayloadParseError.invalidByteSize)
+            }
+            guard let info = info, let pin = info[InfoKey.pin.rawValue] as? GPIO.Pin else {
+                return .failure(PayloadParseError.invalidInfo)
+            }
+            let first = data[0]
+            let second = data[1].bits()
+            guard let function = GPIO.Function(rawValue: first) else {
+                return .failure(GPIO.ParseError.invalidFunction)
+            }
+            guard let direction = Direction(rawValue: second[4]) else {
+                return .failure(GPIO.ParseError.invalidDirection)
+            }
+            guard let wiredFunction = GPIO.WiredFunction(rawValue: second[3] << 1 | second[2]) else {
+                return .failure(GPIO.ParseError.invalidWiredFunction)
+            }
+            var state: GPIO.RegisterState {
+                if second[0] == 0, second[1] == 0 {
+                    return .none
+                }
+                if second[1] == 1 {
+                    return .pullUp
+                }
+                if second[0] == 1 {
+                    return .pullDown
+                }
+                return .none
+            }
+            return .success(PinConfig(
+                pin: pin,
+                mode: .compose(enabled: function == .gpio, direction: direction, wiredFunction: wiredFunction),
+                registerState: state,
+                notifyOnInputChange: second[4] == 1,
+                function: function
+            ))
         }
 
         func compose() -> [UInt8] {

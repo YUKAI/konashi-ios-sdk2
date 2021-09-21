@@ -19,16 +19,11 @@ public struct I2CConfig: CharacteristicValue, Hashable {
         if isValid(bytes: bytes, method: .equal) == false {
             return .failure(CharacteristicValueParseError.invalidByteSize)
         }
-        let first = bytes[0]
-        let flag = first.bits()
-        guard let mode = I2C.Mode(rawValue: flag[0]) else {
-            return .failure(I2C.ParseError.invalidMode)
+        switch I2C.Config.parse(bytes, info: nil) {
+        case let .success(config):
+            return .success(I2CConfig(value: config))
+        case let .failure(error):
+            return .failure(error)
         }
-        return .success(I2CConfig(
-            value: I2C.Config(
-                isEnabled: flag[1] == 1,
-                mode: mode
-            )
-        ))
     }
 }

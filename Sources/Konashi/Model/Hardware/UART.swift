@@ -28,18 +28,41 @@ public enum UART {
         case _2
     }
 
-    public struct Config: Hashable {
-        public let isEnabled: Bool
-        public let parity: Parity
-        public let stopBit: StopBit
-        public let baudrate: UInt32
-    }
+    public struct Config: ParsablePayload, Hashable {
+        static var byteSize: UInt {
+            return 5
+        }
 
-    public struct ConfigPayload: Payload {
         public let isEnabled: Bool
         public let parity: Parity
         public let stopBit: StopBit
         public let baudrate: UInt32
+
+        static func parse(_ data: [UInt8], info: [String: Any]?) -> Result<UART.Config, Error> {
+            if data.count != byteSize {
+                return .failure(PayloadParseError.invalidByteSize)
+            }
+            let first = data[0]
+            let (mfsb, lsfb) = first.split2()
+            guard let parity = UART.Parity(rawValue: mfsb) else {
+                return .failure(UART.ParseError.invalidParity)
+            }
+            guard let stopBit = UART.StopBit(rawValue: lsfb) else {
+                return .failure(UART.ParseError.invalidStopBit)
+            }
+            let flag = first.bits()
+            return .success(UART.Config(
+                isEnabled: flag[7] == 1,
+                parity: parity,
+                stopBit: stopBit,
+                baudrate: UInt32.compose(
+                    first: data[1],
+                    second: data[2],
+                    third: data[3],
+                    forth: data[4]
+                )
+            ))
+        }
 
         func compose() -> [UInt8] {
             var firstByte: UInt8 = 0
