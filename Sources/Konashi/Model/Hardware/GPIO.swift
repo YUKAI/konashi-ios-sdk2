@@ -173,7 +173,7 @@ public enum GPIO {
             }
             let first = data[0]
             let second = data[1].bits()
-            guard let function = GPIO.Function(rawValue: first & 0x0f) else {
+            guard let function = GPIO.Function(rawValue: first & 0x0F) else {
                 return .failure(GPIO.ParseError.invalidFunction)
             }
             guard let direction = Direction(rawValue: second[4]) else {

@@ -73,7 +73,7 @@ public enum PWM {
                 guard let info = info, let pin = info[InfoKey.pin.rawValue] as? PWM.Pin else {
                     return .failure(PayloadParseError.invalidInfo)
                 }
-                let first = data[0] & 0x0f
+                let first = data[0] & 0x0F
                 var driveConfig: PWM.Software.DriveConfig? {
                     switch first {
                     case 0x0:
