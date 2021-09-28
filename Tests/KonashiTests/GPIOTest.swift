@@ -82,7 +82,7 @@ class GPIOTest: XCTestCase {
             ).get()
         )
 
-        // GPIO4: enable, open source (wired-or function) -> 0x41 0x18
+        // GPIO4: enable, open source (wired-or function) -> 0x41 0x08
         let gpio4 = GPIO.PinConfig(
             pin: .pin4,
             mode: .openSource
@@ -99,7 +99,7 @@ class GPIOTest: XCTestCase {
             ).get()
         )
 
-        // GPIO5: enable, open source (wired-or function), pull-down -> 0x51 0x19
+        // GPIO5: enable, open source (wired-or function), pull-down -> 0x51 0x09
         let gpio5 = GPIO.PinConfig(
             pin: .pin5,
             mode: .openSource,
@@ -117,7 +117,7 @@ class GPIOTest: XCTestCase {
             ).get()
         )
 
-        // GPIO6: enable, open drain (wired-and function) -> 0x61 0x14
+        // GPIO6: enable, open drain (wired-and function) -> 0x61 0x04
         let gpio6 = GPIO.PinConfig(
             pin: .pin6,
             mode: .openDrain
@@ -134,7 +134,7 @@ class GPIOTest: XCTestCase {
             ).get()
         )
 
-        // GPIO7: enable, open drain (wired-and function), pull-up -> 0x71 0x16
+        // GPIO7: enable, open drain (wired-and function), pull-up -> 0x71 0x06
         let gpio7 = GPIO.PinConfig(
             pin: .pin7,
             mode: .openDrain,
@@ -153,7 +153,7 @@ class GPIOTest: XCTestCase {
         )
 
         // Settings Command write:
-        // 0x01 0x01 0x20 0x11 0x10 0x21 0x12 0x31 0x11 0x41 0x18 0x51 0x19 0x61 0x14 0x71 0x16
+        // 0x01 0x01 0x20 0x11 0x10 0x21 0x12 0x31 0x11 0x41 0x18 0x51 0x19 0x61 0x14 0x71 0x06
         XCTAssertEqual(
             [UInt8](ConfigService.ConfigCommand.gpio([
                 gpio0,
