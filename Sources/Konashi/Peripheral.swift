@@ -18,7 +18,7 @@ private class PeripheralDelegate: NSObject {
     }
 }
 
-extension Peripheral {
+public extension Peripheral {
     static let instanceKey: String = "Peripheral.instanceKey"
     static let readyToUse = Notification.Name("Peripheral.readyToUseNotification")
     static let didConnect = Notification.Name("Peripheral.didConnectNotification")
@@ -28,6 +28,14 @@ extension Peripheral {
 }
 
 public final class Peripheral: Hashable {
+    public static func == (lhs: Peripheral, rhs: Peripheral) -> Bool {
+        return lhs.hashValue == rhs.hashValue
+    }
+
+    public func hash(into hasher: inout Hasher) {
+        hasher.combine(peripheral)
+    }
+
     public enum State: Hashable {
         public static func == (lhs: Peripheral.State, rhs: Peripheral.State) -> Bool {
             return lhs.hashValue == rhs.hashValue
@@ -55,9 +63,21 @@ public final class Peripheral: Hashable {
         case ready
     }
 
+    public enum PeripheralError: Error {
+        case couldNotFindCharacteristic
+    }
+
     public enum OperationError: LocalizedError {
         case invalidReadValue
         case couldNotReadValue
+    }
+
+    public let settingsService = SettingsService()
+    public let configService = ConfigService()
+    public let controlService = ControlService()
+
+    public var name: String? {
+        return peripheral.name
     }
 
     public private(set) lazy var services: [Service] = {
@@ -67,34 +87,6 @@ public final class Peripheral: Hashable {
             controlService
         ]
     }()
-
-    public let settingsService = SettingsService()
-    public let configService = ConfigService()
-    public let controlService = ControlService()
-
-    public static func == (lhs: Peripheral, rhs: Peripheral) -> Bool {
-        return lhs.hashValue == rhs.hashValue
-    }
-
-    public func hash(into hasher: inout Hasher) {
-        hasher.combine(peripheral)
-    }
-
-    public enum PeripheralError: Error {
-        case couldNotFindCharacteristic
-    }
-
-    // swiftlint:disable weak_delegate
-    private lazy var delegate: PeripheralDelegate = {
-        return PeripheralDelegate(peripheral: self)
-    }()
-
-    // swiftlint:enable weak_delegate
-
-    @Published fileprivate var isCharacteristicsDiscovered = false
-    @Published fileprivate var isCharacteristicsConfigured = false
-    @Published fileprivate var isConnected = false
-    @Published fileprivate var isConnecting = false
 
     @Published public private(set) var state: State = .disconnected
     @Published public fileprivate(set) var rssi: NSNumber?
@@ -110,6 +102,19 @@ public final class Peripheral: Hashable {
 
     public let operationErrorSubject = PassthroughSubject<Error, Never>()
     public let didWriteValueSubject = PassthroughSubject<(uuid: CBUUID, error: Error?), Never>()
+
+    // swiftlint:disable weak_delegate
+    private lazy var delegate: PeripheralDelegate = {
+        return PeripheralDelegate(peripheral: self)
+    }()
+
+    // swiftlint:enable weak_delegate
+
+    @Published fileprivate var isCharacteristicsDiscovered = false
+    @Published fileprivate var isCharacteristicsConfigured = false
+    @Published fileprivate var isConnected = false
+    @Published fileprivate var isConnecting = false
+
     fileprivate let didUpdateValueSubject = PassthroughSubject<(characteristic: CBCharacteristic, error: Error?), Never>()
     fileprivate var readyPromise = Promise<Void>.pending()
     fileprivate var discoveredServices = [CBService]()
@@ -118,10 +123,6 @@ public final class Peripheral: Hashable {
     private let peripheral: CBPeripheral
     private var observation: NSKeyValueObservation?
     private var cancellable = Set<AnyCancellable>()
-
-    public var name: String? {
-        return peripheral.name
-    }
 
     public init(peripheral: CBPeripheral) {
         self.peripheral = peripheral
@@ -132,6 +133,12 @@ public final class Peripheral: Hashable {
     deinit {
         timer?.invalidate()
     }
+    
+    public func isEqual(peripheral: CBPeripheral) -> Bool {
+        return peripheral == self.peripheral
+    }
+
+    // MARK: - Connection
 
     @discardableResult
     public func connect() -> Promise<Peripheral> {
@@ -230,6 +237,8 @@ public final class Peripheral: Hashable {
         }
     }
 
+    // MARK: - RSSI
+
     public func readRSSI(repeats: Bool = false, interval: TimeInterval = 1) {
         peripheral.delegate = delegate
         if repeats {
@@ -250,9 +259,7 @@ public final class Peripheral: Hashable {
         timer?.invalidate()
     }
 
-    public func isEqual(peripheral: CBPeripheral) -> Bool {
-        return peripheral == self.peripheral
-    }
+    // MARK: - Write/Read Command
 
     @discardableResult
     public func write<WriteCommand: Command>(
@@ -352,6 +359,8 @@ public final class Peripheral: Hashable {
         }
         return promise
     }
+
+    // MARK: - Private
 
     private func discoverServices() {
         print(">>> discoverServices")

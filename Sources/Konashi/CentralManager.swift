@@ -11,11 +11,25 @@ import Promises
 
 public final class CentralManager: NSObject {
     public static let shared = CentralManager()
+
+    public var state: CBManagerState {
+        return manager.state
+    }
+
+    public let operationErrorSubject = PassthroughSubject<Error, Never>()
+    public let didDiscoverSubject = PassthroughSubject<(peripheral: Peripheral, advertisementData: [String: Any], rssi: NSNumber), Never>()
+    public let didConnectSubject = PassthroughSubject<CBPeripheral, Never>()
+    public let didDisconnectSubject = PassthroughSubject<(CBPeripheral, Error?), Never>()
+    public let didFailedToConnectSubject = PassthroughSubject<(CBPeripheral, Error?), Never>()
+
+    @Published public private(set) var isScanning = false
+    @Published public private(set) var isConnecting = false
+
+    private var statePromise = Promise<Void>.pending()
+    private var cancellable = Set<AnyCancellable>()
     private lazy var manager: CBCentralManager = {
         return CBCentralManager(delegate: self, queue: nil)
     }()
-
-    private var statePromise = Promise<Void>.pending()
     fileprivate var numberOfConnectingPeripherals = 0 {
         didSet {
             if numberOfConnectingPeripherals == 0 {
@@ -26,21 +40,6 @@ public final class CentralManager: NSObject {
             }
         }
     }
-
-    public var state: CBManagerState {
-        return manager.state
-    }
-
-    @Published public private(set) var isScanning = false
-    @Published public private(set) var isConnecting = false
-
-    public let operationErrorSubject = PassthroughSubject<Error, Never>()
-    public let didDiscoverSubject = PassthroughSubject<(peripheral: Peripheral, advertisementData: [String: Any], rssi: NSNumber), Never>()
-    public let didConnectSubject = PassthroughSubject<CBPeripheral, Never>()
-    public let didDisconnectSubject = PassthroughSubject<(CBPeripheral, Error?), Never>()
-    public let didFailedToConnectSubject = PassthroughSubject<(CBPeripheral, Error?), Never>()
-
-    private var cancellable = Set<AnyCancellable>()
 
     override public init() {
         super.init()
