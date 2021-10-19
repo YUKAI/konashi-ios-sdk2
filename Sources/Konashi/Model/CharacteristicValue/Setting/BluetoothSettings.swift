@@ -75,7 +75,7 @@ public struct BluetoothSettings: CharacteristicValue {
         let flags = exAdvertiserContents.lsfb.bits()
 
         let gpioValues = bytes[4].bits()
-        let aioValues = bytes[5].split2().msfb.bits()
+        let aioValues = bytes[5].split2().msfb.bits()[...min(Analog.Pin.allCases.count, 7)]
         return .success(BluetoothSettings(
             isExadvEnabled: (bytes[0] & 0x01) != 0,
             isMeshEnabled: (bytes[0] & 0x02) != 0,
