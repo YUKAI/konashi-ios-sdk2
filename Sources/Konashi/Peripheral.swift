@@ -399,6 +399,7 @@ public final class Peripheral: Hashable {
             }
             if peripheral == weakSelf.peripheral {
                 weakSelf.timer?.invalidate()
+                weakSelf.internalCancellable.removeAll()
             }
         }.store(in: &internalCancellable)
         $isConnecting.removeDuplicates().sink { [weak self] connecting in
