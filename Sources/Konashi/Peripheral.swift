@@ -533,4 +533,6 @@ extension PeripheralDelegate: CBPeripheralDelegate {
             parentPeripheral!.isCharacteristicsConfigured = true
         }
     }
+    
+    public func peripheral(_ peripheral: CBPeripheral, didModifyServices invalidatedServices: [CBService]) {}
 }
