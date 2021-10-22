@@ -122,7 +122,7 @@ public final class Peripheral: Hashable {
     private var timer: Timer?
     private let peripheral: CBPeripheral
     private var observation: NSKeyValueObservation?
-    private var cancellable = Set<AnyCancellable>()
+    private var internalCancellable = Set<AnyCancellable>()
 
     public init(peripheral: CBPeripheral) {
         self.peripheral = peripheral
@@ -392,6 +392,7 @@ public final class Peripheral: Hashable {
     }
 
     private func prepareCombine() {
+        internalCancellable.removeAll()
         CentralManager.shared.didDisconnectSubject.sink { [weak self] peripheral, _ in
             guard let weakSelf = self else {
                 return
@@ -399,7 +400,7 @@ public final class Peripheral: Hashable {
             if peripheral == weakSelf.peripheral {
                 weakSelf.timer?.invalidate()
             }
-        }.store(in: &cancellable)
+        }.store(in: &internalCancellable)
         $isConnecting.removeDuplicates().sink { [weak self] connecting in
             guard let weakSelf = self else {
                 return
@@ -407,7 +408,7 @@ public final class Peripheral: Hashable {
             if connecting {
                 weakSelf.state = .connecting
             }
-        }.store(in: &cancellable)
+        }.store(in: &internalCancellable)
         $isConnected.removeDuplicates().sink { [weak self] connected in
             guard let weakSelf = self else {
                 return
@@ -416,7 +417,7 @@ public final class Peripheral: Hashable {
                 weakSelf.state = .connected
                 weakSelf.discoverServices()
             }
-        }.store(in: &cancellable)
+        }.store(in: &internalCancellable)
         $isCharacteristicsDiscovered.removeDuplicates().sink { [weak self] discovered in
             guard let weakSelf = self else {
                 return
@@ -424,7 +425,7 @@ public final class Peripheral: Hashable {
             if discovered {
                 weakSelf.configureCharacteristics()
             }
-        }.store(in: &cancellable)
+        }.store(in: &internalCancellable)
         isReady.removeDuplicates().sink { [weak self] ready in
             guard let weakSelf = self else {
                 return
@@ -436,7 +437,7 @@ public final class Peripheral: Hashable {
             else {
                 weakSelf.readyPromise = Promise<Void>.pending()
             }
-        }.store(in: &cancellable)
+        }.store(in: &internalCancellable)
     }
 
     private func prepareKVO() {
