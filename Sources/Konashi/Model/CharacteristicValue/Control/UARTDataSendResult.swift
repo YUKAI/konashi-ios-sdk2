@@ -7,6 +7,7 @@
 
 import Foundation
 
+/// Receive when UART send data has finished sending.
 public struct UARTDataSendResult: CharacteristicValue, Hashable {
     public static var byteSize: UInt {
         return 1

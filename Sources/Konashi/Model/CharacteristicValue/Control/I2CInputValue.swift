@@ -7,6 +7,7 @@
 
 import Foundation
 
+/// Receive the result and or read data of an I2C transfer.
 public struct I2CInputValue: CharacteristicValue, Hashable {
     public static var byteSize: UInt {
         return 128

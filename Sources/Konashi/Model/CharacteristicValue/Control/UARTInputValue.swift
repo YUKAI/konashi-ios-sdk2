@@ -7,11 +7,13 @@
 
 import Foundation
 
+/// Received data from UART.
 public struct UARTInputValue: CharacteristicValue, Hashable {
     public static var byteSize: UInt {
         return 128
     }
 
+    /// The received data (1~128 bytes)
     public let value: [UInt8]
 
     public static func parse(data: Data) -> Result<UARTInputValue, Error> {

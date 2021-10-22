@@ -9,10 +9,12 @@ import CoreBluetooth
 import Foundation
 
 public struct ConfigService: Service {
+    /// Service UUID of config service.
     public static var uuid: UUID {
         return UUID(uuidString: "064d0200-8251-49d9-b6f3-f7ba35e5d0a1")!
     }
 
+    /// An array of all characteristics of config service.
     public var characteristics: [Characteristic] {
         return [
             configCommand,
@@ -26,6 +28,7 @@ public struct ConfigService: Service {
         ]
     }
 
+    /// An array of characteristics that can notify update.
     public var notifiableCharacteristics: [Characteristic] {
         return [
             gpioConfig,
@@ -38,55 +41,56 @@ public struct ConfigService: Service {
         ]
     }
 
-    public let configCommand = WriteableCharacteristic<ConfigCommand>(
+    let configCommand = WriteableCharacteristic<ConfigCommand>(
         serviceUUID: ConfigService.uuid,
         uuid: UUID(
             uuidString: "064D0201-8251-49D9-B6F3-F7BA35E5D0A1"
         )!
     )
-    public let gpioConfig = ReadableCharacteristic<GPIOxConfig>(
+    let gpioConfig = ReadableCharacteristic<GPIOxConfig>(
         serviceUUID: ConfigService.uuid,
         uuid: UUID(
             uuidString: "064D0202-8251-49D9-B6F3-F7BA35E5D0A1"
         )!
     )
-    public let softwarePWMConfig = ReadableCharacteristic<SoftwarePWMxConfig>(
+    let softwarePWMConfig = ReadableCharacteristic<SoftwarePWMxConfig>(
         serviceUUID: ConfigService.uuid,
         uuid: UUID(
             uuidString: "064D0203-8251-49D9-B6F3-F7BA35E5D0A1"
         )!
     )
-    public let hardwarePWMConfig = ReadableCharacteristic<HardwarePWMxConfig>(
+    let hardwarePWMConfig = ReadableCharacteristic<HardwarePWMxConfig>(
         serviceUUID: ConfigService.uuid,
         uuid: UUID(
             uuidString: "064D0204-8251-49D9-B6F3-F7BA35E5D0A1"
         )!
     )
-    public let analogConfig = ReadableCharacteristic<AnalogxConfig>(
+    let analogConfig = ReadableCharacteristic<AnalogxConfig>(
         serviceUUID: ConfigService.uuid,
         uuid: UUID(
             uuidString: "064D0205-8251-49D9-B6F3-F7BA35E5D0A1"
         )!
     )
-    public let i2cConfig = ReadableCharacteristic<AnalogxConfig>(
+    let i2cConfig = ReadableCharacteristic<AnalogxConfig>(
         serviceUUID: ConfigService.uuid,
         uuid: UUID(
             uuidString: "064D0206-8251-49D9-B6F3-F7BA35E5D0A1"
         )!
     )
-    public let uartConfig = ReadableCharacteristic<UARTConfig>(
+    let uartConfig = ReadableCharacteristic<UARTConfig>(
         serviceUUID: ConfigService.uuid,
         uuid: UUID(
             uuidString: "064D0207-8251-49D9-B6F3-F7BA35E5D0A1"
         )!
     )
-    public let spiConfig = ReadableCharacteristic<SPIConfig>(
+    let spiConfig = ReadableCharacteristic<SPIConfig>(
         serviceUUID: ConfigService.uuid,
         uuid: UUID(
             uuidString: "064D0208-8251-49D9-B6F3-F7BA35E5D0A1"
         )!
     )
 
+    /// Command to configure a hardware element.
     public enum ConfigCommand: Command {
         case gpio([GPIO.PinConfig])
         case softwarePWM([PWM.Software.PinConfig])
@@ -115,6 +119,7 @@ public struct ConfigService: Service {
             }
         }
 
+        /// Convert instance to byte array.
         public func compose() -> Data {
             var bytes = [UInt8]()
             bytes.append(commandIdentifier())
@@ -143,48 +148,63 @@ public struct ConfigService: Service {
 }
 
 public extension ConfigService {
+    /// A characteristic to configure a hardware element in Konashi.
     static let configCommand = WriteableCharacteristic<ConfigCommand>(
         serviceUUID: ConfigService.uuid,
         uuid: UUID(
             uuidString: "064D0201-8251-49D9-B6F3-F7BA35E5D0A1"
         )!
     )
+    
+    /// A characteristic to get the current configuration of the GPIOs.
     static let gpioConfig = ReadableCharacteristic<GPIOxConfig>(
         serviceUUID: ConfigService.uuid,
         uuid: UUID(
             uuidString: "064D0202-8251-49D9-B6F3-F7BA35E5D0A1"
         )!
     )
+    
+    /// A characteristic to get the current configuration of the SoftPWMs.
     static let softwarePWMConfig = ReadableCharacteristic<SoftwarePWMxConfig>(
         serviceUUID: ConfigService.uuid,
         uuid: UUID(
             uuidString: "064D0203-8251-49D9-B6F3-F7BA35E5D0A1"
         )!
     )
+    
+    /// A characteristic to get the current configuration of the HardPWMs.
     static let hardwarePWMConfig = ReadableCharacteristic<HardwarePWMxConfig>(
         serviceUUID: ConfigService.uuid,
         uuid: UUID(
             uuidString: "064D0204-8251-49D9-B6F3-F7BA35E5D0A1"
         )!
     )
+    
+    /// A characteristic to get the current configuration of the Analog pins.
     static let analogConfig = ReadableCharacteristic<AnalogxConfig>(
         serviceUUID: ConfigService.uuid,
         uuid: UUID(
             uuidString: "064D0205-8251-49D9-B6F3-F7BA35E5D0A1"
         )!
     )
+    
+    /// A characteristic to get the current configuration of I2C.
     static let i2cConfig = ReadableCharacteristic<AnalogxConfig>(
         serviceUUID: ConfigService.uuid,
         uuid: UUID(
             uuidString: "064D0206-8251-49D9-B6F3-F7BA35E5D0A1"
         )!
     )
+    
+    /// A characteristic to get the current configuration of UART.
     static let uartConfig = ReadableCharacteristic<UARTConfig>(
         serviceUUID: ConfigService.uuid,
         uuid: UUID(
             uuidString: "064D0207-8251-49D9-B6F3-F7BA35E5D0A1"
         )!
     )
+
+    /// A characteristic to get the current configuration of SPI.
     static let spiConfig = ReadableCharacteristic<SPIConfig>(
         serviceUUID: ConfigService.uuid,
         uuid: UUID(

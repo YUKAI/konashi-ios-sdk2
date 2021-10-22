@@ -7,11 +7,13 @@
 
 import Foundation
 
+/// Received the read data of an SPI transfer.
 public struct SPIInputValue: CharacteristicValue, Hashable {
     public static var byteSize: UInt {
         return 128
     }
 
+    /// The read data, if any (0~127 bytes). The length of the read data would be the same length as the sent data.
     public let value: [UInt8]
 
     public static func parse(data: Data) -> Result<SPIInputValue, Error> {

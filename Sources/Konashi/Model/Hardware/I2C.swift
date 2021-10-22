@@ -35,16 +35,24 @@ public enum I2C {
 
     public struct Value: Hashable {
         public enum Result: UInt8 {
+            /// Transfer completed successfully
             case done
+            /// NACK received during transfer
             case nack
+            /// Bus error during transfer (misplaced START/STOP)
             case busError
+            /// Arbitration lost during transfer
             case arbLost
+            /// Usage fault
             case usageFault
+            /// SW fault
             case swFault
         }
 
         public let result: Result
+        /// Slave address
         public let address: UInt8
+        /// The read data, if any (0~126 bytes)
         public let readBytes: [UInt8]
     }
 

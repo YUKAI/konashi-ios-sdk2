@@ -13,6 +13,7 @@ public struct AnalogxInputValue: CharacteristicValue, Hashable {
     }
 
     public let values: [Analog.InputValue]
+    /// ADC voltage reference
     public let reference: Analog.ADCVoltageReference
 
     public static func parse(data: Data) -> Result<AnalogxInputValue, Error> {

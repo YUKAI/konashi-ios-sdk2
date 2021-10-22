@@ -9,10 +9,12 @@ import CoreBluetooth
 import Foundation
 
 public struct ControlService: Service {
+    /// Service UUID of control service.
     public static var uuid: UUID {
         return UUID(uuidString: "064D0300-8251-49D9-B6F3-F7BA35E5D0A1")!
     }
 
+    /// An array of all characteristics of control service.
     public var characteristics: [Characteristic] {
         return [
             controlCommand,
@@ -29,6 +31,7 @@ public struct ControlService: Service {
         ]
     }
 
+    /// An array of characteristics that can notify update.
     public var notifiableCharacteristics: [Characteristic] {
         return [
             gpioInput,
@@ -44,67 +47,67 @@ public struct ControlService: Service {
         ]
     }
 
-    public let controlCommand = WriteableCharacteristic<ControlCommand>(
+    let controlCommand = WriteableCharacteristic<ControlCommand>(
         serviceUUID: ControlService.uuid,
         uuid: UUID(
             uuidString: "064D0301-8251-49D9-B6F3-F7BA35E5D0A1"
         )!
     )
-    public let gpioOutput = ReadableCharacteristic<GPIOxValue>(
+    let gpioOutput = ReadableCharacteristic<GPIOxValue>(
         serviceUUID: ControlService.uuid,
         uuid: UUID(
             uuidString: "064D0302-8251-49D9-B6F3-F7BA35E5D0A1"
         )!
     )
-    public let gpioInput = ReadableCharacteristic<GPIOxValue>(
+    let gpioInput = ReadableCharacteristic<GPIOxValue>(
         serviceUUID: ControlService.uuid,
         uuid: UUID(
             uuidString: "064D0303-8251-49D9-B6F3-F7BA35E5D0A1"
         )!
     )
-    public let softwarePWMOutput = ReadableCharacteristic<SoftwarePWMxOutput>(
+    let softwarePWMOutput = ReadableCharacteristic<SoftwarePWMxOutput>(
         serviceUUID: ControlService.uuid,
         uuid: UUID(
             uuidString: "064D0304-8251-49D9-B6F3-F7BA35E5D0A1"
         )!
     )
-    public let hardwarePWMOutput = ReadableCharacteristic<HardwarePWMxOutput>(
+    let hardwarePWMOutput = ReadableCharacteristic<HardwarePWMxOutput>(
         serviceUUID: ControlService.uuid,
         uuid: UUID(
             uuidString: "064D0305-8251-49D9-B6F3-F7BA35E5D0A1"
         )!
     )
-    public let analogOutput = ReadableCharacteristic<AnalogxOutputValue>(
+    let analogOutput = ReadableCharacteristic<AnalogxOutputValue>(
         serviceUUID: ControlService.uuid,
         uuid: UUID(
             uuidString: "064D0306-8251-49D9-B6F3-F7BA35E5D0A1"
         )!
     )
-    public let analogInput = ReadableCharacteristic<AnalogxInputValue>(
+    let analogInput = ReadableCharacteristic<AnalogxInputValue>(
         serviceUUID: ControlService.uuid,
         uuid: UUID(
             uuidString: "064D0307-8251-49D9-B6F3-F7BA35E5D0A1"
         )!
     )
-    public let i2cDataInput = NotifiableCharacteristic<I2CInputValue>(
+    let i2cDataInput = NotifiableCharacteristic<I2CInputValue>(
         serviceUUID: ControlService.uuid,
         uuid: UUID(
             uuidString: "064D0308-8251-49D9-B6F3-F7BA35E5D0A1"
         )!
     )
-    public let uartDataInput = NotifiableCharacteristic<UARTInputValue>(
+    let uartDataInput = NotifiableCharacteristic<UARTInputValue>(
         serviceUUID: ControlService.uuid,
         uuid: UUID(
             uuidString: "064D0309-8251-49D9-B6F3-F7BA35E5D0A1"
         )!
     )
-    public let uartSendDone = NotifiableCharacteristic<UARTDataSendResult>(
+    let uartSendDone = NotifiableCharacteristic<UARTDataSendResult>(
         serviceUUID: ControlService.uuid,
         uuid: UUID(
             uuidString: "064D030A-8251-49D9-B6F3-F7BA35E5D0A1"
         )!
     )
-    public let spiDataInput = NotifiableCharacteristic<SPIInputValue>(
+    let spiDataInput = NotifiableCharacteristic<SPIInputValue>(
         serviceUUID: ControlService.uuid,
         uuid: UUID(
             uuidString: "064D030B-8251-49D9-B6F3-F7BA35E5D0A1"

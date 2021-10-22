@@ -139,6 +139,7 @@ public enum PWM {
     }
 
     public enum Hardware {
+        /// The clock source for the PWM timer
         public enum Clock: UInt8, CaseIterable, CustomStringConvertible {
             public var description: String {
                 switch self {
@@ -153,6 +154,7 @@ public enum PWM {
             case _20k
         }
 
+        /// The clock prescaler for the PWM timer
         public enum Prescaler: UInt8, CaseIterable, CustomStringConvertible {
             public var description: String {
                 switch self {

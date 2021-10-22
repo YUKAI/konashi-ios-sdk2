@@ -43,31 +43,50 @@ public enum Analog {
 
     public enum VDACVoltageReference: UInt8, CaseIterable {
         case disable
+        /// 1V25 low noise
         case _1V25LowNoise
+        /// 2V5 lo noise
         case _2V5LowNoise
+        /// 1V25
         case _1V25
+        /// 2V5
         case _2V5
+        // AVDD
         case avdd
     }
 
+    /// IDAC current step size
     public enum IDACCurrentStepSize: UInt8, CaseIterable {
         case disable
+        /// range 0.05~1.6uA, step 50nA
         case step50nA
+        /// range 1.6~4.7uA, step 100nA
         case step100nA
+        /// range 0.5~16uA, step 500nA
         case step500nA
+        // range 2~64uA, step 2000nA
         case step2000nA
     }
 
     public struct OutputValue: Hashable {
         public let pin: Analog.Pin
+        /// Indicates if the input value is valid.
+        /// The pin is not an input, the value should be ignored.
+        /// On the other hand, the pin is input and the value is true.
         public let isValid: Bool
+        /// Current control value. The voltage or current step value currently set
         public let value: UInt16
+        /// Transition duration remaining. Units of 1ms (0~4294967295)
         public let transitionDuration: UInt32
     }
 
     public struct InputValue: Hashable {
         public let pin: Analog.Pin
+        /// Indicates if the input value is valid.
+        /// The pin is not an input, the value should be ignored.
+        /// On the other hand, the pin is input and the value is true.
         public let isValid: Bool
+        /// Voltage step value (0~65535)
         public let step: UInt16
     }
 
