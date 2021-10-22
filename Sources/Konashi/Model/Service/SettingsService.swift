@@ -63,14 +63,14 @@ public struct SettingsService: Service {
             switch self {
             case let .nvmUseSet(enabled):
                 if enabled {
-                    return [0x01]
+                    return [0x01, 0x01]
                 }
-                return [0x0]
+                return [0x01, 0x0]
             case let .nvmSaveTriggerSet(trigger):
                 if trigger == .automatic {
-                    return [0x0]
+                    return [0x02, 0x0]
                 }
-                return [0x01]
+                return [0x02, 0x01]
             case .nvmSaveNow:
                 return [0x03]
             case .nvmEraseNow:
@@ -177,11 +177,11 @@ public struct SettingsService: Service {
             var bytes = [UInt8]()
             if let bluetoothFunction = bluetoothFunction {
                 var byte: UInt8 = 0b00000000
-                if bluetoothFunction.function == .mesh {
-                    byte |= 0b00000001
+                if bluetoothFunction.function == .exAdvertiser {
+                    byte |= 0b00010000
                 }
                 if bluetoothFunction.enabled {
-                    byte |= 0b01000000
+                    byte |= 0b00000001
                 }
                 bytes.append(byte)
             }
