@@ -9,20 +9,31 @@ import Combine
 import CoreBluetooth
 import Promises
 
+/// A utility class of managiment procetudes such as discover, connect and disconnect peripherals.
+/// This class is a wrapper of CBCentralManager. All procedure should proceed through this class.
 public final class CentralManager: NSObject {
+    /// A shared instance of CentralManager.
     public static let shared = CentralManager()
 
+    /// Represents the current state of a CBManager.
     public var state: CBManagerState {
         return manager.state
     }
 
+    /// A subject that sends any operation errors.
     public let operationErrorSubject = PassthroughSubject<Error, Never>()
+    /// A subject that sends discovered peripheral and advertisement datas.
     public let didDiscoverSubject = PassthroughSubject<(peripheral: Peripheral, advertisementData: [String: Any], rssi: NSNumber), Never>()
+    /// A subject that sends a peripheral that is connected.
     public let didConnectSubject = PassthroughSubject<CBPeripheral, Never>()
+    /// A subject that sends a peripheral when a peripheral is disconnected.
     public let didDisconnectSubject = PassthroughSubject<(CBPeripheral, Error?), Never>()
+    /// A subject that sends a peripheral when failed to connect.
     public let didFailedToConnectSubject = PassthroughSubject<(CBPeripheral, Error?), Never>()
 
+    /// This value indicates that a centeral manager is scanning peripherals.
     @Published public private(set) var isScanning = false
+    /// This value indicates that a centeral manager is connecting a peripheral.
     @Published public private(set) var isConnecting = false
 
     private var statePromise = Promise<Void>.pending()
@@ -63,6 +74,8 @@ public final class CentralManager: NSObject {
         }.store(in: &cancellable)
     }
 
+    /// Attempt to scan available peripherals.
+    /// - Returns: A promise object for this method.
     public func scan() -> Promise<Void> {
         if manager.state == .poweredOn {
             statePromise.fulfill(())
@@ -87,6 +100,11 @@ public final class CentralManager: NSObject {
         return promise
     }
 
+    /// Attempt to find a peripheral.
+    /// - Parameters:
+    ///    - name: Peripheral name to find.
+    ///    - timeoutInterval: The duration of timeout.
+    /// - Returns: A promise object for this method.
     public func find(name: String, timeoutInterval: TimeInterval = 5) -> Promise<Peripheral> {
         var cancellable = Set<AnyCancellable>()
         return Promise<Peripheral> { [weak self] resolve, _ in
@@ -110,6 +128,8 @@ public final class CentralManager: NSObject {
         }
     }
 
+    /// Stop finding a peripheral.
+    /// - Returns: A promise object for this method.
     @discardableResult
     public func stopScan() -> Promise<Void> {
         let promise = Promise<Void>.pending()
@@ -119,11 +139,17 @@ public final class CentralManager: NSObject {
         return promise
     }
 
+    /// Connect to peripheral.
+    /// - Parameters:
+    ///    - peripheral: A peripheral to connect.
     func connect(_ peripheral: CBPeripheral) {
         numberOfConnectingPeripherals += 1
         manager.connect(peripheral, options: nil)
     }
 
+    /// Disconnect peripheral.
+    /// - Parameters:
+    ///    - peripheral: A peripheral to disconnect.
     func disconnect(_ peripheral: CBPeripheral) {
         manager.cancelPeripheralConnection(peripheral)
     }
