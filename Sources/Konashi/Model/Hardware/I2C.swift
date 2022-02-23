@@ -61,10 +61,16 @@ public enum I2C {
             return 1
         }
 
-        public let isEnabled: Bool
-        public let mode: Mode
+        public enum Value: Hashable {
+            case enable(mode: Mode)
+            case disable
+        }
 
-        static func parse(_ data: [UInt8], info: [String: Any]?) -> Result<I2C.Config, Error> {
+        public let value: Value
+
+        static let disable = Config(value: .disable)
+
+        static func parse(_ data: [UInt8], info: [String: Any]? = nil) -> Result<I2C.Config, Error> {
             if data.count != byteSize {
                 return .failure(PayloadParseError.invalidByteSize)
             }
@@ -72,20 +78,22 @@ public enum I2C {
             guard let mode = I2C.Mode(rawValue: flag[0]) else {
                 return .failure(I2C.ParseError.invalidMode)
             }
-            return .success(I2C.Config(
-                isEnabled: flag[1] == 1,
-                mode: mode
-            ))
+            if flag[1] == 1 {
+                return .success(I2C.Config(value: .enable(mode: mode)))
+            }
+            return .success(I2C.Config.disable)
         }
 
         func compose() -> [UInt8] {
-            var byte: UInt8 = 0
-            if isEnabled {
+            switch value {
+            case let .enable(mode):
+                var byte: UInt8 = 0
                 byte |= 0x01 << 1
+                byte |= mode.rawValue
+                return [byte]
+            case .disable:
+                return [0x00]
             }
-            byte |= mode.rawValue
-
-            return [byte]
         }
     }
 
@@ -96,7 +104,13 @@ public enum I2C {
         public let writeData: [UInt8]
 
         func compose() -> [UInt8] {
-            return [operation.rawValue, readLength, address] + writeData[0 ..< 124]
+            var data: [UInt8] {
+                if writeData.count >= 124 {
+                    return [UInt8](writeData[0 ..< 124])
+                }
+                return writeData
+            }
+            return [operation.rawValue, readLength, address] + data
         }
     }
 }

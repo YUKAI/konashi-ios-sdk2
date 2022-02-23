@@ -9,6 +9,7 @@ import Combine
 import CoreBluetooth
 import Foundation
 
+/// An interface for BLE characteristics.
 public protocol Characteristic {
     var serviceUUID: UUID { get }
     var uuid: UUID { get }

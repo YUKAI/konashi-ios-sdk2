@@ -33,46 +33,58 @@ public enum UART {
             return 5
         }
 
-        public let isEnabled: Bool
-        public let parity: Parity
-        public let stopBit: StopBit
-        public let baudrate: UInt32
+        public enum Value: Hashable {
+            case enable(parity: Parity, stopBit: StopBit, baudrate: UInt32)
+            case disable
+        }
 
-        static func parse(_ data: [UInt8], info: [String: Any]?) -> Result<UART.Config, Error> {
+        public let value: Value
+
+        static let disable = Config(value: .disable)
+
+        static func parse(_ data: [UInt8], info: [String: Any]? = nil) -> Result<UART.Config, Error> {
             if data.count != byteSize {
                 return .failure(PayloadParseError.invalidByteSize)
             }
             let first = data[0]
-            let (mfsb, lsfb) = first.split2()
-            guard let parity = UART.Parity(rawValue: mfsb) else {
+            let (_, lsfb) = first.split2()
+            guard let parity = UART.Parity(rawValue: lsfb >> 2) else {
                 return .failure(UART.ParseError.invalidParity)
             }
-            guard let stopBit = UART.StopBit(rawValue: lsfb) else {
+            guard let stopBit = UART.StopBit(rawValue: lsfb & 0b00000011) else {
                 return .failure(UART.ParseError.invalidStopBit)
             }
             let flag = first.bits()
-            return .success(UART.Config(
-                isEnabled: flag[7] == 1,
-                parity: parity,
-                stopBit: stopBit,
-                baudrate: UInt32.compose(
-                    first: data[1],
-                    second: data[2],
-                    third: data[3],
-                    forth: data[4]
+            if flag[7] == 1 {
+                return .success(
+                    UART.Config(
+                        value: .enable(
+                            parity: parity,
+                            stopBit: stopBit,
+                            baudrate: UInt32.compose(
+                                first: data[1],
+                                second: data[2],
+                                third: data[3],
+                                forth: data[4]
+                            )
+                        )
+                    )
                 )
-            ))
+            }
+            return .success(UART.Config(value: .disable))
         }
 
         func compose() -> [UInt8] {
-            var firstByte: UInt8 = 0
-            if isEnabled {
+            switch value {
+            case let .enable(parity, stopBit, baudrate):
+                var firstByte: UInt8 = 0
                 firstByte |= 0x80
+                firstByte |= parity.rawValue << 2
+                firstByte |= stopBit.rawValue
+                return [firstByte] + baudrate.byteArray().reversed()
+            case .disable:
+                return [0x00, 0x00, 0x00, 0x00, 0x00]
             }
-            firstByte |= parity.rawValue << 2
-            firstByte |= stopBit.rawValue
-
-            return [firstByte] + baudrate.byteArray().reversed()
         }
     }
 
@@ -80,7 +92,10 @@ public enum UART {
         public let data: [UInt8]
 
         func compose() -> [UInt8] {
-            return [UInt8](data[0 ..< 127])
+            if data.count >= 127 {
+                return [UInt8](data[0 ..< 127])
+            }
+            return data
         }
     }
 }

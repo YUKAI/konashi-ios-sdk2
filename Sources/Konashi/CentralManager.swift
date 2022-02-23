@@ -38,9 +38,8 @@ public final class CentralManager: NSObject {
 
     private var statePromise = Promise<Void>.pending()
     private var cancellable = Set<AnyCancellable>()
-    private lazy var manager: CBCentralManager = {
-        return CBCentralManager(delegate: self, queue: nil)
-    }()
+    private lazy var manager: CBCentralManager = .init(delegate: self, queue: nil)
+
     fileprivate var numberOfConnectingPeripherals = 0 {
         didSet {
             if numberOfConnectingPeripherals == 0 {

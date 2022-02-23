@@ -104,7 +104,7 @@ public enum Analog {
         public let notifyOnInputChange: Bool
         public let direction: Direction
 
-        static func parse(_ data: [UInt8], info: [String: Any]?) -> Result<Analog.PinConfig, Error> {
+        static func parse(_ data: [UInt8], info: [String: Any]? = nil) -> Result<Analog.PinConfig, Error> {
             if data.count != byteSize {
                 return .failure(PayloadParseError.invalidInfo)
             }

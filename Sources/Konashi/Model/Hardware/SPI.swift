@@ -38,7 +38,7 @@ public enum SPI {
         public let phase: Phase
 
         func compose() -> [UInt8] {
-            return [(polarity.rawValue << 1) & (phase.rawValue)]
+            return [(polarity.rawValue << 1) | (phase.rawValue)]
         }
     }
 
@@ -47,30 +47,34 @@ public enum SPI {
             return 5
         }
 
-        public let isEnabled: Bool
-        public let endian: Endian
-        public let mode: Mode
-        public let bitrate: UInt32
+        public enum Value: Hashable {
+            case enable(endian: Endian, mode: Mode, bitrate: UInt32)
+            case disable
+        }
 
-        static func parse(_ data: [UInt8], info: [String: Any]?) -> Result<SPI.Config, Error> {
+        public let value: Value
+
+        static let disable = Config(value: .disable)
+
+        static func parse(_ data: [UInt8], info: [String: Any]? = nil) -> Result<SPI.Config, Error> {
             if data.count != byteSize {
                 return .failure(PayloadParseError.invalidByteSize)
             }
             let first = data[0]
-            let (mfsb, lsfb) = first.split2()
-            guard let endian = SPI.Endian(rawValue: mfsb) else {
+            let (_, lsfb) = first.split2()
+            guard let endian = SPI.Endian(rawValue: lsfb.bits()[3]) else {
                 return .failure(SPI.ParseError.invalidEndian)
             }
             var mode: SPI.Mode? {
-                switch lsfb {
+                switch lsfb & 0b00000011 {
                 case 0x0:
-                    return .init(polarity: .low, phase: .low)
+                    return .mode0
                 case 0x01:
-                    return .init(polarity: .low, phase: .high)
+                    return .mode1
                 case 0x02:
-                    return .init(polarity: .high, phase: .low)
+                    return .mode2
                 case 0x03:
-                    return .init(polarity: .high, phase: .high)
+                    return .mode3
                 default:
                     return nil
                 }
@@ -79,28 +83,36 @@ public enum SPI {
                 return .failure(SPI.ParseError.invalidMode)
             }
             let flag = first.bits()
-            return .success(SPI.Config(
-                isEnabled: flag[7] == 1,
-                endian: endian,
-                mode: mode,
-                bitrate: UInt32.compose(
-                    first: data[4],
-                    second: data[3],
-                    third: data[2],
-                    forth: data[1]
+            if flag[7] == 0 {
+                return .success(SPI.Config(value: .disable))
+            }
+            return .success(
+                SPI.Config(
+                    value: .enable(
+                        endian: endian,
+                        mode: mode,
+                        bitrate: UInt32.compose(
+                            first: data[1],
+                            second: data[2],
+                            third: data[3],
+                            forth: data[4]
+                        )
+                    )
                 )
-            ))
+            )
         }
 
         func compose() -> [UInt8] {
-            var firstByte: UInt8 = 0
-            if isEnabled {
+            switch value {
+            case let .enable(endian, mode, bitrate):
+                var firstByte: UInt8 = 0
                 firstByte |= 0x80
+                firstByte |= endian.rawValue << 3
+                firstByte |= mode.compose().first!
+                return [firstByte] + bitrate.byteArray().reversed()
+            case .disable:
+                return [0x00, 0x00, 0x00, 0x00, 0x00]
             }
-            firstByte |= endian.rawValue << 3
-            firstByte |= mode.compose().first!
-
-            return [firstByte] + bitrate.byteArray().reversed()
         }
     }
 
@@ -108,7 +120,10 @@ public enum SPI {
         public let data: [UInt8]
 
         func compose() -> [UInt8] {
-            return [UInt8](data[0 ..< 127])
+            if data.count >= 127 {
+                return [UInt8](data[0 ..< 127])
+            }
+            return data
         }
     }
 }

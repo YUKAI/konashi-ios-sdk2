@@ -90,23 +90,19 @@ public final class Peripheral: Hashable {
 
     @Published public private(set) var state: State = .disconnected
     @Published public fileprivate(set) var rssi: NSNumber?
-    public private(set) lazy var isReady: AnyPublisher<Bool, Never> = {
-        return Publishers.CombineLatest3(
-            $isConnected,
-            $isCharacteristicsDiscovered,
-            $isCharacteristicsConfigured
-        ).map { connected, discovered, configured in
-            return connected && discovered && configured
-        }.eraseToAnyPublisher()
-    }()
+    public private(set) lazy var isReady: AnyPublisher<Bool, Never> = Publishers.CombineLatest3(
+        $isConnected,
+        $isCharacteristicsDiscovered,
+        $isCharacteristicsConfigured
+    ).map { connected, discovered, configured in
+        return connected && discovered && configured
+    }.eraseToAnyPublisher()
 
     public let operationErrorSubject = PassthroughSubject<Error, Never>()
     public let didWriteValueSubject = PassthroughSubject<(uuid: CBUUID, error: Error?), Never>()
 
     // swiftlint:disable weak_delegate
-    private lazy var delegate: PeripheralDelegate = {
-        return PeripheralDelegate(peripheral: self)
-    }()
+    private lazy var delegate: PeripheralDelegate = .init(peripheral: self)
 
     // swiftlint:enable weak_delegate
 
@@ -133,7 +129,7 @@ public final class Peripheral: Hashable {
     deinit {
         timer?.invalidate()
     }
-    
+
     public func isEqual(peripheral: CBPeripheral) -> Bool {
         return peripheral == self.peripheral
     }
@@ -534,6 +530,6 @@ extension PeripheralDelegate: CBPeripheralDelegate {
             parentPeripheral!.isCharacteristicsConfigured = true
         }
     }
-    
+
     public func peripheral(_ peripheral: CBPeripheral, didModifyServices invalidatedServices: [CBService]) {}
 }

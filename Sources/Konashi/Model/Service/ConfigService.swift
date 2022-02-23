@@ -155,7 +155,7 @@ public extension ConfigService {
             uuidString: "064D0201-8251-49D9-B6F3-F7BA35E5D0A1"
         )!
     )
-    
+
     /// A characteristic to get the current configuration of the GPIOs.
     static let gpioConfig = ReadableCharacteristic<GPIOxConfig>(
         serviceUUID: ConfigService.uuid,
@@ -163,7 +163,7 @@ public extension ConfigService {
             uuidString: "064D0202-8251-49D9-B6F3-F7BA35E5D0A1"
         )!
     )
-    
+
     /// A characteristic to get the current configuration of the SoftPWMs.
     static let softwarePWMConfig = ReadableCharacteristic<SoftwarePWMxConfig>(
         serviceUUID: ConfigService.uuid,
@@ -171,7 +171,7 @@ public extension ConfigService {
             uuidString: "064D0203-8251-49D9-B6F3-F7BA35E5D0A1"
         )!
     )
-    
+
     /// A characteristic to get the current configuration of the HardPWMs.
     static let hardwarePWMConfig = ReadableCharacteristic<HardwarePWMxConfig>(
         serviceUUID: ConfigService.uuid,
@@ -179,7 +179,7 @@ public extension ConfigService {
             uuidString: "064D0204-8251-49D9-B6F3-F7BA35E5D0A1"
         )!
     )
-    
+
     /// A characteristic to get the current configuration of the Analog pins.
     static let analogConfig = ReadableCharacteristic<AnalogxConfig>(
         serviceUUID: ConfigService.uuid,
@@ -187,7 +187,7 @@ public extension ConfigService {
             uuidString: "064D0205-8251-49D9-B6F3-F7BA35E5D0A1"
         )!
     )
-    
+
     /// A characteristic to get the current configuration of I2C.
     static let i2cConfig = ReadableCharacteristic<AnalogxConfig>(
         serviceUUID: ConfigService.uuid,
@@ -195,7 +195,7 @@ public extension ConfigService {
             uuidString: "064D0206-8251-49D9-B6F3-F7BA35E5D0A1"
         )!
     )
-    
+
     /// A characteristic to get the current configuration of UART.
     static let uartConfig = ReadableCharacteristic<UARTConfig>(
         serviceUUID: ConfigService.uuid,

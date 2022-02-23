@@ -7,6 +7,7 @@
 
 import Foundation
 
+/// An interface for command payload. All BLE commands inherit this protocol.
 public protocol Command {
     func compose() -> Data
 }
