@@ -326,7 +326,7 @@ public final class Peripheral: Hashable {
 
     /// Retrieves the value of a specified characteristic.
     /// - Parameter characteristic: The characteristic whose value you want to read.
-    /// - Returns: Promise of read value.
+    /// - Returns: A promise object of read value.
     @discardableResult
     public func read<Value: CharacteristicValue>(characteristic: ReadableCharacteristic<Value>) -> Promise<Value> {
         var cancellable = Set<AnyCancellable>()

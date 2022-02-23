@@ -101,8 +101,8 @@ public final class CentralManager: NSObject {
 
     /// Attempt to find a peripheral.
     /// - Parameters:
-    ///    - name: Peripheral name to find.
-    ///    - timeoutInterval: The duration of timeout.
+    ///   - name: Peripheral name to find.
+    ///   - timeoutInterval: The duration of timeout.
     /// - Returns: A promise object for this method.
     public func find(name: String, timeoutInterval: TimeInterval = 5) -> Promise<Peripheral> {
         var cancellable = Set<AnyCancellable>()
@@ -139,16 +139,14 @@ public final class CentralManager: NSObject {
     }
 
     /// Connect to peripheral.
-    /// - Parameters:
-    ///    - peripheral: A peripheral to connect.
+    /// - Parameter peripheral: A peripheral to connect.
     func connect(_ peripheral: CBPeripheral) {
         numberOfConnectingPeripherals += 1
         manager.connect(peripheral, options: nil)
     }
 
     /// Disconnect peripheral.
-    /// - Parameters:
-    ///    - peripheral: A peripheral to disconnect.
+    /// - Parameter peripheral: A peripheral to disconnect.
     func disconnect(_ peripheral: CBPeripheral) {
         manager.cancelPeripheralConnection(peripheral)
     }
