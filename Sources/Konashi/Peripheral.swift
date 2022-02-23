@@ -31,6 +31,7 @@ public final class Peripheral: Hashable {
         hasher.combine(peripheral)
     }
 
+    /// A state of the peripheral.
     public enum State: Hashable {
         public static func == (lhs: Peripheral.State, rhs: Peripheral.State) -> Bool {
             return lhs.hashValue == rhs.hashValue
@@ -62,6 +63,7 @@ public final class Peripheral: Hashable {
         case couldNotFindCharacteristic
     }
 
+    /// An error that the peripheral returns during read / write operation.
     public enum OperationError: LocalizedError {
         case invalidReadValue
         case couldNotReadValue
@@ -71,6 +73,7 @@ public final class Peripheral: Hashable {
     public let configService = ConfigService()
     public let controlService = ControlService()
 
+    /// A name of the peripheral.
     public var name: String? {
         return peripheral.name
     }
@@ -93,7 +96,9 @@ public final class Peripheral: Hashable {
         return connected && discovered && configured
     }.eraseToAnyPublisher()
 
+    /// A subject that sends any operation errors.
     public let operationErrorSubject = PassthroughSubject<Error, Never>()
+    /// A subject that sends value that is written to the peripheral.
     public let didWriteValueSubject = PassthroughSubject<(uuid: CBUUID, error: Error?), Never>()
 
     // swiftlint:disable weak_delegate
