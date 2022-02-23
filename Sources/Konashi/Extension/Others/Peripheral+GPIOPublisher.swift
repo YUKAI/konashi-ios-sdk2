@@ -63,34 +63,42 @@ public extension Peripheral {
         return subject
     }
 
+    /// A subject that sends value of GPIO0.
     var gpio0: PassthroughSubject<GPIO.Value, Never> {
         return makeGPIOSubject(pin: .pin0)
     }
 
+    /// A subject that sends value of GPIO1.
     var gpio1: PassthroughSubject<GPIO.Value, Never> {
         return makeGPIOSubject(pin: .pin1)
     }
 
+    /// A subject that sends value of GPIO2.
     var gpio2: PassthroughSubject<GPIO.Value, Never> {
         return makeGPIOSubject(pin: .pin2)
     }
 
+    /// A subject that sends value of GPIO3.
     var gpio3: PassthroughSubject<GPIO.Value, Never> {
         return makeGPIOSubject(pin: .pin3)
     }
 
+    /// A subject that sends value of GPIO4.
     var gpio4: PassthroughSubject<GPIO.Value, Never> {
         return makeGPIOSubject(pin: .pin4)
     }
 
+    /// A subject that sends value of GPIO5.
     var gpio5: PassthroughSubject<GPIO.Value, Never> {
         return makeGPIOSubject(pin: .pin5)
     }
 
+    /// A subject that sends value of GPIO6.
     var gpio6: PassthroughSubject<GPIO.Value, Never> {
         return makeGPIOSubject(pin: .pin6)
     }
 
+    /// A subject that sends value of GPIO7.
     var gpio7: PassthroughSubject<GPIO.Value, Never> {
         return makeGPIOSubject(pin: .pin7)
     }
