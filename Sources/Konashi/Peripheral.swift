@@ -31,7 +31,7 @@ public final class Peripheral: Hashable {
         hasher.combine(peripheral)
     }
 
-    /// A state of the peripheral.
+    /// A confition of the peripheral.
     public enum State: Hashable {
         public static func == (lhs: Peripheral.State, rhs: Peripheral.State) -> Bool {
             return lhs.hashValue == rhs.hashValue
@@ -59,6 +59,7 @@ public final class Peripheral: Hashable {
         case readyToUse
     }
 
+    /// An error that the reason of why the peripheral could not ready to use.
     public enum PeripheralError: Error {
         case couldNotFindCharacteristic
     }
@@ -69,8 +70,11 @@ public final class Peripheral: Hashable {
         case couldNotReadValue
     }
 
+    /// A service of the peripheral's setting.
     public let settingsService = SettingsService()
+    /// A service of the peripheral's config.
     public let configService = ConfigService()
+    /// A service to control the peripheral.
     public let controlService = ControlService()
 
     /// A name of the peripheral.
@@ -78,6 +82,7 @@ public final class Peripheral: Hashable {
         return peripheral.name
     }
 
+    /// A collection of services of the peripheral.
     public private(set) lazy var services: [Service] = {
         return [
             settingsService,
@@ -86,6 +91,7 @@ public final class Peripheral: Hashable {
         ]
     }()
 
+    /// A state of the peripheral.
     @Published public private(set) var state: State = .disconnected
     @Published public fileprivate(set) var rssi: NSNumber?
     public private(set) lazy var isReady: AnyPublisher<Bool, Never> = Publishers.CombineLatest3(
@@ -136,6 +142,7 @@ public final class Peripheral: Hashable {
 
     // MARK: - Connection
 
+    /// Connects to the peripheral.
     @discardableResult
     public func connect() -> Promise<Peripheral> {
         var cancellable = Set<AnyCancellable>()
@@ -190,6 +197,7 @@ public final class Peripheral: Hashable {
         }
     }
 
+    /// Disconnects from the peripheral.
     @discardableResult
     public func disconnect() -> Promise<Void> {
         var cancellable = Set<AnyCancellable>()
@@ -235,6 +243,10 @@ public final class Peripheral: Hashable {
 
     // MARK: - RSSI
 
+    /// Reads RSSI value of the peripheral.
+    /// - Parameters:
+    ///   - repeats: Specify true to read RSSI repeatedly.
+    ///   - interval: An interval of read RSSI value.
     public func readRSSI(repeats: Bool = false, interval: TimeInterval = 1) {
         peripheral.delegate = delegate
         if repeats {
@@ -251,12 +263,18 @@ public final class Peripheral: Hashable {
         }
     }
 
+    /// Stops reading RSSI value.
     public func stopReadRSSI() {
         timer?.invalidate()
     }
 
     // MARK: - Write/Read Command
 
+    /// Writes command to the characteristic
+    /// - Parameters:
+    ///   - characteristic: The characteristic containing the value to write.
+    ///   - command: The command to write.
+    ///   - type: The type of write to execute. For a list of the possible types of writes to a characteristic’s value, see CBCharacteristicWriteType.
     @discardableResult
     public func write<WriteCommand: Command>(
         characteristic: WriteableCharacteristic<WriteCommand>,
@@ -306,6 +324,9 @@ public final class Peripheral: Hashable {
         return promise
     }
 
+    /// Retrieves the value of a specified characteristic.
+    /// - Parameter characteristic: The characteristic whose value you want to read.
+    /// - Returns: Promise of read value.
     @discardableResult
     public func read<Value: CharacteristicValue>(characteristic: ReadableCharacteristic<Value>) -> Promise<Value> {
         var cancellable = Set<AnyCancellable>()
