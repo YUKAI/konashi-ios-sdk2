@@ -16,6 +16,7 @@ public extension Peripheral {
         case inputPullUp
     }
 
+    /// Configures the specified pin to behave either as an input or an output.
     @discardableResult
     func pinMode(_ pin: GPIO.Pin, mode: Mode, wiredFunction: GPIO.WiredFunction = .disabled) -> Promise<Peripheral> {
         var direction: Direction {
@@ -225,12 +226,10 @@ public extension Peripheral {
         return write(
             characteristic: ConfigService.configCommand,
             command: .spi(
-                config: SPI.Config(
-                    value: .enable(
-                        endian: endian,
-                        mode: mode,
-                        bitrate: bitrate
-                    )
+                config: SPI.Config.enable(
+                    endian: endian,
+                    mode: mode,
+                    bitrate: bitrate
                 )
             )
         )

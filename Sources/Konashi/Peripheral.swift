@@ -20,11 +20,6 @@ private class PeripheralDelegate: NSObject {
 
 public extension Peripheral {
     static let instanceKey: String = "Peripheral.instanceKey"
-    static let readyToUse = Notification.Name("Peripheral.readyToUseNotification")
-    static let didConnect = Notification.Name("Peripheral.didConnectNotification")
-    static let didFailedToConnect = Notification.Name("Peripheral.didFailedToConnectNotification")
-    static let didDisconnect = Notification.Name("Peripheral.didDisconnectNotification")
-    static let didFailedToDisconnect = Notification.Name("Peripheral.didFailedToDisconnectNotification")
 }
 
 public final class Peripheral: Hashable {
