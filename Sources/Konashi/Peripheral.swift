@@ -47,8 +47,8 @@ public final class Peripheral: Hashable {
                 hasher.combine("connecting")
             case .connected:
                 hasher.combine("connected")
-            case .ready:
-                hasher.combine("ready")
+            case .readyToUse:
+                hasher.combine("readyToUse")
             }
         }
 
@@ -56,7 +56,7 @@ public final class Peripheral: Hashable {
         case disconnected
         case connecting
         case connected
-        case ready
+        case readyToUse
     }
 
     public enum PeripheralError: Error {
@@ -428,7 +428,7 @@ public final class Peripheral: Hashable {
                 return
             }
             if ready {
-                weakSelf.state = .ready
+                weakSelf.state = .readyToUse
                 weakSelf.readyPromise.fulfill(())
             }
             else {
