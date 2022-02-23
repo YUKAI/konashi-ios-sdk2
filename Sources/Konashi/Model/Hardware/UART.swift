@@ -28,19 +28,13 @@ public enum UART {
         case _2
     }
 
-    public struct Config: ParsablePayload, Hashable {
+    public enum Config: ParsablePayload, Hashable {
         static var byteSize: UInt {
             return 5
         }
 
-        public enum Value: Hashable {
-            case enable(parity: Parity, stopBit: StopBit, baudrate: UInt32)
-            case disable
-        }
-
-        public let value: Value
-
-        static let disable = Config(value: .disable)
+        case enable(parity: Parity, stopBit: StopBit, baudrate: UInt32)
+        case disable
 
         static func parse(_ data: [UInt8], info: [String: Any]? = nil) -> Result<UART.Config, Error> {
             if data.count != byteSize {
@@ -57,25 +51,23 @@ public enum UART {
             let flag = first.bits()
             if flag[7] == 1 {
                 return .success(
-                    UART.Config(
-                        value: .enable(
-                            parity: parity,
-                            stopBit: stopBit,
-                            baudrate: UInt32.compose(
-                                first: data[1],
-                                second: data[2],
-                                third: data[3],
-                                forth: data[4]
-                            )
+                    UART.Config.enable(
+                        parity: parity,
+                        stopBit: stopBit,
+                        baudrate: UInt32.compose(
+                            first: data[1],
+                            second: data[2],
+                            third: data[3],
+                            forth: data[4]
                         )
                     )
                 )
             }
-            return .success(UART.Config(value: .disable))
+            return .success(UART.Config.disable)
         }
 
         func compose() -> [UInt8] {
-            switch value {
+            switch self {
             case let .enable(parity, stopBit, baudrate):
                 var firstByte: UInt8 = 0
                 firstByte |= 0x80

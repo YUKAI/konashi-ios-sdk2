@@ -11,12 +11,10 @@ import XCTest
 class UARTTest: XCTestCase {
     func testEnable() throws {
         // UART: enable, 115200, no parity, 1 stop bit -> 0x81 0x00 0xc2 0x01 0x00
-        let enabled = UART.Config(
-            value: .enable(
-                parity: .none,
-                stopBit: ._1,
-                baudrate: 115200
-            )
+        let enabled = UART.Config.enable(
+            parity: .none,
+            stopBit: ._1,
+            baudrate: 115200
         )
         XCTAssertEqual(
             enabled.compose(),

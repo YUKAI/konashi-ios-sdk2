@@ -200,12 +200,10 @@ public extension Peripheral {
         return write(
             characteristic: ConfigService.configCommand,
             command: .uart(
-                config: UART.Config(
-                    value: .enable(
-                        parity: parity,
-                        stopBit: stopBit,
-                        baudrate: baudrate
-                    )
+                config: UART.Config.enable(
+                    parity: parity,
+                    stopBit: stopBit,
+                    baudrate: baudrate
                 )
             )
         )
@@ -250,7 +248,7 @@ public extension Peripheral {
         return write(
             characteristic: ConfigService.configCommand,
             command: .i2c(
-                config: I2C.Config(value: .enable(mode: mode))
+                config: I2C.Config.enable(mode: mode)
             )
         )
     }

@@ -56,19 +56,13 @@ public enum I2C {
         public let readBytes: [UInt8]
     }
 
-    public struct Config: ParsablePayload, Hashable {
+    public enum Config: ParsablePayload, Hashable {
         static var byteSize: UInt {
             return 1
         }
 
-        public enum Value: Hashable {
-            case enable(mode: Mode)
-            case disable
-        }
-
-        public let value: Value
-
-        static let disable = Config(value: .disable)
+        case enable(mode: Mode)
+        case disable
 
         static func parse(_ data: [UInt8], info: [String: Any]? = nil) -> Result<I2C.Config, Error> {
             if data.count != byteSize {
@@ -79,13 +73,13 @@ public enum I2C {
                 return .failure(I2C.ParseError.invalidMode)
             }
             if flag[1] == 1 {
-                return .success(I2C.Config(value: .enable(mode: mode)))
+                return .success(I2C.Config.enable(mode: mode))
             }
             return .success(I2C.Config.disable)
         }
 
         func compose() -> [UInt8] {
-            switch value {
+            switch self {
             case let .enable(mode):
                 var byte: UInt8 = 0
                 byte |= 0x01 << 1

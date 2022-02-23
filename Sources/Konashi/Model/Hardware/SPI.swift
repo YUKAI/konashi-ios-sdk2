@@ -42,19 +42,13 @@ public enum SPI {
         }
     }
 
-    public struct Config: ParsablePayload, Hashable {
+    public enum Config: ParsablePayload, Hashable {
+        case enable(endian: Endian, mode: Mode, bitrate: UInt32)
+        case disable
+
         static var byteSize: UInt {
             return 5
         }
-
-        public enum Value: Hashable {
-            case enable(endian: Endian, mode: Mode, bitrate: UInt32)
-            case disable
-        }
-
-        public let value: Value
-
-        static let disable = Config(value: .disable)
 
         static func parse(_ data: [UInt8], info: [String: Any]? = nil) -> Result<SPI.Config, Error> {
             if data.count != byteSize {
@@ -84,26 +78,24 @@ public enum SPI {
             }
             let flag = first.bits()
             if flag[7] == 0 {
-                return .success(SPI.Config(value: .disable))
+                return .success(SPI.Config.disable)
             }
             return .success(
-                SPI.Config(
-                    value: .enable(
-                        endian: endian,
-                        mode: mode,
-                        bitrate: UInt32.compose(
-                            first: data[1],
-                            second: data[2],
-                            third: data[3],
-                            forth: data[4]
-                        )
+                SPI.Config.enable(
+                    endian: endian,
+                    mode: mode,
+                    bitrate: UInt32.compose(
+                        first: data[1],
+                        second: data[2],
+                        third: data[3],
+                        forth: data[4]
                     )
                 )
             )
         }
 
         func compose() -> [UInt8] {
-            switch value {
+            switch self {
             case let .enable(endian, mode, bitrate):
                 var firstByte: UInt8 = 0
                 firstByte |= 0x80

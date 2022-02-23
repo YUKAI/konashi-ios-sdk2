@@ -35,7 +35,7 @@ class SPITest: XCTestCase {
     
     func testEnable() throws {
         // SPI: enable, mode 2, MSB first, 1MHz bitrate -> 0x8a 0x40 0x42 0x0f 0x00
-        let enable = SPI.Config(value: .enable(endian: .msbFirst, mode: .mode2, bitrate: 1000000))
+        let enable = SPI.Config.enable(endian: .msbFirst, mode: .mode2, bitrate: 1000000)
         XCTAssertEqual(
             enable.compose(),
             [0x8a, 0x40, 0x42, 0x0f, 0x00]

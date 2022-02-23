@@ -11,7 +11,7 @@ import XCTest
 class I2CTest: XCTestCase {
     func testEnable() throws {
         // I2C: enable, fast mode -> 0x03
-        let enabled = I2C.Config(value: .enable(mode: .fast))
+        let enabled = I2C.Config.enable(mode: .fast)
         XCTAssertEqual(
             enabled.compose(),
             [0x03]
