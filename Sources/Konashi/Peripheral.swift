@@ -28,6 +28,14 @@ public final class Peripheral: Hashable {
     public static func == (lhs: Peripheral, rhs: Peripheral) -> Bool {
         return lhs.hashValue == rhs.hashValue
     }
+    
+    public static func == (lhs: Peripheral, rhs: CBPeripheral) -> Bool {
+        return lhs.peripheral == rhs
+    }
+    
+    public static func == (lhs: CBPeripheral, rhs: Peripheral) -> Bool {
+        return lhs == rhs.peripheral
+    }
 
     public func hash(into hasher: inout Hasher) {
         hasher.combine(peripheral)
