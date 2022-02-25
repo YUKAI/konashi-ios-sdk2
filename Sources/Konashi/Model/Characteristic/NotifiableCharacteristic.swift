@@ -8,6 +8,7 @@
 import Combine
 import Foundation
 
+/// A characteristic that notifies when its value updated.
 public class NotifiableCharacteristic<Value: CharacteristicValue>: Characteristic {
     public let serviceUUID: UUID
     public let uuid: UUID

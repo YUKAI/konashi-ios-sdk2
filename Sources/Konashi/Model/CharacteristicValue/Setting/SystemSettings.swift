@@ -7,6 +7,7 @@
 
 import Foundation
 
+/// A representation of system setting characteristic.
 public struct SystemSettings: CharacteristicValue {
     public static var byteSize: UInt {
         return 2

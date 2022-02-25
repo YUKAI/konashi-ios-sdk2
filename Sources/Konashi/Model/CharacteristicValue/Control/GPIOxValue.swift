@@ -7,11 +7,13 @@
 
 import Foundation
 
+/// Values of GPIOs.
 public struct GPIOxValue: CharacteristicValue, Hashable {
     public static var byteSize: UInt {
         return 8
     }
 
+    /// Values for each GPIOs.
     public let values: [GPIO.Value]
 
     public static func parse(data: Data) -> Result<GPIOxValue, Error> {

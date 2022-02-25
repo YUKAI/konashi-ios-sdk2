@@ -58,7 +58,7 @@ public enum I2C {
     }
 
     public enum Config: ParsablePayload, Hashable {
-        static var byteSize: UInt {
+        public static var byteSize: UInt {
             return 1
         }
 

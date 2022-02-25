@@ -19,6 +19,7 @@ private class PeripheralDelegate: NSObject {
 }
 
 public extension Peripheral {
+    /// A string key to retrieve a peripheral instance from a notification userInfo.
     static let instanceKey: String = "Peripheral.instanceKey"
 }
 

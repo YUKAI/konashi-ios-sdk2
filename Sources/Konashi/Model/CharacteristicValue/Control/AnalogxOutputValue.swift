@@ -7,12 +7,13 @@
 
 import Foundation
 
+/// Output values of AIOs.
 public struct AnalogxOutputValue: CharacteristicValue, Hashable {
     public static var byteSize: UInt {
         return 22
     }
 
-    /// Output values of AIO.
+    /// Output values of each AIOs.
     public let values: [Analog.OutputValue]
     /// VDAC voltage reference
     public let reference: Analog.VDACVoltageReference

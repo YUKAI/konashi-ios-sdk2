@@ -7,6 +7,7 @@
 
 import Foundation
 
+/// A representation of hardware PWMs configration.
 public struct HardwarePWMxConfig: CharacteristicValue, Hashable {
     public static var byteSize: UInt {
         return 7

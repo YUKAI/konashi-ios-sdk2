@@ -7,6 +7,7 @@
 
 import Foundation
 
+/// A representation of configration for each AIOs.
 public struct AnalogxConfig: CharacteristicValue, Hashable {
     public static var byteSize: UInt {
         return 7

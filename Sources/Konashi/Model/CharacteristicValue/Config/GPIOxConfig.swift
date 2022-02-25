@@ -7,6 +7,7 @@
 
 import Foundation
 
+/// A representation of configration for each GPIOs.
 public struct GPIOxConfig: CharacteristicValue, Hashable {
     public static var byteSize: UInt {
         return 16

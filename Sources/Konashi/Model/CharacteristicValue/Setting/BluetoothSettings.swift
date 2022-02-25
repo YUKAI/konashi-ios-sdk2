@@ -7,6 +7,7 @@
 
 import Foundation
 
+/// A representation of bluetooth setting characteristic.
 public struct BluetoothSettings: CharacteristicValue {
     public enum ParseError: LocalizedError {
         case invalidAdvertiserStatus

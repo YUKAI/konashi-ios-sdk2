@@ -8,6 +8,7 @@
 import Combine
 import Foundation
 
+/// A characteristic that stores value.
 public class ReadableCharacteristic<Value: CharacteristicValue>: Characteristic {
     public let serviceUUID: UUID
     public let uuid: UUID

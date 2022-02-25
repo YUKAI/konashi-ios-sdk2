@@ -7,6 +7,7 @@
 
 import Foundation
 
+/// A characteristic that can be written a value.
 public class WriteableCharacteristic<Value: Command>: Characteristic {
     public let serviceUUID: UUID
     public let uuid: UUID

@@ -7,12 +7,13 @@
 
 import Foundation
 
+/// Input values of AIOs.
 public struct AnalogxInputValue: CharacteristicValue, Hashable {
     public static var byteSize: UInt {
         return 10
     }
 
-    /// Input values of AIO.
+    /// Input values of each AIOs.
     public let values: [Analog.InputValue]
     /// ADC voltage reference
     public let reference: Analog.ADCVoltageReference

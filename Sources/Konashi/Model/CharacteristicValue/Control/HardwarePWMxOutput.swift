@@ -7,11 +7,13 @@
 
 import Foundation
 
+/// Output values of hardware PWM.
 public struct HardwarePWMxOutput: CharacteristicValue, Hashable {
     public static var byteSize: UInt {
         return 24
     }
 
+    /// Output values for each hardware PWM pins.
     public let values: [PWM.Hardware.Value]
 
     public static func parse(data: Data) -> Result<HardwarePWMxOutput, Error> {

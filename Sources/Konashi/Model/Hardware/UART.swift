@@ -33,7 +33,7 @@ public enum UART {
 
     /// A payload of UART configuration.
     public enum Config: ParsablePayload, Hashable {
-        static var byteSize: UInt {
+        public static var byteSize: UInt {
             return 5
         }
 

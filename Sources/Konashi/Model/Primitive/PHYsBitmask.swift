@@ -9,10 +9,15 @@
 
 import Foundation
 
+/// A representation of bluetooth physical layer bitmask.
 public struct PHYsBitmask: OptionSet, CustomStringConvertible, CaseIterable {
+    /// 1M PHY uncoded
     public static var _1MUncoded = PHYsBitmask(rawValue: 0x01)
+    /// 2M PHY uncoded
     public static var _2MUncoded = PHYsBitmask(rawValue: 0x02)
+    /// Coded PHY 125k
     public static var coded125k = PHYsBitmask(rawValue: 0x04)
+    /// Coded PHY 500k
     public static var coded500k = PHYsBitmask(rawValue: 0x08)
 
     public static var allCases: [PHYsBitmask] = [

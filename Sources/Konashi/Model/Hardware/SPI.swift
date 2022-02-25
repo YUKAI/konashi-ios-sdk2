@@ -54,7 +54,7 @@ public enum SPI {
         case enable(endian: Endian, mode: Mode, bitrate: UInt32)
         case disable
 
-        static var byteSize: UInt {
+        public static var byteSize: UInt {
             return 5
         }
 
