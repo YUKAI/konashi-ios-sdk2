@@ -294,9 +294,9 @@ public extension Peripheral {
             characteristic: ConfigService.configCommand,
             command: .spi(
                 config: SPI.Config.enable(
+                    bitrate: bitrate,
                     endian: endian,
-                    mode: mode,
-                    bitrate: bitrate
+                    mode: mode
                 )
             )
         )

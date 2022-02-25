@@ -52,7 +52,7 @@ public enum SPI {
 
     /// A payload to configure SPI.
     public enum Config: ParsablePayload, Hashable {
-        case enable(endian: Endian, mode: Mode, bitrate: UInt32)
+        case enable(bitrate: UInt32, endian: Endian, mode: Mode)
         case disable
 
         public static var byteSize: UInt {
@@ -91,21 +91,21 @@ public enum SPI {
             }
             return .success(
                 SPI.Config.enable(
-                    endian: endian,
-                    mode: mode,
                     bitrate: UInt32.compose(
                         first: data[1],
                         second: data[2],
                         third: data[3],
                         forth: data[4]
-                    )
+                    ),
+                    endian: endian,
+                    mode: mode
                 )
             )
         }
 
         func compose() -> [UInt8] {
             switch self {
-            case let .enable(endian, mode, bitrate):
+            case let .enable(bitrate, endian, mode):
                 var firstByte: UInt8 = 0
                 firstByte |= 0x80
                 firstByte |= endian.rawValue << 3
