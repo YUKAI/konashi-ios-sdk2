@@ -13,7 +13,9 @@ public struct HardwarePWMxConfig: CharacteristicValue, Hashable {
         return 7
     }
 
+    /// Configurations for each hardware PWM pins.
     public let values: [PWM.Hardware.PinConfig]
+    /// Clock configuration of hardware PWM.
     public let clockConfig: PWM.Hardware.ClockConfig
 
     public static func parse(data: Data) -> Result<HardwarePWMxConfig, Error> {

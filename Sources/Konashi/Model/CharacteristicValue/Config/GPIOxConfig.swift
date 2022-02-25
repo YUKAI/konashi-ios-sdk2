@@ -13,6 +13,7 @@ public struct GPIOxConfig: CharacteristicValue, Hashable {
         return 16
     }
 
+    /// Configurations for each GPIO pins.
     public let values: [GPIO.PinConfig]
 
     public static func parse(data: Data) -> Result<GPIOxConfig, Error> {

@@ -13,6 +13,7 @@ public struct SoftwarePWMxConfig: CharacteristicValue, Hashable {
         return 12
     }
 
+    /// Configurations for each software PWM pins.
     public let values: [PWM.Software.PinConfig]
 
     public static func parse(data: Data) -> Result<SoftwarePWMxConfig, Error> {

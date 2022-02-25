@@ -13,6 +13,7 @@ public struct AnalogxConfig: CharacteristicValue, Hashable {
         return 7
     }
 
+    /// Configurations for each AIO pins.
     public let values: [Analog.PinConfig]
     public let adcUpdatePeriod: UInt8
     public let adcVoltageReference: Analog.ADCVoltageReference
