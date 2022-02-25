@@ -7,9 +7,14 @@
 
 import Foundation
 
-public struct WriteableCharacteristic<Value: Command>: Characteristic {
+public class WriteableCharacteristic<Value: Command>: Characteristic {
     public let serviceUUID: UUID
     public let uuid: UUID
+
+    init(serviceUUID: UUID, uuid: UUID) {
+        self.serviceUUID = serviceUUID
+        self.uuid = uuid
+    }
 
     public func update(data: Data?) {}
 }

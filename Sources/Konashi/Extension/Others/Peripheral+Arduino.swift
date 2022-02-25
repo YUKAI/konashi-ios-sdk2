@@ -10,15 +10,20 @@ import Foundation
 import Promises
 
 public extension Peripheral {
-    enum Mode {
+    enum PinMode {
         case input
         case output
         case inputPullUp
     }
 
     /// Configures the specified pin to behave either as an input or an output.
+    /// - Parameters:
+    ///   - pin: A GPIO to change pin mode.
+    ///   - mode: A pin mode of GPIO.
+    ///   - wiredFunction: A wired function mode of GPIO.
+    /// - Returns: A peripheral this method call.
     @discardableResult
-    func pinMode(_ pin: GPIO.Pin, mode: Mode, wiredFunction: GPIO.WiredFunction = .disabled) -> Promise<Peripheral> {
+    func pinMode(_ pin: GPIO.Pin, mode: PinMode, wiredFunction: GPIO.WiredFunction = .disabled) -> Promise<Peripheral> {
         var direction: Direction {
             switch mode {
             case .input, .inputPullUp:
@@ -52,6 +57,9 @@ public extension Peripheral {
         )
     }
 
+    /// Reads the value from a specified GPIO.
+    /// - Parameter pin: A GPIO to read value.
+    /// - Returns: A value of GPIO.
     @discardableResult
     func digitalRead(_ pin: GPIO.Pin) -> Promise<Level> {
         return Promise<Level> { [weak self] resolve, reject in
@@ -77,6 +85,11 @@ public extension Peripheral {
         }
     }
 
+    /// Writes a level value to a GPIO.
+    /// - Parameters:
+    ///   - pin: A GPIO to write value.
+    ///   - level: A value of level.
+    /// - Returns: A peripheral this method call.
     @discardableResult
     func digitalWrite(_ pin: GPIO.Pin, value: Level) -> Promise<Peripheral> {
         return write(
@@ -87,6 +100,11 @@ public extension Peripheral {
         )
     }
 
+    /// Configures AIO.
+    /// - Parameters:
+    ///   - pin: An AIO to configure.
+    ///   - config: A configuration of AIO.
+    /// - Returns: A peripheral this method call.
     @discardableResult
     func analogBegin(pin: Analog.Pin, config: Analog.ConfigPayload) -> Promise<Peripheral> {
         return write(
@@ -95,6 +113,11 @@ public extension Peripheral {
         )
     }
 
+    /// Reads value of AIO.
+    /// - Parameters:
+    ///   - pin: An AIO to read value.
+    ///   - config: A configuration of AIO.
+    /// - Returns: A peripheral this method call.
     @discardableResult
     func analogRead(_ pin: Analog.Pin) -> Promise<Analog.InputValue> {
         return Promise<Analog.InputValue> { [weak self] resolve, reject in
@@ -120,6 +143,12 @@ public extension Peripheral {
         }
     }
 
+    /// Writes value of AIO.
+    /// - Parameters:
+    ///   - pin: An AIO to read value.
+    ///   - value: A value that is written.
+    ///   - transitionDuration: A duration for transitioning current value to specified value.
+    /// - Returns: A peripheral this method call.
     @discardableResult
     func analogWrite(_ pin: Analog.Pin, value: UInt16, transitionDuration: UInt32 = 0) -> Promise<Peripheral> {
         return write(
@@ -134,6 +163,11 @@ public extension Peripheral {
         )
     }
 
+    /// Configures software PWM.
+    /// - Parameters:
+    ///   - pin: A software PWM to configure.
+    ///   - config: A configuration of software PWM.
+    /// - Returns: A peripheral this method call.
     @discardableResult
     func softwarePWMMode(pin: PWM.Pin, config: PWM.Software.DriveConfig) -> Promise<Peripheral> {
         return write(
@@ -147,6 +181,12 @@ public extension Peripheral {
         )
     }
 
+    /// Drives software PWM.
+    /// - Parameters:
+    ///   - pin: A software PWM to drive.
+    ///   - value: A value of software PWM.
+    ///   - transitionDuration: A duration for transitioning current value to specified value.
+    /// - Returns: A peripheral this method call.
     @discardableResult
     func softwarePWMDrive(pin: PWM.Pin, value: PWM.Software.ControlValue, transitionDuration: UInt32 = 0) -> Promise<Peripheral> {
         return write(
@@ -161,6 +201,13 @@ public extension Peripheral {
         )
     }
 
+    /// Configure hardware PWM.
+    /// - Parameters:
+    ///   - pin: A hardware PWM to configure.
+    ///   - clock: The clock source for the PWM timer
+    ///   - prescaler: The clock prescaler for the PWM timer
+    ///   - value: A value of hardware PWM.
+    /// - Returns: A peripheral this method call.
     @discardableResult
     func hardwarePWMMode(pin: PWM.Pin, clock: PWM.Hardware.Clock, prescaler: PWM.Hardware.Prescaler, value: UInt16) -> Promise<Peripheral> {
         return write(
@@ -181,6 +228,12 @@ public extension Peripheral {
         )
     }
 
+    /// Drives hardware PWM.
+    /// - Parameters:
+    ///   - pin: A hardware PWM to drive.
+    ///   - value: A value of hardware PWM.
+    ///   - transitionDuration: A duration for transitioning current value to specified value.
+    /// - Returns: A peripheral this method call.
     @discardableResult
     func hardwarePWMDrive(pin: PWM.Pin, value: UInt16, transitionDuration: UInt32 = 0) -> Promise<Peripheral> {
         return write(
@@ -195,6 +248,12 @@ public extension Peripheral {
         )
     }
 
+    /// Attempt to configure UART.
+    /// - Parameters:
+    ///   - baudrate: The UART baudrate.
+    ///   - parity: The UART parity.
+    ///   - stopBit: The UART number of stop bits.
+    /// - Returns: A peripheral this method call.
     @discardableResult
     func serialBegin(baudrate: UInt32, parity: UART.Parity = .none, stopBit: UART.StopBit = ._0_5) -> Promise<Peripheral> {
         return write(
@@ -209,6 +268,10 @@ public extension Peripheral {
         )
     }
 
+    /// Attempt to send UART data.
+    /// - Parameters:
+    ///   - data: The data to send (length range is [1,127]).
+    /// - Returns: A peripheral this method call.
     @discardableResult
     func serialWrite(data: [UInt8]) -> Promise<Peripheral> {
         return write(
@@ -219,6 +282,12 @@ public extension Peripheral {
         )
     }
 
+    /// Attempt to configure SPI mode.
+    /// - Parameters:
+    ///   - bitrate: SPI bitrate.
+    ///   - endian: An endian of data.
+    ///   - mode: SPI mode.
+    /// - Returns: A peripheral this method call.
     @discardableResult
     func spiBegin(bitrate: UInt32, endian: SPI.Endian = .lsbFirst, mode: SPI.Mode = .mode0) -> Promise<Peripheral> {
         return write(
@@ -233,6 +302,9 @@ public extension Peripheral {
         )
     }
 
+    /// Attempt to transfer data through SPI bus.
+    /// - Parameter data: The data to send (length range is [1,127]).
+    /// - Returns: A peripheral this method call.
     @discardableResult
     func spiTransfer(data: [UInt8]) -> Promise<Peripheral> {
         return write(
@@ -243,6 +315,10 @@ public extension Peripheral {
         )
     }
 
+    /// Attempt to configure I2C mode.
+    /// - Parameters:
+    ///   - mode: I2C mode.
+    /// - Returns: A peripheral this method call.
     @discardableResult
     func i2cBegin(_ mode: I2C.Mode) -> Promise<Peripheral> {
         return write(
@@ -253,11 +329,21 @@ public extension Peripheral {
         )
     }
 
+    /// Attempt to write data to I2C slave.
+    /// - Parameters:
+    ///   - address: The I2C slave address (address range is 0x00 to 0x7F).
+    ///   - writeData: The data to write (valid length 0 to 124 bytes).
+    /// - Returns: A peripheral this method call.
     @discardableResult
     func i2cWrite(address: UInt8, writeData: [UInt8]) -> Promise<Peripheral> {
         return i2cTransfer(address: address, operation: .write, readLength: 0, writeData: writeData)
     }
 
+    /// Attempt to read data from I2C slave.
+    /// - Parameters:
+    ///   - address: The I2C slave address (address range is 0x00 to 0x7F).
+    ///   - readLength: The length of the data to read (0 to 126 bytes).
+    /// - Returns: Byte arrey of read from I2C slave.
     @discardableResult
     func i2cRead(address: UInt8, readLength: UInt8) -> Promise<[UInt8]> {
         var cancellable = Set<AnyCancellable>()
@@ -266,8 +352,8 @@ public extension Peripheral {
                 return
             }
             weakSelf.controlService.i2cDataInput.value.sink { readValue in
-                if readValue.value.address == address {
-                    resolve(readValue.value.readBytes)
+                if readValue.address == address {
+                    resolve(readValue.readBytes)
                 }
             }.store(in: &cancellable)
             weakSelf.i2cTransfer(
@@ -283,6 +369,13 @@ public extension Peripheral {
         }
     }
 
+    /// Attempt to transfer data.
+    /// - Parameters:
+    ///   - address: The I2C slave address (address range is 0x00 to 0x7F).
+    ///   - operation: The transaction operation.
+    ///   - readLength: The length of the data to read (0 to 126 bytes).
+    ///   - writeData: The data to write (valid length 0 to 124 bytes).
+    /// - Returns: A peripheral this method call.
     @discardableResult
     func i2cTransfer(address: UInt8, operation: I2C.Operation, readLength: UInt8, writeData: [UInt8]) -> Promise<Peripheral> {
         return Promise<Peripheral> { [weak self] resolve, reject in

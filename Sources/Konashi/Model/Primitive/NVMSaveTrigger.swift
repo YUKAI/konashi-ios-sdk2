@@ -17,6 +17,8 @@ public enum NVMSaveTrigger: CaseIterable, CustomStringConvertible {
         }
     }
 
+    /// `automatic` for automatic save,
     case automatic
+    /// `manual` for manual save (`SystemSettingPayload.nvmSaveNow` needs to be called to save).
     case manual
 }

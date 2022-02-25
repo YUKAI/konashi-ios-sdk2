@@ -8,6 +8,7 @@
 import CoreBluetooth
 import Foundation
 
+/// A BLE service to configure Konashi hardware.
 public struct ConfigService: Service {
     /// Service UUID of config service.
     public static var uuid: UUID {

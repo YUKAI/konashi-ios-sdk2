@@ -34,14 +34,17 @@ public extension Peripheral {
         return subject
     }
 
+    /// A subject that sends value of AIO0.
     var analog0: PassthroughSubject<Analog.InputValue, Never> {
         return makeAnalogInputSubject(pin: .pin0)
     }
 
+    /// A subject that sends value of AIO1.
     var analog1: PassthroughSubject<Analog.InputValue, Never> {
         return makeAnalogInputSubject(pin: .pin1)
     }
 
+    /// A subject that sends value of AIO2.
     var analog2: PassthroughSubject<Analog.InputValue, Never> {
         return makeAnalogInputSubject(pin: .pin2)
     }

@@ -13,6 +13,7 @@ public struct UARTDataSendResult: CharacteristicValue, Hashable {
         return 1
     }
 
+    /// Whether sending data or not.
     public let sendDone: Bool
 
     public static func parse(data: Data) -> Result<UARTDataSendResult, Error> {

@@ -10,6 +10,7 @@
 import Foundation
 
 public enum Analog {
+    /// Errors for parsing bytes of AIO configuration.
     public enum ParseError: LocalizedError {
         case invalidDirection
         case invalidADCVoltageReference
@@ -106,7 +107,7 @@ public enum Analog {
 
         static func parse(_ data: [UInt8], info: [String: Any]? = nil) -> Result<Analog.PinConfig, Error> {
             if data.count != byteSize {
-                return .failure(PayloadParseError.invalidInfo)
+                return .failure(PayloadParseError.invalidByteSize)
             }
             guard let info = info, let pin = info[InfoKey.pin.rawValue] as? Analog.Pin else {
                 return .failure(PayloadParseError.invalidInfo)

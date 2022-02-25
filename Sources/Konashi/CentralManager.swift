@@ -10,8 +10,13 @@ import CoreBluetooth
 import Promises
 
 /// A utility class of managiment procetudes such as discover, connect and disconnect peripherals.
-/// This class is a wrapper of CBCentralManager. All procedure should proceed through this class.
+/// This class is a wrapper of CBCentralManager.
 public final class CentralManager: NSObject {
+    public enum ScanError: Error {
+        /// The Konashi device was not found within the timeout time.
+        case peripheralNotFound
+    }
+    
     /// A shared instance of CentralManager.
     public static let shared = CentralManager()
 
@@ -79,24 +84,26 @@ public final class CentralManager: NSObject {
         if manager.state == .poweredOn {
             statePromise.fulfill(())
         }
-        let promise = Promise<Void>.pending()
-        statePromise.then { [weak self] _ in
+        return Promise<Void> { [weak self] resolve, reject in
             guard let weakSelf = self else {
                 return
             }
-            weakSelf.isScanning = true
-            weakSelf.manager.scanForPeripherals(
-                withServices: [
-                    SettingsService.serviceUUID
-                ],
-                options: [
-                    CBCentralManagerScanOptionAllowDuplicatesKey: false
-                ]
-            )
-            promise.fulfill(())
+            weakSelf.statePromise.then { [weak self] _ in
+                guard let weakSelf = self else {
+                    return
+                }
+                weakSelf.isScanning = true
+                weakSelf.manager.scanForPeripherals(
+                    withServices: [
+                        SettingsService.serviceUUID
+                    ],
+                    options: [
+                        CBCentralManagerScanOptionAllowDuplicatesKey: false
+                    ]
+                )
+                resolve(())
+            }
         }
-
-        return promise
     }
 
     /// Attempt to find a peripheral.
@@ -106,18 +113,23 @@ public final class CentralManager: NSObject {
     /// - Returns: A promise object for this method.
     public func find(name: String, timeoutInterval: TimeInterval = 5) -> Promise<Peripheral> {
         var cancellable = Set<AnyCancellable>()
-        return Promise<Peripheral> { [weak self] resolve, _ in
+        return Promise<Peripheral> { [weak self] resolve, reject in
             guard let weakSelf = self else {
                 return
             }
+            var didFound = false
             weakSelf.scan().delay(timeoutInterval).then { [weak self] _ in
                 guard let weakSelf = self else {
                     return
+                }
+                if didFound == false {
+                    reject(ScanError.peripheralNotFound)
                 }
                 weakSelf.stopScan()
             }
             weakSelf.didDiscoverSubject.sink { peripheral, _, _ in
                 if peripheral.name == name {
+                    didFound = true
                     resolve(peripheral)
                     weakSelf.stopScan()
                 }
@@ -127,7 +139,7 @@ public final class CentralManager: NSObject {
         }
     }
 
-    /// Stop finding a peripheral.
+    /// Stop scanning peripherals.
     /// - Returns: A promise object for this method.
     @discardableResult
     public func stopScan() -> Promise<Void> {

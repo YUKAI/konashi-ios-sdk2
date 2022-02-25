@@ -8,6 +8,7 @@
 import Foundation
 
 public enum I2C {
+    /// Errors for parsing bytes of I2C configuration.
     public enum ParseError: LocalizedError {
         case invalidMode
         case invalidResult
@@ -34,7 +35,7 @@ public enum I2C {
     }
 
     public struct Value: Hashable {
-        public enum Result: UInt8 {
+        public enum OperationResult: UInt8 {
             /// Transfer completed successfully
             case done
             /// NACK received during transfer
@@ -49,7 +50,7 @@ public enum I2C {
             case swFault
         }
 
-        public let result: Result
+        public let result: OperationResult
         /// Slave address
         public let address: UInt8
         /// The read data, if any (0~126 bytes)

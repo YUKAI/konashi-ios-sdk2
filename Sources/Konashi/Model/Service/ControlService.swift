@@ -8,6 +8,7 @@
 import CoreBluetooth
 import Foundation
 
+/// A BLE service to control Konashi.
 public struct ControlService: Service {
     /// Service UUID of control service.
     public static var uuid: UUID {
@@ -89,7 +90,7 @@ public struct ControlService: Service {
             uuidString: "064D0307-8251-49D9-B6F3-F7BA35E5D0A1"
         )!
     )
-    let i2cDataInput = NotifiableCharacteristic<I2CInputValue>(
+    let i2cDataInput = NotifiableCharacteristic<I2C.Value>(
         serviceUUID: ControlService.uuid,
         uuid: UUID(
             uuidString: "064D0308-8251-49D9-B6F3-F7BA35E5D0A1"
@@ -212,7 +213,7 @@ public extension ControlService {
             uuidString: "064D0307-8251-49D9-B6F3-F7BA35E5D0A1"
         )!
     )
-    static let i2cDataInput = NotifiableCharacteristic<I2CInputValue>(
+    static let i2cDataInput = NotifiableCharacteristic<I2C.Value>(
         serviceUUID: ControlService.uuid,
         uuid: UUID(
             uuidString: "064D0308-8251-49D9-B6F3-F7BA35E5D0A1"

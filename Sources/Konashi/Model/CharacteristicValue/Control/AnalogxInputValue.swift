@@ -12,6 +12,7 @@ public struct AnalogxInputValue: CharacteristicValue, Hashable {
         return 10
     }
 
+    /// Input values of AIO.
     public let values: [Analog.InputValue]
     /// ADC voltage reference
     public let reference: Analog.ADCVoltageReference

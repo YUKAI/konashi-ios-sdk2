@@ -7,6 +7,7 @@
 
 import CoreBluetooth
 
+/// An interface for BLE Service.
 public protocol Service {
     static var uuid: UUID { get }
     var uuid: UUID { get }

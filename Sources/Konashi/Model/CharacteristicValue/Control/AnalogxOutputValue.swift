@@ -12,8 +12,11 @@ public struct AnalogxOutputValue: CharacteristicValue, Hashable {
         return 22
     }
 
+    /// Output values of AIO.
     public let values: [Analog.OutputValue]
+    /// VDAC voltage reference
     public let reference: Analog.VDACVoltageReference
+    /// IDAC current step size
     public let stepSize: Analog.IDACCurrentStepSize
 
     public static func parse(data: Data) -> Result<AnalogxOutputValue, Error> {

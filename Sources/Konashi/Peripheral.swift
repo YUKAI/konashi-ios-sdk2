@@ -22,6 +22,7 @@ public extension Peripheral {
     static let instanceKey: String = "Peripheral.instanceKey"
 }
 
+/// A remote peripheral device.
 public final class Peripheral: Hashable {
     public static func == (lhs: Peripheral, rhs: Peripheral) -> Bool {
         return lhs.hashValue == rhs.hashValue
@@ -31,7 +32,7 @@ public final class Peripheral: Hashable {
         hasher.combine(peripheral)
     }
 
-    /// A confition of the peripheral.
+    /// A confition of a peripheral.
     public enum State: Hashable {
         public static func == (lhs: Peripheral.State, rhs: Peripheral.State) -> Bool {
             return lhs.hashValue == rhs.hashValue
@@ -59,30 +60,30 @@ public final class Peripheral: Hashable {
         case readyToUse
     }
 
-    /// An error that the reason of why the peripheral could not ready to use.
+    /// An error that the reason of why a peripheral could not ready to use.
     public enum PeripheralError: Error {
         case couldNotFindCharacteristic
     }
 
-    /// An error that the peripheral returns during read / write operation.
+    /// An error that a peripheral returns during read / write operation.
     public enum OperationError: LocalizedError {
         case invalidReadValue
         case couldNotReadValue
     }
 
-    /// A service of the peripheral's setting.
+    /// A service of a peripheral's setting.
     public let settingsService = SettingsService()
-    /// A service of the peripheral's config.
+    /// A service of a peripheral's config.
     public let configService = ConfigService()
-    /// A service to control the peripheral.
+    /// A service to control a peripheral.
     public let controlService = ControlService()
 
-    /// A name of the peripheral.
+    /// A name of a peripheral.
     public var name: String? {
         return peripheral.name
     }
 
-    /// A collection of services of the peripheral.
+    /// A collection of services of a peripheral.
     public private(set) lazy var services: [Service] = {
         return [
             settingsService,
@@ -91,9 +92,11 @@ public final class Peripheral: Hashable {
         ]
     }()
 
-    /// A state of the peripheral.
+    /// A state of a peripheral.
     @Published public private(set) var state: State = .disconnected
+    /// A RSSI value of a peripheral.
     @Published public fileprivate(set) var rssi: NSNumber?
+    /// This variable indicates that whether a peripheral is ready to use or not.
     public private(set) lazy var isReady: AnyPublisher<Bool, Never> = Publishers.CombineLatest3(
         $isConnected,
         $isCharacteristicsDiscovered,
@@ -104,7 +107,7 @@ public final class Peripheral: Hashable {
 
     /// A subject that sends any operation errors.
     public let operationErrorSubject = PassthroughSubject<Error, Never>()
-    /// A subject that sends value that is written to the peripheral.
+    /// A subject that sends value that is written to af peripheral.
     public let didWriteValueSubject = PassthroughSubject<(uuid: CBUUID, error: Error?), Never>()
 
     // swiftlint:disable weak_delegate
@@ -136,13 +139,9 @@ public final class Peripheral: Hashable {
         timer?.invalidate()
     }
 
-    public func isEqual(peripheral: CBPeripheral) -> Bool {
-        return peripheral == self.peripheral
-    }
-
     // MARK: - Connection
 
-    /// Connects to the peripheral.
+    /// Connects to a peripheral.
     @discardableResult
     public func connect() -> Promise<Peripheral> {
         var cancellable = Set<AnyCancellable>()
@@ -197,7 +196,7 @@ public final class Peripheral: Hashable {
         }
     }
 
-    /// Disconnects from the peripheral.
+    /// Disconnects from a peripheral.
     @discardableResult
     public func disconnect() -> Promise<Void> {
         var cancellable = Set<AnyCancellable>()
@@ -243,7 +242,7 @@ public final class Peripheral: Hashable {
 
     // MARK: - RSSI
 
-    /// Reads RSSI value of the peripheral.
+    /// Reads RSSI value of a peripheral.
     /// - Parameters:
     ///   - repeats: Specify true to read RSSI repeatedly.
     ///   - interval: An interval of read RSSI value.

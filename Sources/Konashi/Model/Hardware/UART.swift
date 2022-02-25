@@ -10,8 +10,11 @@
 import Foundation
 
 public enum UART {
+    /// Errors for parsing bytes of UART configuration.
     public enum ParseError: LocalizedError {
+        /// An error raised when attempt to parse invalid parity.
         case invalidParity
+        /// An error raised when attempt to parse invalid stop bit.
         case invalidStopBit
     }
 
@@ -28,12 +31,15 @@ public enum UART {
         case _2
     }
 
+    /// A payload of UART configuration.
     public enum Config: ParsablePayload, Hashable {
         static var byteSize: UInt {
             return 5
         }
 
+        /// A payload to enable UART.
         case enable(parity: Parity, stopBit: StopBit, baudrate: UInt32)
+        /// A payload to disable UART.
         case disable
 
         static func parse(_ data: [UInt8], info: [String: Any]? = nil) -> Result<UART.Config, Error> {
@@ -80,7 +86,9 @@ public enum UART {
         }
     }
 
+    /// A payload of UART send control.
     public struct SendControlPayload: Payload {
+        /// Bytes to send.
         public let data: [UInt8]
 
         func compose() -> [UInt8] {

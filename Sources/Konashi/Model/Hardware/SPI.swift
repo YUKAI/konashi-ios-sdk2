@@ -8,20 +8,27 @@
 import Foundation
 
 public enum SPI {
+    /// Errors for parsing bytes of SPI configuration.
     public enum ParseError: LocalizedError {
         case invalidEndian
         case invalidMode
     }
 
+    /// A representation of SPI endian
     public enum Endian: UInt8 {
         case lsbFirst
         case msbFirst
     }
 
+    /// A payload that represents SPI mode.
     public struct Mode: Payload, Hashable {
+        /// SPI mode 0
         public static let mode0 = Mode(polarity: .low, phase: .low)
+        /// SPI mode 1
         public static let mode1 = Mode(polarity: .low, phase: .high)
+        /// SPI mode 2
         public static let mode2 = Mode(polarity: .high, phase: .low)
+        /// SPI mode 3
         public static let mode3 = Mode(polarity: .high, phase: .high)
 
         public enum Polarity: UInt8 {
@@ -42,6 +49,7 @@ public enum SPI {
         }
     }
 
+    /// A payload to configure SPI.
     public enum Config: ParsablePayload, Hashable {
         case enable(endian: Endian, mode: Mode, bitrate: UInt32)
         case disable
@@ -108,6 +116,7 @@ public enum SPI {
         }
     }
 
+    /// A payload for sending data through SPI.
     public struct TransferControlPayload: Payload {
         public let data: [UInt8]
 

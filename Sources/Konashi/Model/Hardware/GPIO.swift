@@ -8,6 +8,7 @@
 import Foundation
 
 public enum GPIO {
+    /// Errors for parsing bytes of GPIO configuration.
     public enum ParseError: LocalizedError {
         case invalidDirection
         case invalidFunction

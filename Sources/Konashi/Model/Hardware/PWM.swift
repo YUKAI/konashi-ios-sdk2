@@ -10,12 +10,15 @@
 import Foundation
 
 public enum PWM {
+    /// Errors for parsing bytes of PWM configuration.
     public enum ParseError: LocalizedError {
+        case invalidDriveConfig
         case invalidControlValue
         case invalidClock
         case invalidPrescaler
     }
 
+    /// A representation of PWM pin.
     public enum Pin: UInt8, CaseIterable, CustomStringConvertible {
         public var description: String {
             switch self {
@@ -37,23 +40,32 @@ public enum PWM {
     }
 
     public enum Software {
+        /// A representation of software PWM configuration.
         public enum DriveConfig: Hashable {
+            /// Disable software PWM
             case disable
+            /// Drive software PWM by duty
             case duty(millisec: UInt16)
+            /// Drive software PWM by period
             case period(ratio: Float)
         }
 
+        /// A representation of software PWM control value.
         public enum ControlValue: Hashable {
+            /// Duty ratio of software PWM
             case duty(ratio: Float)
+            /// Period of software PWM
             case period(millisec: UInt16)
         }
 
+        /// A representation of software PWM value.
         public struct Value: Hashable {
             public let pin: Pin
             public let controlValue: ControlValue?
             public let transitionDuration: UInt32
         }
 
+        /// A payload of software PWM configuration.
         public struct PinConfig: ParsablePayload, Hashable {
             enum InfoKey: String {
                 case pin
@@ -63,7 +75,9 @@ public enum PWM {
                 return 3
             }
 
+            /// A pin of configuration.
             public let pin: PWM.Pin
+            /// Drive configuration of corresponding pin configuration.
             public let driveConfig: DriveConfig
 
             static func parse(_ data: [UInt8], info: [String: Any]?) -> Result<PWM.Software.PinConfig, Error> {
@@ -91,7 +105,7 @@ public enum PWM {
                     }
                 }
                 guard let driveConfig = driveConfig else {
-                    return .failure(PWM.ParseError.invalidControlValue)
+                    return .failure(PWM.ParseError.invalidDriveConfig)
                 }
                 return .success(PWM.Software.PinConfig(
                     pin: pin,
@@ -118,6 +132,7 @@ public enum PWM {
             }
         }
 
+        /// A payload to control software PWM.
         public struct ControlPayload: Payload {
             public let pin: Pin
             public let value: ControlValue
@@ -196,6 +211,7 @@ public enum PWM {
             case div1024
         }
 
+        /// A payload of harware PWM configuration.
         public struct PinConfig: ParsablePayload, Hashable {
             enum InfoKey: String {
                 case pin
@@ -205,12 +221,14 @@ public enum PWM {
                 return 1
             }
 
+            /// A pin of configuration.
             public let pin: PWM.Pin
+            /// Enable or disable hardware PWM.
             public let isEnabled: Bool
 
             static func parse(_ data: [UInt8], info: [String: Any]?) -> Result<PWM.Hardware.PinConfig, Error> {
                 if data.count != byteSize {
-                    return .failure(PayloadParseError.invalidInfo)
+                    return .failure(PayloadParseError.invalidByteSize)
                 }
                 guard let info = info, let pin = info[InfoKey.pin.rawValue] as? PWM.Pin else {
                     return .failure(PayloadParseError.invalidInfo)
@@ -232,6 +250,7 @@ public enum PWM {
             }
         }
 
+        /// A payload to configure hardware PWM clock.
         public struct ClockConfig: Payload, Hashable {
             public let clock: Clock
             public let prescaler: Prescaler
@@ -246,6 +265,7 @@ public enum PWM {
             }
         }
 
+        /// A representation of hardware PWM value.
         public struct Value: Hashable {
             public let pin: Pin
             public let value: UInt16
@@ -268,6 +288,7 @@ public enum PWM {
             }
         }
 
+        /// A payload to control hardware PWM.
         public struct ControlPayload: Payload {
             public let pin: Pin
             public let controlValue: UInt16
