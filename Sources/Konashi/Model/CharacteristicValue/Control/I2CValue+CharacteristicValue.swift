@@ -21,10 +21,17 @@ extension I2C.Value: CharacteristicValue {
         guard let result = I2C.Value.OperationResult(rawValue: bytes[0]) else {
             return .failure(I2C.ParseError.invalidResult)
         }
+        var readBytes: [UInt8] {
+            let newBytes = bytes.dropFirst(2)
+            if newBytes.isEmpty {
+                return []
+            }
+            return [UInt8](newBytes)
+        }
         return .success(I2C.Value(
             result: result,
             address: bytes[1],
-            readBytes: [UInt8](bytes[2 ..< 128])
+            readBytes: readBytes
         ))
     }
 }
