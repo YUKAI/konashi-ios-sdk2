@@ -126,7 +126,7 @@ public struct SettingsService: Service {
             /// A bit representation of GPIO7.
             public static var gpio7 = GPIOxInputValue(rawValue: 0b10000000)
             /// A bit representation of all GPIOs.
-            public static var gpioAll = GPIOxInputValue(rawValue: 0xff)
+            public static var gpioAll = GPIOxInputValue(rawValue: 0xFF)
 
             /// A bit representation of GPIOs.
             public let rawValue: UInt8

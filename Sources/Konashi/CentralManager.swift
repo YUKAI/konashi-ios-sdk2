@@ -16,7 +16,7 @@ public final class CentralManager: NSObject {
         /// The Konashi device was not found within the timeout time.
         case peripheralNotFound
     }
-    
+
     /// A shared instance of CentralManager.
     public static let shared = CentralManager()
 
@@ -84,7 +84,7 @@ public final class CentralManager: NSObject {
         if manager.state == .poweredOn {
             statePromise.fulfill(())
         }
-        return Promise<Void> { [weak self] resolve, reject in
+        return Promise<Void> { [weak self] resolve, _ in
             guard let weakSelf = self else {
                 return
             }
