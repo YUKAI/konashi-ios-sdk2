@@ -9,6 +9,7 @@
 
 import Foundation
 
+/// A hardware declaration of PWM.
 public enum PWM {
     /// Errors for parsing bytes of PWM configuration.
     public enum ParseError: LocalizedError {

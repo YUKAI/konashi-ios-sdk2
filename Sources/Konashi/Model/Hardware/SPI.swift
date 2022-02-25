@@ -7,6 +7,7 @@
 
 import Foundation
 
+/// A hardware declaration of SPI.
 public enum SPI {
     /// Errors for parsing bytes of SPI configuration.
     public enum ParseError: LocalizedError {

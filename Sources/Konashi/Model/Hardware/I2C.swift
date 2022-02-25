@@ -7,6 +7,7 @@
 
 import Foundation
 
+/// A hardware declaration of I2C.
 public enum I2C {
     /// Errors for parsing bytes of I2C configuration.
     public enum ParseError: LocalizedError {

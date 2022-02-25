@@ -9,6 +9,7 @@
 
 import Foundation
 
+/// A hardware declaration of UART.
 public enum UART {
     /// Errors for parsing bytes of UART configuration.
     public enum ParseError: LocalizedError {

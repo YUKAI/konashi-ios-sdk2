@@ -9,6 +9,7 @@
 
 import Foundation
 
+/// A hardware declaration of AIO.
 public enum Analog {
     /// Errors for parsing bytes of AIO configuration.
     public enum ParseError: LocalizedError {

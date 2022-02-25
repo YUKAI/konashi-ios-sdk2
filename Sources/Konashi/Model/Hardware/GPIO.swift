@@ -7,6 +7,7 @@
 
 import Foundation
 
+/// A hardware declaration of GPIO.
 public enum GPIO {
     /// Errors for parsing bytes of GPIO configuration.
     public enum ParseError: LocalizedError {
