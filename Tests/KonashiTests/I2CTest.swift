@@ -1,12 +1,12 @@
 //
 //  I2CTest.swift
-//  
+//
 //
 //  Created by Akira Matsuda on 2022/02/23.
 //
 
-import XCTest
 @testable import Konashi
+import XCTest
 
 class I2CTest: XCTestCase {
     func testEnable() throws {
@@ -32,7 +32,7 @@ class I2CTest: XCTestCase {
             [0x05, 0x03]
         )
     }
-    
+
     func testDisable() throws {
         // I2C: disable -> 0x00
         let disable = I2C.Config.disable
@@ -56,18 +56,18 @@ class I2CTest: XCTestCase {
             [0x05, 0x00]
         )
     }
-    
+
     func testWriteTransaction() throws {
         // I2C transaction: write to slave 0x5a 2 bytes (0x55 0xaa) -> 0x00 0x00 0x5a 0x55 0xaa
         let write = I2C.TransferControlPayload(
             operation: .write,
             readLength: 0,
-            address: 0x5a,
-            writeData: [0x55, 0xaa]
+            address: 0x5A,
+            writeData: [0x55, 0xAA]
         )
         XCTAssertEqual(
             write.compose(),
-            [0x00, 0x00, 0x5a, 0x55, 0xaa]
+            [0x00, 0x00, 0x5A, 0x55, 0xAA]
         )
 
         // Control Command write:
@@ -76,29 +76,29 @@ class I2CTest: XCTestCase {
             [UInt8](ControlService.ControlCommand.i2cTransfer(
                 write
             ).compose()),
-            [0x05, 0x00, 0x00, 0x5a, 0x55, 0xaa]
+            [0x05, 0x00, 0x00, 0x5A, 0x55, 0xAA]
         )
     }
-    
+
     func testWrite125Bytes() throws {
         // I2C send: 125 bytes (0x2a...0x2a 0x2b) -> 0x2a...0x2a
         // send bytes will be trancated last 1 byte (become 124 byte)
         var data = [UInt8]()
         var correctData = [UInt8]()
-        for _ in 0..<124 {
-            data.append(0x2a)
-            correctData.append(0x2a)
+        for _ in 0 ..< 124 {
+            data.append(0x2A)
+            correctData.append(0x2A)
         }
-        data.append(0x2b)
+        data.append(0x2B)
         let write = I2C.TransferControlPayload(
             operation: .write,
             readLength: 0,
-            address: 0x5a,
+            address: 0x5A,
             writeData: data
         )
         XCTAssertEqual(
             write.compose(),
-            [0x00, 0x00, 0x5a] + correctData
+            [0x00, 0x00, 0x5A] + correctData
         )
     }
 
@@ -107,12 +107,12 @@ class I2CTest: XCTestCase {
         let read = I2C.TransferControlPayload(
             operation: .read,
             readLength: 6,
-            address: 0x5a,
+            address: 0x5A,
             writeData: []
         )
         XCTAssertEqual(
             read.compose(),
-            [0x01, 0x06, 0x5a]
+            [0x01, 0x06, 0x5A]
         )
 
         // Control Command write:
@@ -121,21 +121,21 @@ class I2CTest: XCTestCase {
             [UInt8](ControlService.ControlCommand.i2cTransfer(
                 read
             ).compose()),
-            [0x05, 0x01, 0x06, 0x5a]
+            [0x05, 0x01, 0x06, 0x5A]
         )
     }
-    
+
     func testReadWriteTransaction() throws {
         // I2C transaction: for slave 0x12 write 1 byte (0x5a) and read 9 bytes -> 0x02 0x09 0x12 0x5a
         let readWrite = I2C.TransferControlPayload(
             operation: .readWrite,
             readLength: 9,
             address: 0x12,
-            writeData: [0x5a]
+            writeData: [0x5A]
         )
         XCTAssertEqual(
             readWrite.compose(),
-            [0x02, 0x09, 0x12, 0x5a]
+            [0x02, 0x09, 0x12, 0x5A]
         )
 
         // Control Command write:
@@ -144,7 +144,7 @@ class I2CTest: XCTestCase {
             [UInt8](ControlService.ControlCommand.i2cTransfer(
                 readWrite
             ).compose()),
-            [0x05, 0x02, 0x09, 0x12, 0x5a]
+            [0x05, 0x02, 0x09, 0x12, 0x5A]
         )
     }
 }

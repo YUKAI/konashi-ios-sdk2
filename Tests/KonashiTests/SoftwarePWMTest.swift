@@ -1,12 +1,12 @@
 //
 //  SoftwarePWMTest.swift
-//  
+//
 //
 //  Created by Akira Matsuda on 2021/08/28.
 //
 
-import XCTest
 @testable import Konashi
+import XCTest
 
 class SoftwarePWMTest: XCTestCase {
     func testDisable() throws {
@@ -22,7 +22,7 @@ class SoftwarePWMTest: XCTestCase {
             pwm3,
             try? PWM.Software.PinConfig.parse(
                 [0x30, 0x00, 0x00],
-                info: [PWM.Hardware.PinConfig.InfoKey.pin.rawValue : PWM.Pin.pin3]
+                info: [PWM.Hardware.PinConfig.InfoKey.pin.rawValue: PWM.Pin.pin3]
             ).get()
         )
     }
@@ -42,7 +42,7 @@ class SoftwarePWMTest: XCTestCase {
             pwm0,
             try? PWM.Software.PinConfig.parse(
                 [0x01, 0xE8, 0x03],
-                info: [PWM.Hardware.PinConfig.InfoKey.pin.rawValue : PWM.Pin.pin0]
+                info: [PWM.Hardware.PinConfig.InfoKey.pin.rawValue: PWM.Pin.pin0]
             ).get()
         )
 
@@ -73,7 +73,7 @@ class SoftwarePWMTest: XCTestCase {
             config,
             try? PWM.Software.PinConfig.parse(
                 [0x12, 0xEE, 0x02],
-                info: [PWM.Hardware.PinConfig.InfoKey.pin.rawValue : PWM.Pin.pin1]
+                info: [PWM.Hardware.PinConfig.InfoKey.pin.rawValue: PWM.Pin.pin1]
             ).get()
         )
 

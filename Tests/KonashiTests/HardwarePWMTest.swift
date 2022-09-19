@@ -1,12 +1,12 @@
 //
 //  HardwarePWMTest.swift
-//  
+//
 //
 //  Created by Akira Matsuda on 2021/08/31.
 //
 
-import XCTest
 @testable import Konashi
+import XCTest
 
 class HardwarePWMTest: XCTestCase {
     func testPWM() throws {
@@ -18,7 +18,7 @@ class HardwarePWMTest: XCTestCase {
         )
         XCTAssertEqual(
             clock.compose(),
-            [0xff, 0x0a, 0x7c, 0x92]
+            [0xFF, 0x0A, 0x7C, 0x92]
         )
 
         // HardPWM0: disable -> 0x00
@@ -31,7 +31,7 @@ class HardwarePWMTest: XCTestCase {
             pwm0,
             try? PWM.Hardware.PinConfig.parse(
                 [0x00],
-                info: [PWM.Hardware.PinConfig.InfoKey.pin.rawValue : PWM.Pin.pin0]
+                info: [PWM.Hardware.PinConfig.InfoKey.pin.rawValue: PWM.Pin.pin0]
             ).get()
         )
 
@@ -45,7 +45,7 @@ class HardwarePWMTest: XCTestCase {
             pwm1,
             try? PWM.Hardware.PinConfig.parse(
                 [0x11],
-                info: [PWM.Hardware.PinConfig.InfoKey.pin.rawValue : PWM.Pin.pin1]
+                info: [PWM.Hardware.PinConfig.InfoKey.pin.rawValue: PWM.Pin.pin1]
             ).get()
         )
 
@@ -59,10 +59,10 @@ class HardwarePWMTest: XCTestCase {
             pwm2,
             try? PWM.Hardware.PinConfig.parse(
                 [0x21],
-                info: [PWM.Hardware.PinConfig.InfoKey.pin.rawValue : PWM.Pin.pin2]
+                info: [PWM.Hardware.PinConfig.InfoKey.pin.rawValue: PWM.Pin.pin2]
             ).get()
         )
-        
+
         // Settings Command write: 0x03 0xff 0x0a 0x7c 0x92 0x00 0x11 0x21
         XCTAssertEqual(
             [UInt8](
@@ -73,7 +73,7 @@ class HardwarePWMTest: XCTestCase {
                     )
                 ).compose()
             ),
-            [0x03, 0xff, 0x0a, 0x7c, 0x92, 0x00, 0x11, 0x21]
+            [0x03, 0xFF, 0x0A, 0x7C, 0x92, 0x00, 0x11, 0x21]
         )
 
         // HardPWM3: enable -> 0x31
@@ -86,7 +86,7 @@ class HardwarePWMTest: XCTestCase {
             pwm3,
             try? PWM.Hardware.PinConfig.parse(
                 [0x31],
-                info: [PWM.Hardware.PinConfig.InfoKey.pin.rawValue : PWM.Pin.pin3]
+                info: [PWM.Hardware.PinConfig.InfoKey.pin.rawValue: PWM.Pin.pin3]
             ).get()
         )
 
@@ -112,7 +112,7 @@ class HardwarePWMTest: XCTestCase {
         )
         XCTAssertEqual(
             clock.compose(),
-            [0xff, 0x10, 0xff, 0xff]
+            [0xFF, 0x10, 0xFF, 0xFF]
         )
 
         // Settings Command write: 0x03 0xff 0x10 0xff 0xff
@@ -124,7 +124,7 @@ class HardwarePWMTest: XCTestCase {
                     )
                 ).compose()
             ),
-            [0x03, 0xff, 0x10, 0xff, 0xff]
+            [0x03, 0xFF, 0x10, 0xFF, 0xFF]
         )
     }
 
@@ -137,7 +137,7 @@ class HardwarePWMTest: XCTestCase {
         )
         XCTAssertEqual(
             pwm1.compose(),
-            [0x01, 0x7c, 0x92, 0x00, 0x00, 0x00, 0x00]
+            [0x01, 0x7C, 0x92, 0x00, 0x00, 0x00, 0x00]
         )
 
         // HardPWM3: transition to value 100 in 200ms -> 0x03 0x64 0x00 0xc8 0x00 0x00 0x00
@@ -148,7 +148,7 @@ class HardwarePWMTest: XCTestCase {
         )
         XCTAssertEqual(
             pwm3.compose(),
-            [0x03, 0x64, 0x00, 0xc8, 0x00, 0x00, 0x00]
+            [0x03, 0x64, 0x00, 0xC8, 0x00, 0x00, 0x00]
         )
 
         // Control Command write: 0x03 0x01 0x7c 0x92 0x00 0x00 0x00 0x00 0x03 0x64 0x00 0xc8 0x00 0x00 0x00
@@ -156,9 +156,9 @@ class HardwarePWMTest: XCTestCase {
             [UInt8](
                 ControlService.ControlCommand.hardwarePWM([pwm1, pwm3]).compose()
             ),
-            [0x03, 0x01, 0x7c, 0x92, 0x00, 0x00, 0x00, 0x00, 0x03, 0x64, 0x00, 0xc8, 0x00, 0x00, 0x00]
+            [0x03, 0x01, 0x7C, 0x92, 0x00, 0x00, 0x00, 0x00, 0x03, 0x64, 0x00, 0xC8, 0x00, 0x00, 0x00]
         )
-        
+
         // HardPWM2: transition to value 65535 in 9000ms -> 0x02 0xff 0xff 0x28 0x23 0x00 0x00
         let pwm2 = PWM.Hardware.ControlPayload(
             pin: .pin2,
@@ -167,7 +167,7 @@ class HardwarePWMTest: XCTestCase {
         )
         XCTAssertEqual(
             pwm2.compose(),
-            [0x02, 0xff, 0xff, 0x28, 0x23, 0x00, 0x00]
+            [0x02, 0xFF, 0xFF, 0x28, 0x23, 0x00, 0x00]
         )
 
         // Control Command write: 0x03 0x02 0xff 0xff 0x28 0x23 0x00 0x00
@@ -175,7 +175,7 @@ class HardwarePWMTest: XCTestCase {
             [UInt8](
                 ControlService.ControlCommand.hardwarePWM([pwm2]).compose()
             ),
-            [0x03, 0x02, 0xff, 0xff, 0x28, 0x23, 0x00, 0x00]
+            [0x03, 0x02, 0xFF, 0xFF, 0x28, 0x23, 0x00, 0x00]
         )
     }
 }

@@ -1,12 +1,12 @@
 //
 //  XCTAssertEqual.swift
-//  
+//
 //
 //  Created by Akira Matsuda on 2022/02/23.
 //
 
-import XCTest
 import Difference
+import XCTest
 
 public func XCTAssertEqual<T: Equatable>(_ expected: @autoclosure () throws -> T, _ received: @autoclosure () throws -> T, file: StaticString = #filePath, line: UInt = #line) {
     do {
