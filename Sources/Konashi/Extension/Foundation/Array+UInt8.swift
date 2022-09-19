@@ -12,11 +12,11 @@ import Foundation
 extension Array where Element == UInt8 {
     func toHexString(spacing: String = " ") -> String {
         var hexString = ""
-        var count = self.count
+        var counter = count
         for byte in self {
             hexString.append(String(format: "0x%02X", byte))
-            count = count - 1
-            if count > 0 {
+            counter = counter - 1
+            if counter > 0 {
                 hexString.append(spacing)
             }
         }
