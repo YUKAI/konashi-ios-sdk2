@@ -202,11 +202,6 @@ public struct SettingsService: Service {
 
         /// A representation of bluetooth function setting.
         public struct BluetoothFunction {
-            internal init(function: SettingsService.BluetoothSettingPayload.BluetoothFunction.Function, enabled: Bool) {
-                self.function = function
-                self.enabled = enabled
-            }
-
             /// Functions of Bluetooth
             public enum Function {
                 case mesh
@@ -217,6 +212,11 @@ public struct SettingsService: Service {
             public let function: Function
             /// Enable or disable a Bluetooth functionality.
             public let enabled: Bool
+
+            public init(function: SettingsService.BluetoothSettingPayload.BluetoothFunction.Function, enabled: Bool) {
+                self.function = function
+                self.enabled = enabled
+            }
         }
 
         /// Enable or disable a Bluetooth functionality.
