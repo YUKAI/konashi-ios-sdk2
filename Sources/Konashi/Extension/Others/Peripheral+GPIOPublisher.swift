@@ -8,7 +8,7 @@
 import Combine
 import Foundation
 
-extension Peripheral {
+extension KonashiPeripheral {
     var subjectCancellable: Set<AnyCancellable> {
         get {
             guard let cancellable = objc_getAssociatedObject(
@@ -37,7 +37,7 @@ extension Peripheral {
     }
 }
 
-public extension Peripheral {
+public extension KonashiPeripheral {
     private func makeGPIOSubject(pin: GPIO.Pin) -> PassthroughSubject<GPIO.Value, Never> {
         guard let subject = objc_getAssociatedObject(
             self,

@@ -28,7 +28,7 @@ public final class CentralManager: NSObject {
     /// A subject that sends any operation errors.
     public let operationErrorSubject = PassthroughSubject<Error, Never>()
     /// A subject that sends discovered peripheral and advertisement datas.
-    public let didDiscoverSubject = PassthroughSubject<(peripheral: Peripheral, advertisementData: [String: Any], rssi: NSNumber), Never>()
+    public let didDiscoverSubject = PassthroughSubject<(peripheral: any Peripheral, advertisementData: [String: Any], rssi: NSNumber), Never>()
     /// A subject that sends a peripheral that is connected.
     public let didConnectSubject = PassthroughSubject<CBPeripheral, Never>()
     /// A subject that sends a peripheral when a peripheral is disconnected.
@@ -111,9 +111,9 @@ public final class CentralManager: NSObject {
     ///   - name: Peripheral name to find.
     ///   - timeoutInterval: The duration of timeout.
     /// - Returns: A promise object for this method.
-    public func find(name: String, timeoutInterval: TimeInterval = 5) -> Promise<Peripheral> {
+    public func find(name: String, timeoutInterval: TimeInterval = 5) -> Promise<any Peripheral> {
         var cancellable = Set<AnyCancellable>()
-        return Promise<Peripheral> { [weak self] resolve, reject in
+        return Promise<any Peripheral> { [weak self] resolve, reject in
             guard let weakSelf = self else {
                 return
             }
@@ -182,7 +182,7 @@ extension CentralManager: CBCentralManagerDelegate {
     ) {
         didDiscoverSubject.send(
             (
-                peripheral: Peripheral(peripheral: peripheral),
+                peripheral: KonashiPeripheral(peripheral: peripheral),
                 advertisementData: advertisementData,
                 rssi: RSSI
             )

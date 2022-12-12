@@ -7,7 +7,7 @@
 
 import Foundation
 
-public extension Peripheral {
+public extension KonashiPeripheral {
     /// A notification that posts immediately after the peripheral is initialized.
     static let readyToUse = Notification.Name("Peripheral.readyToUseNotification")
     /// A notification that posts immediately after the peripheral is connected to the device.

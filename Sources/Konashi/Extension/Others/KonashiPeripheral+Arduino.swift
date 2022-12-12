@@ -1,5 +1,5 @@
 //
-//  Peripheral+Arduino.swift
+//  KonashiPeripheral+Arduino.swift
 //  konashi-ios-sdk2
 //
 //  Created by Akira Matsuda on 2021/08/17.
@@ -9,7 +9,7 @@ import Combine
 import Foundation
 import Promises
 
-public extension Peripheral {
+public extension KonashiPeripheral {
     enum PinMode {
         case input
         case output
@@ -23,7 +23,7 @@ public extension Peripheral {
     ///   - wiredFunction: A wired function mode of GPIO.
     /// - Returns: A peripheral this method call.
     @discardableResult
-    func pinMode(_ pin: GPIO.Pin, mode: PinMode, wiredFunction: GPIO.WiredFunction = .disabled) -> Promise<Peripheral> {
+    func pinMode(_ pin: GPIO.Pin, mode: PinMode, wiredFunction: GPIO.WiredFunction = .disabled) -> Promise<any Peripheral> {
         var direction: Direction {
             switch mode {
             case .input, .inputPullUp:
@@ -91,7 +91,7 @@ public extension Peripheral {
     ///   - level: A value of level.
     /// - Returns: A peripheral this method call.
     @discardableResult
-    func digitalWrite(_ pin: GPIO.Pin, value: Level) -> Promise<Peripheral> {
+    func digitalWrite(_ pin: GPIO.Pin, value: Level) -> Promise<any Peripheral> {
         return write(
             characteristic: ControlService.controlCommand,
             command: .gpio(
@@ -106,7 +106,7 @@ public extension Peripheral {
     ///   - config: A configuration of AIO.
     /// - Returns: A peripheral this method call.
     @discardableResult
-    func analogBegin(pin: Analog.Pin, config: Analog.ConfigPayload) -> Promise<Peripheral> {
+    func analogBegin(pin: Analog.Pin, config: Analog.ConfigPayload) -> Promise<any Peripheral> {
         return write(
             characteristic: ConfigService.configCommand,
             command: .analog(config: config)
@@ -150,7 +150,7 @@ public extension Peripheral {
     ///   - transitionDuration: A duration for transitioning current value to specified value.
     /// - Returns: A peripheral this method call.
     @discardableResult
-    func analogWrite(_ pin: Analog.Pin, value: UInt16, transitionDuration: UInt32 = 0) -> Promise<Peripheral> {
+    func analogWrite(_ pin: Analog.Pin, value: UInt16, transitionDuration: UInt32 = 0) -> Promise<any Peripheral> {
         return write(
             characteristic: ControlService.controlCommand,
             command: .analog(
@@ -169,7 +169,7 @@ public extension Peripheral {
     ///   - config: A configuration of software PWM.
     /// - Returns: A peripheral this method call.
     @discardableResult
-    func softwarePWMMode(pin: PWM.Pin, config: PWM.Software.DriveConfig) -> Promise<Peripheral> {
+    func softwarePWMMode(pin: PWM.Pin, config: PWM.Software.DriveConfig) -> Promise<any Peripheral> {
         return write(
             characteristic: ConfigService.configCommand,
             command: .softwarePWM(
@@ -188,7 +188,7 @@ public extension Peripheral {
     ///   - transitionDuration: A duration for transitioning current value to specified value.
     /// - Returns: A peripheral this method call.
     @discardableResult
-    func softwarePWMDrive(pin: PWM.Pin, value: PWM.Software.ControlValue, transitionDuration: UInt32 = 0) -> Promise<Peripheral> {
+    func softwarePWMDrive(pin: PWM.Pin, value: PWM.Software.ControlValue, transitionDuration: UInt32 = 0) -> Promise<any Peripheral> {
         return write(
             characteristic: ControlService.controlCommand,
             command: .softwarePWM(
@@ -209,7 +209,7 @@ public extension Peripheral {
     ///   - value: A value of hardware PWM.
     /// - Returns: A peripheral this method call.
     @discardableResult
-    func hardwarePWMMode(pin: PWM.Pin, clock: PWM.Hardware.Clock, prescaler: PWM.Hardware.Prescaler, value: UInt16) -> Promise<Peripheral> {
+    func hardwarePWMMode(pin: PWM.Pin, clock: PWM.Hardware.Clock, prescaler: PWM.Hardware.Prescaler, value: UInt16) -> Promise<any Peripheral> {
         return write(
             characteristic: ConfigService.configCommand,
             command: .hardwarePWM(
@@ -235,7 +235,7 @@ public extension Peripheral {
     ///   - transitionDuration: A duration for transitioning current value to specified value.
     /// - Returns: A peripheral this method call.
     @discardableResult
-    func hardwarePWMDrive(pin: PWM.Pin, value: UInt16, transitionDuration: UInt32 = 0) -> Promise<Peripheral> {
+    func hardwarePWMDrive(pin: PWM.Pin, value: UInt16, transitionDuration: UInt32 = 0) -> Promise<any Peripheral> {
         return write(
             characteristic: ControlService.controlCommand,
             command: .hardwarePWM(
@@ -255,7 +255,7 @@ public extension Peripheral {
     ///   - stopBit: The UART number of stop bits.
     /// - Returns: A peripheral this method call.
     @discardableResult
-    func serialBegin(baudrate: UInt32, parity: UART.Parity = .none, stopBit: UART.StopBit = ._0_5) -> Promise<Peripheral> {
+    func serialBegin(baudrate: UInt32, parity: UART.Parity = .none, stopBit: UART.StopBit = ._0_5) -> Promise<any Peripheral> {
         return write(
             characteristic: ConfigService.configCommand,
             command: .uart(
@@ -273,7 +273,7 @@ public extension Peripheral {
     ///   - data: The data to send (length range is [1,127]).
     /// - Returns: A peripheral this method call.
     @discardableResult
-    func serialWrite(data: [UInt8]) -> Promise<Peripheral> {
+    func serialWrite(data: [UInt8]) -> Promise<any Peripheral> {
         return write(
             characteristic: ControlService.controlCommand,
             command: .uartSend(
@@ -289,7 +289,7 @@ public extension Peripheral {
     ///   - mode: SPI mode.
     /// - Returns: A peripheral this method call.
     @discardableResult
-    func spiBegin(bitrate: UInt32, endian: SPI.Endian = .lsbFirst, mode: SPI.Mode = .mode0) -> Promise<Peripheral> {
+    func spiBegin(bitrate: UInt32, endian: SPI.Endian = .lsbFirst, mode: SPI.Mode = .mode0) -> Promise<any Peripheral> {
         return write(
             characteristic: ConfigService.configCommand,
             command: .spi(
@@ -306,7 +306,7 @@ public extension Peripheral {
     /// - Parameter data: The data to send (length range is [1,127]).
     /// - Returns: A peripheral this method call.
     @discardableResult
-    func spiTransfer(data: [UInt8]) -> Promise<Peripheral> {
+    func spiTransfer(data: [UInt8]) -> Promise<any Peripheral> {
         return write(
             characteristic: ControlService.controlCommand,
             command: .spiTransfer(
@@ -320,7 +320,7 @@ public extension Peripheral {
     ///   - mode: I2C mode.
     /// - Returns: A peripheral this method call.
     @discardableResult
-    func i2cBegin(_ mode: I2C.Mode) -> Promise<Peripheral> {
+    func i2cBegin(_ mode: I2C.Mode) -> Promise<any Peripheral> {
         return write(
             characteristic: ConfigService.configCommand,
             command: .i2c(
@@ -335,7 +335,7 @@ public extension Peripheral {
     ///   - writeData: The data to write (valid length 0 to 124 bytes).
     /// - Returns: A peripheral this method call.
     @discardableResult
-    func i2cWrite(address: UInt8, writeData: [UInt8]) -> Promise<Peripheral> {
+    func i2cWrite(address: UInt8, writeData: [UInt8]) -> Promise<any Peripheral> {
         return i2cTransfer(address: address, operation: .write, readLength: 0, writeData: writeData)
     }
 
@@ -377,8 +377,8 @@ public extension Peripheral {
     ///   - writeData: The data to write (valid length 0 to 124 bytes).
     /// - Returns: A peripheral this method call.
     @discardableResult
-    func i2cTransfer(address: UInt8, operation: I2C.Operation, readLength: UInt8, writeData: [UInt8]) -> Promise<Peripheral> {
-        return Promise<Peripheral> { [weak self] resolve, reject in
+    func i2cTransfer(address: UInt8, operation: I2C.Operation, readLength: UInt8, writeData: [UInt8]) -> Promise<any Peripheral> {
+        return Promise<any Peripheral> { [weak self] resolve, reject in
             guard let weakSelf = self else {
                 return
             }

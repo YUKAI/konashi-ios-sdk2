@@ -10,65 +10,21 @@ import CombineExt
 import CoreBluetooth
 import Promises
 
-private class PeripheralDelegate: NSObject {
-    weak var parentPeripheral: Peripheral?
+private class KonashiPeripheralDelegate: NSObject {
+    weak var parentPeripheral: KonashiPeripheral?
 
-    init(peripheral: Peripheral) {
+    init(peripheral: KonashiPeripheral) {
         parentPeripheral = peripheral
     }
 }
 
-public extension Peripheral {
+public extension KonashiPeripheral {
     /// A string key to retrieve a peripheral instance from a notification userInfo.
-    static let instanceKey: String = "Peripheral.instanceKey"
+    static let instanceKey: String = "KonashiPeripheral.instanceKey"
 }
 
 /// A remote peripheral device.
-public final class Peripheral: Hashable {
-    public static func == (lhs: Peripheral, rhs: Peripheral) -> Bool {
-        return lhs.hashValue == rhs.hashValue
-    }
-
-    public static func == (lhs: Peripheral, rhs: CBPeripheral) -> Bool {
-        return lhs.peripheral == rhs
-    }
-
-    public static func == (lhs: CBPeripheral, rhs: Peripheral) -> Bool {
-        return lhs == rhs.peripheral
-    }
-
-    public func hash(into hasher: inout Hasher) {
-        hasher.combine(peripheral)
-    }
-
-    /// A confition of a peripheral.
-    public enum State: Hashable {
-        public static func == (lhs: Peripheral.State, rhs: Peripheral.State) -> Bool {
-            return lhs.hashValue == rhs.hashValue
-        }
-
-        public func hash(into hasher: inout Hasher) {
-            switch self {
-            case let .error(error):
-                hasher.combine(error.localizedDescription)
-            case .disconnected:
-                hasher.combine("disconnected")
-            case .connecting:
-                hasher.combine("connecting")
-            case .connected:
-                hasher.combine("connected")
-            case .readyToUse:
-                hasher.combine("readyToUse")
-            }
-        }
-
-        case error(Error)
-        case disconnected
-        case connecting
-        case connected
-        case readyToUse
-    }
-
+public final class KonashiPeripheral: Peripheral {
     /// An error that the reason of why a peripheral could not ready to use.
     public enum PeripheralError: Error {
         case couldNotFindCharacteristic
@@ -78,6 +34,30 @@ public final class Peripheral: Hashable {
     public enum OperationError: LocalizedError {
         case invalidReadValue
         case couldNotReadValue
+    }
+
+    public static func == (lhs: KonashiPeripheral, rhs: KonashiPeripheral) -> Bool {
+        return lhs.hashValue == rhs.hashValue
+    }
+    
+    public static func == (lhs: KonashiPeripheral, rhs: CBPeripheral) -> Bool {
+        return lhs.peripheral == rhs
+    }
+
+    public static func == (lhs: CBPeripheral, rhs: KonashiPeripheral) -> Bool {
+        return lhs == rhs.peripheral
+    }
+
+    public func hash(into hasher: inout Hasher) {
+        hasher.combine(peripheral)
+    }
+
+    public var statePublisher: Published<ConnectionStatus>.Publisher {
+        return $state
+    }
+    
+    public var rssiPublisher: Published<NSNumber?>.Publisher {
+        return $rssi
     }
 
     /// A service of a peripheral's setting.
@@ -102,7 +82,7 @@ public final class Peripheral: Hashable {
     }()
 
     /// A state of a peripheral.
-    @Published public private(set) var state: State = .disconnected
+    @Published public private(set) var state: ConnectionStatus = .disconnected
     /// A RSSI value of a peripheral.
     @Published public fileprivate(set) var rssi: NSNumber?
     /// This variable indicates that whether a peripheral is ready to use or not.
@@ -120,7 +100,7 @@ public final class Peripheral: Hashable {
     public let didWriteValueSubject = PassthroughSubject<(uuid: CBUUID, error: Error?), Never>()
 
     // swiftlint:disable weak_delegate
-    private lazy var delegate: PeripheralDelegate = .init(peripheral: self)
+    private lazy var delegate: KonashiPeripheralDelegate = .init(peripheral: self)
 
     // swiftlint:enable weak_delegate
 
@@ -152,22 +132,22 @@ public final class Peripheral: Hashable {
 
     /// Connects to a peripheral.
     @discardableResult
-    public func connect() -> Promise<Peripheral> {
+    public func connect() -> Promise<any Peripheral> {
         var cancellable = Set<AnyCancellable>()
         isCharacteristicsDiscovered = false
         isCharacteristicsConfigured = false
         discoveredServices.removeAll()
         configuredCharacteristics.removeAll()
-        return Promise<Peripheral> { [unowned self] resolve, reject in
+        return Promise<any Peripheral> { [unowned self] resolve, reject in
             self.isReady.sink { [weak self] ready in
                 guard let weakSelf = self else {
                     return
                 }
                 if ready {
                     NotificationCenter.default.post(
-                        name: Peripheral.readyToUse,
+                        name: KonashiPeripheral.readyToUse,
                         object: nil,
-                        userInfo: [Peripheral.instanceKey: weakSelf]
+                        userInfo: [KonashiPeripheral.instanceKey: weakSelf]
                     )
                     resolve(weakSelf)
                 }
@@ -178,9 +158,9 @@ public final class Peripheral: Hashable {
                 }
                 if connectedPeripheral == weakSelf.peripheral {
                     NotificationCenter.default.post(
-                        name: Peripheral.didConnect,
+                        name: KonashiPeripheral.didConnect,
                         object: nil,
-                        userInfo: [Peripheral.instanceKey: weakSelf]
+                        userInfo: [KonashiPeripheral.instanceKey: weakSelf]
                     )
                 }
             }.store(in: &cancellable)
@@ -190,9 +170,9 @@ public final class Peripheral: Hashable {
                 }
                 if result.0 == weakSelf.peripheral, let error = result.1 {
                     NotificationCenter.default.post(
-                        name: Peripheral.didFailedToConnect,
+                        name: KonashiPeripheral.didFailedToConnect,
                         object: nil,
-                        userInfo: [Peripheral.instanceKey: weakSelf]
+                        userInfo: [KonashiPeripheral.instanceKey: weakSelf]
                     )
                     reject(error)
                     weakSelf.state = .error(error)
@@ -221,9 +201,9 @@ public final class Peripheral: Hashable {
                 if result.0 == weakSelf.peripheral {
                     if let error = result.1 {
                         NotificationCenter.default.post(
-                            name: Peripheral.didFailedToDisconnect,
+                            name: KonashiPeripheral.didFailedToDisconnect,
                             object: nil,
-                            userInfo: [Peripheral.instanceKey: weakSelf]
+                            userInfo: [KonashiPeripheral.instanceKey: weakSelf]
                         )
                         reject(error)
                         weakSelf.state = .error(error)
@@ -231,9 +211,9 @@ public final class Peripheral: Hashable {
                     }
                     else {
                         NotificationCenter.default.post(
-                            name: Peripheral.didDisconnect,
+                            name: KonashiPeripheral.didDisconnect,
                             object: nil,
-                            userInfo: [Peripheral.instanceKey: weakSelf]
+                            userInfo: [KonashiPeripheral.instanceKey: weakSelf]
                         )
                         weakSelf.state = .disconnected
                         resolve(())
@@ -288,10 +268,10 @@ public final class Peripheral: Hashable {
         characteristic: WriteableCharacteristic<WriteCommand>,
         command: WriteCommand,
         type: CBCharacteristicWriteType = .withResponse
-    ) -> Promise<Peripheral> {
+    ) -> Promise<any Peripheral> {
         print(">>> write \(characteristic) \n \(command) \n \([UInt8](command.compose()).toHexString())")
         var cancellable = Set<AnyCancellable>()
-        let promise = Promise<Peripheral>.pending()
+        let promise = Promise<any Peripheral>.pending()
         readyPromise.then { [weak self] _ in
             guard let weakSelf = self else {
                 return
@@ -494,7 +474,7 @@ public final class Peripheral: Hashable {
     }
 }
 
-extension PeripheralDelegate: CBPeripheralDelegate {
+extension KonashiPeripheralDelegate: CBPeripheralDelegate {
     func peripheral(_ peripheral: CBPeripheral, didDiscoverServices error: Error?) {
         print(">>> discoverServices done")
         if let error = error {

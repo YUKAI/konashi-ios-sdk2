@@ -8,7 +8,7 @@
 import Combine
 import Foundation
 
-public extension Peripheral {
+public extension KonashiPeripheral {
     private func makeAnalogInputSubject(pin: Analog.Pin) -> PassthroughSubject<Analog.InputValue, Never> {
         guard let subject = objc_getAssociatedObject(
             self,
