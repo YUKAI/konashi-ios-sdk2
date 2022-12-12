@@ -45,29 +45,14 @@ extension Peripheral {
 }
 
 public protocol Peripheral: Hashable {
-    /// A service of a peripheral's setting.
-    var settingsService: SettingsService { get }
-    /// A service of a peripheral's config.
-    var configService: ConfigService { get }
-    /// A service to control a peripheral.
-    var controlService: ControlService { get }
-
     /// A name of a peripheral.
     var name: String? { get }
 
     /// A collection of services of a peripheral.
     var services: [Service] { get }
 
-    /// A publisher of a peripheral state.
-    var statePublisher: Published<ConnectionStatus>.Publisher { get }
-    /// A publisher of RSSI value of a peripheral.
-    var rssiPublisher: Published<NSNumber?>.Publisher { get }
-    /// This variable indicates that whether a peripheral is ready to use or not.
-    var isReady: AnyPublisher<Bool, Never> { get }
-    /// A subject that sends any operation errors.
-    var operationErrorSubject: PassthroughSubject<Error, Never> { get }
-    /// A subject that sends value that is written to af peripheral.
-    var didWriteValueSubject: PassthroughSubject<(uuid: CBUUID, error: Error?), Never> { get }
+    /// A connection status of a peripheral.
+    var status: ConnectionStatus { get }
 
     // MARK: - Connection
 
