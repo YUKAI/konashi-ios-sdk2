@@ -10,34 +10,6 @@ import CombineExt
 import CoreBluetooth
 import Promises
 
-/// A confition of a peripheral.
-public enum ConnectionStatus: Hashable {
-    public static func == (lhs: ConnectionStatus, rhs: ConnectionStatus) -> Bool {
-        return lhs.hashValue == rhs.hashValue
-    }
-
-    public func hash(into hasher: inout Hasher) {
-        switch self {
-        case let .error(error):
-            hasher.combine(error.localizedDescription)
-        case .disconnected:
-            hasher.combine("disconnected")
-        case .connecting:
-            hasher.combine("connecting")
-        case .connected:
-            hasher.combine("connected")
-        case .readyToUse:
-            hasher.combine("readyToUse")
-        }
-    }
-
-    case error(Error)
-    case disconnected
-    case connecting
-    case connected
-    case readyToUse
-}
-
 extension Peripheral {
     static func == (lhs: any Peripheral, rhs: any Peripheral) -> Bool {
         return lhs.hashValue == rhs.hashValue
