@@ -1,5 +1,5 @@
 //
-//  File.swift
+//  Peripheral.swift
 //
 //
 //  Created by Akira Matsuda on 2022/12/12.
