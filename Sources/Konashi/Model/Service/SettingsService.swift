@@ -184,10 +184,29 @@ public struct SettingsService: Service {
             public let deviceName: Bool
             public let gpioxInputValue: GPIOxInputValue
             public let aioxInputValue: AIOxInputValue
+            
+            public init(
+                manufacturerData: Bool,
+                deviceUUID: Bool,
+                deviceName: Bool,
+                gpioxInputValue: SettingsService.BluetoothSettingPayload.GPIOxInputValue,
+                aioxInputValue: SettingsService.BluetoothSettingPayload.AIOxInputValue
+            ) {
+                self.manufacturerData = manufacturerData
+                self.deviceUUID = deviceUUID
+                self.deviceName = deviceName
+                self.gpioxInputValue = gpioxInputValue
+                self.aioxInputValue = aioxInputValue
+            }
         }
 
         /// A representation of bluetooth function setting.
         public struct BluetoothFunction {
+            internal init(function: SettingsService.BluetoothSettingPayload.BluetoothFunction.Function, enabled: Bool) {
+                self.function = function
+                self.enabled = enabled
+            }
+
             /// Functions of Bluetooth
             public enum Function {
                 case mesh
@@ -213,6 +232,22 @@ public struct SettingsService: Service {
         /// The secondary advertiser advertising contents.
         /// If the resulting advertising data length is longer than 31 bytes, advertising will automatically be in extended mode, otherwise it will be legacy mode.
         public var extraAdvertiserContents: AdvertiserContents?
+
+        public init(
+            bluetoothFunction: SettingsService.BluetoothSettingPayload.BluetoothFunction? = nil,
+            mainAdvertiserSecondaryPHY: PHY? = nil,
+            mainAdvertiserPreferredConnectionPHY: PHYsBitmask? = nil,
+            extraAdvertiserPrimaryPHY: PHY? = nil,
+            extraAdvertiserSecondaryPHY: PHY? = nil,
+            extraAdvertiserContents: SettingsService.BluetoothSettingPayload.AdvertiserContents? = nil
+        ) {
+            self.bluetoothFunction = bluetoothFunction
+            self.mainAdvertiserSecondaryPHY = mainAdvertiserSecondaryPHY
+            self.mainAdvertiserPreferredConnectionPHY = mainAdvertiserPreferredConnectionPHY
+            self.extraAdvertiserPrimaryPHY = extraAdvertiserPrimaryPHY
+            self.extraAdvertiserSecondaryPHY = extraAdvertiserSecondaryPHY
+            self.extraAdvertiserContents = extraAdvertiserContents
+        }
 
         func compose() -> [UInt8] {
             var bytes = [UInt8]()
