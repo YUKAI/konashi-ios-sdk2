@@ -195,24 +195,24 @@ public struct SettingsService: Service {
             }
 
             /// The function to enable or disable.
-            var function: Function
+            public let function: Function
             /// Enable or disable a Bluetooth functionality.
-            var enabled: Bool
+            public let enabled: Bool
         }
 
         /// Enable or disable a Bluetooth functionality.
-        var bluetoothFunction: BluetoothFunction?
+        public var bluetoothFunction: BluetoothFunction?
         /// The main advertiser Secondary PHY.
-        var mainAdvertiserSecondaryPHY: PHY?
+        public var mainAdvertiserSecondaryPHY: PHY?
         /// The main preferred connection PHYs. Multiple preferred PHYs can be set in the form of a bitmask.
-        var mainAdvertiserPreferredConnectionPHY: PHYsBitmask?
+        public var mainAdvertiserPreferredConnectionPHY: PHYsBitmask?
         /// The secondary advertiser primary PHYs.
-        var extraAdvertiserPrimaryPHY: PHY?
+        public var extraAdvertiserPrimaryPHY: PHY?
         /// The secondary advertiser secondary PHYs.
-        var extraAdvertiserSecondaryPHY: PHY?
+        public var extraAdvertiserSecondaryPHY: PHY?
         /// The secondary advertiser advertising contents.
         /// If the resulting advertising data length is longer than 31 bytes, advertising will automatically be in extended mode, otherwise it will be legacy mode.
-        var extraAdvertiserContents: AdvertiserContents?
+        public var extraAdvertiserContents: AdvertiserContents?
 
         func compose() -> [UInt8] {
             var bytes = [UInt8]()
