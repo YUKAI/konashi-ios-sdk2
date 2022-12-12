@@ -1,6 +1,6 @@
 //
 //  Peripheral.swift
-//
+//  konashi-ios-sdk2
 //
 //  Created by Akira Matsuda on 2022/12/12.
 //
@@ -63,17 +63,6 @@ public protocol Peripheral: Hashable {
     /// Disconnects from a peripheral.
     @discardableResult
     func disconnect() -> Promise<Void>
-
-    // MARK: - RSSI
-
-    /// Reads RSSI value of a peripheral.
-    /// - Parameters:
-    ///   - repeats: Specify true to read RSSI repeatedly.
-    ///   - interval: An interval of read RSSI value.
-    func readRSSI(repeats: Bool, interval: TimeInterval)
-
-    /// Stops reading RSSI value.
-    func stopReadRSSI()
 
     // MARK: - Write/Read Command
 
