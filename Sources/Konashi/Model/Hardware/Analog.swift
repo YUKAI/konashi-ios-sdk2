@@ -110,7 +110,7 @@ public enum Analog {
             if data.count != byteSize {
                 return .failure(PayloadParseError.invalidByteSize)
             }
-            guard let info = info, let pin = info[InfoKey.pin.rawValue] as? Analog.Pin else {
+            guard let info, let pin = info[InfoKey.pin.rawValue] as? Analog.Pin else {
                 return .failure(PayloadParseError.invalidInfo)
             }
             let flag = data[0].konashi_bits()

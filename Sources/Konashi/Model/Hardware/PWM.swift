@@ -85,7 +85,7 @@ public enum PWM {
                 if data.count != byteSize {
                     return .failure(PayloadParseError.invalidByteSize)
                 }
-                guard let info = info, let pin = info[InfoKey.pin.rawValue] as? PWM.Pin else {
+                guard let info, let pin = info[InfoKey.pin.rawValue] as? PWM.Pin else {
                     return .failure(PayloadParseError.invalidInfo)
                 }
                 let first = data[0] & 0x0F
@@ -105,7 +105,7 @@ public enum PWM {
                         return nil
                     }
                 }
-                guard let driveConfig = driveConfig else {
+                guard let driveConfig else {
                     return .failure(PWM.ParseError.invalidDriveConfig)
                 }
                 return .success(PWM.Software.PinConfig(
@@ -231,7 +231,7 @@ public enum PWM {
                 if data.count != byteSize {
                     return .failure(PayloadParseError.invalidByteSize)
                 }
-                guard let info = info, let pin = info[InfoKey.pin.rawValue] as? PWM.Pin else {
+                guard let info, let pin = info[InfoKey.pin.rawValue] as? PWM.Pin else {
                     return .failure(PayloadParseError.invalidInfo)
                 }
 

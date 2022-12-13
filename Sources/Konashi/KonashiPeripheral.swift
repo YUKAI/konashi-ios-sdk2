@@ -39,7 +39,7 @@ public final class KonashiPeripheral: Peripheral {
     public static func == (lhs: KonashiPeripheral, rhs: KonashiPeripheral) -> Bool {
         return lhs.hashValue == rhs.hashValue
     }
-    
+
     public static func == (lhs: KonashiPeripheral, rhs: CBPeripheral) -> Bool {
         return lhs.peripheral == rhs
     }
@@ -277,7 +277,7 @@ public final class KonashiPeripheral: Peripheral {
                 if type == .withResponse {
                     weakSelf.didWriteValueSubject.sink { uuid, error in
                         if uuid == characteristic.uuid {
-                            if let error = error {
+                            if let error {
                                 promise.reject(error)
                                 weakSelf.operationErrorSubject.send(error)
                             }
@@ -325,7 +325,7 @@ public final class KonashiPeripheral: Peripheral {
                     if updatedCharacteristic != targetCharacteristic {
                         return
                     }
-                    if let error = error {
+                    if let error {
                         promise.reject(error)
                         weakSelf.operationErrorSubject.send(error)
                         return
@@ -474,7 +474,7 @@ public final class KonashiPeripheral: Peripheral {
 extension KonashiPeripheralDelegate: CBPeripheralDelegate {
     func peripheral(_ peripheral: CBPeripheral, didDiscoverServices error: Error?) {
         print(">>> discoverServices done")
-        if let error = error {
+        if let error {
             parentPeripheral!.readyPromise.reject(error)
             parentPeripheral!.operationErrorSubject.send(error)
             return
@@ -484,7 +484,7 @@ extension KonashiPeripheralDelegate: CBPeripheralDelegate {
 
     func peripheral(_ peripheral: CBPeripheral, didDiscoverCharacteristicsFor service: CBService, error: Error?) {
         print(">>> discoverCharacteristics done \(service.uuid)")
-        if let error = error {
+        if let error {
             parentPeripheral!.readyPromise.reject(error)
             parentPeripheral!.operationErrorSubject.send(error)
             return
@@ -496,7 +496,7 @@ extension KonashiPeripheralDelegate: CBPeripheralDelegate {
     }
 
     public func peripheral(_ peripheral: CBPeripheral, didReadRSSI RSSI: NSNumber, error: Error?) {
-        if let error = error {
+        if let error {
             parentPeripheral!.operationErrorSubject.send(error)
         }
         else {
@@ -506,7 +506,7 @@ extension KonashiPeripheralDelegate: CBPeripheralDelegate {
 
     public func peripheral(_ peripheral: CBPeripheral, didWriteValueFor characteristic: CBCharacteristic, error: Error?) {
         print(">>> write value done")
-        if let error = error {
+        if let error {
             print(error.localizedDescription)
             parentPeripheral!.operationErrorSubject.send(error)
         }
@@ -516,7 +516,7 @@ extension KonashiPeripheralDelegate: CBPeripheralDelegate {
     public func peripheral(_ peripheral: CBPeripheral, didUpdateValueFor characteristic: CBCharacteristic, error: Error?) {
         print(">>> update value")
         parentPeripheral!.didUpdateValueSubject.send((characteristic, error))
-        if let error = error {
+        if let error {
             parentPeripheral!.operationErrorSubject.send(error)
         }
         else {
@@ -525,7 +525,7 @@ extension KonashiPeripheralDelegate: CBPeripheralDelegate {
     }
 
     public func peripheral(_ peripheral: CBPeripheral, didUpdateNotificationStateFor characteristic: CBCharacteristic, error: Error?) {
-        if let error = error {
+        if let error {
             parentPeripheral!.readyPromise.reject(error)
             parentPeripheral!.operationErrorSubject.send(error)
             return

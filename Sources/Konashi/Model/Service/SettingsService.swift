@@ -184,7 +184,7 @@ public struct SettingsService: Service {
             public let deviceName: Bool
             public let gpioxInputValue: GPIOxInputValue
             public let aioxInputValue: AIOxInputValue
-            
+
             public init(
                 manufacturerData: Bool,
                 deviceUUID: Bool,
@@ -251,7 +251,7 @@ public struct SettingsService: Service {
 
         func compose() -> [UInt8] {
             var bytes = [UInt8]()
-            if let bluetoothFunction = bluetoothFunction {
+            if let bluetoothFunction {
                 var byte: UInt8 = 0b00000000
                 if bluetoothFunction.function == .exAdvertiser {
                     byte |= 0b00010000

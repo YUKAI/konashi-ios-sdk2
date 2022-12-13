@@ -82,7 +82,7 @@ public enum SPI {
                     return nil
                 }
             }
-            guard let mode = mode else {
+            guard let mode else {
                 return .failure(SPI.ParseError.invalidMode)
             }
             let flag = first.konashi_bits()

@@ -194,7 +194,7 @@ extension CentralManager: CBCentralManagerDelegate {
     }
 
     public func centralManager(_ central: CBCentralManager, didDisconnectPeripheral peripheral: CBPeripheral, error: Error?) {
-        if let error = error {
+        if let error {
             operationErrorSubject.send(error)
         }
         didDisconnectSubject.send(
@@ -203,7 +203,7 @@ extension CentralManager: CBCentralManagerDelegate {
     }
 
     public func centralManager(_ central: CBCentralManager, didFailToConnect peripheral: CBPeripheral, error: Error?) {
-        if let error = error {
+        if let error {
             operationErrorSubject.send(error)
         }
         didFailedToConnectSubject.send(

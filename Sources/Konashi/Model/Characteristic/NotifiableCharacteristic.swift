@@ -21,7 +21,7 @@ public class NotifiableCharacteristic<Value: CharacteristicValue>: Characteristi
     }
 
     public func update(data: Data?) {
-        guard let data = data else {
+        guard let data else {
             return
         }
         switch parse(data: data) {

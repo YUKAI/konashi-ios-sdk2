@@ -9,7 +9,7 @@ import Foundation
 
 // swiftlint:disable empty_count
 // https://stackoverflow.com/questions/33546967/how-to-convert-array-of-bytes-uint8-into-hexa-string-in-swift
-extension Array where Element == UInt8 {
+extension [UInt8] {
     func toHexString(spacing: String = " ") -> String {
         var hexString = ""
         var counter = count

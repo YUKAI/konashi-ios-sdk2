@@ -8,7 +8,7 @@
 import CoreBluetooth
 import Foundation
 
-extension Array where Element == Service {
+extension [Service] {
     func find(service target: CBService) -> Element? {
         return first {
             $0.uuid.uuidString == target.uuid.uuidString
@@ -23,7 +23,7 @@ extension Array where Element == Service {
                 return $0.uuid.uuidString == target.service.uuid.uuidString
             #endif
         }
-        guard let service = service else {
+        guard let service else {
             return nil
         }
         return service.characteristics.first {

@@ -7,7 +7,7 @@
 
 import CoreBluetooth
 
-extension Array where Element == CBService {
+extension [CBService] {
     func find(uuid: UUID) -> CBService? {
         for service in self where service.uuid.uuidString == uuid.uuidString {
             return service

@@ -70,7 +70,7 @@ public extension KonashiPeripheral {
                 let value = readValue.values.first { val in
                     return val.pin == pin
                 }
-                guard let value = value else {
+                guard let value else {
                     reject(OperationError.couldNotReadValue)
                     return
                 }
@@ -128,7 +128,7 @@ public extension KonashiPeripheral {
                 let value = readValue.values.first { val in
                     return val.pin == pin
                 }
-                guard let value = value else {
+                guard let value else {
                     reject(OperationError.couldNotReadValue)
                     return
                 }

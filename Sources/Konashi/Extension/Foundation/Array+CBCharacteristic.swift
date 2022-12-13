@@ -7,7 +7,7 @@
 
 import CoreBluetooth
 
-extension Array where Element == CBCharacteristic {
+extension [CBCharacteristic] {
     func find(uuid: UUID) -> CBCharacteristic? {
         for characteristic in self where characteristic.uuid.uuidString == uuid.uuidString {
             return characteristic
