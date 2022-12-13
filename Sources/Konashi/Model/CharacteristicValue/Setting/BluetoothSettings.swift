@@ -55,13 +55,13 @@ public struct BluetoothSettings: CharacteristicValue {
         if isValid(bytes: bytes, method: .equal) == false {
             return .failure(CharacteristicValueParseError.invalidByteSize)
         }
-        let mainAdv = bytes[1].split2()
+        let mainAdv = bytes[1].konashi_split2()
         guard let secondaryPHY = PHY(rawValue: mainAdv.lsfb) else {
             return .failure(CharacteristicValueParseError.invalidPHY)
         }
         let preferredConnectionPHYs = PHYsBitmask.convert(mainAdv.msfb)
 
-        let exAdv = bytes[2].split2()
+        let exAdv = bytes[2].konashi_split2()
         guard let exadvPrimaryPHY = PHY(rawValue: exAdv.lsfb) else {
             return .failure(CharacteristicValueParseError.invalidPHY)
         }
@@ -69,14 +69,14 @@ public struct BluetoothSettings: CharacteristicValue {
             return .failure(CharacteristicValueParseError.invalidPHY)
         }
 
-        let exAdvertiserContents = bytes[3].split2()
+        let exAdvertiserContents = bytes[3].konashi_split2()
         guard let advertiserStatus = AdvertiserStatus(rawValue: exAdvertiserContents.msfb) else {
             return .failure(BluetoothSettings.ParseError.invalidAdvertiserStatus)
         }
-        let flags = exAdvertiserContents.lsfb.bits()
+        let flags = exAdvertiserContents.lsfb.konashi_bits()
 
-        let gpioValues = bytes[4].bits()
-        let aioValues = bytes[5].split2().msfb.bits()[...min(Analog.Pin.allCases.count, 7)]
+        let gpioValues = bytes[4].konashi_bits()
+        let aioValues = bytes[5].konashi_split2().msfb.konashi_bits()[...min(Analog.Pin.allCases.count, 7)]
         return .success(BluetoothSettings(
             isExadvEnabled: (bytes[0] & 0x02) != 0,
             isMeshEnabled: (bytes[0] & 0x01) != 0,

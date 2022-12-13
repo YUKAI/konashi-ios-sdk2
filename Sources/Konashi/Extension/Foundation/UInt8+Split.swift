@@ -12,11 +12,11 @@ struct BitArray {
 }
 
 extension UInt8 {
-    func split2() -> (msfb: UInt8, lsfb: UInt8) {
+    func konashi_split2() -> (msfb: UInt8, lsfb: UInt8) {
         return (self >> 4, self & 0x0F)
     }
 
-    func bits() -> [UInt8] {
+    func konashi_bits() -> [UInt8] {
         var byte = self
         var bits = [UInt8](repeating: .zero, count: 8)
         for index in 0 ..< 8 {

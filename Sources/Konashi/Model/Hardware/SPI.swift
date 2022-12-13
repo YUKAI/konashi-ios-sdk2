@@ -64,8 +64,8 @@ public enum SPI {
                 return .failure(PayloadParseError.invalidByteSize)
             }
             let first = data[0]
-            let (_, lsfb) = first.split2()
-            guard let endian = SPI.Endian(rawValue: lsfb.bits()[3]) else {
+            let (_, lsfb) = first.konashi_split2()
+            guard let endian = SPI.Endian(rawValue: lsfb.konashi_bits()[3]) else {
                 return .failure(SPI.ParseError.invalidEndian)
             }
             var mode: SPI.Mode? {
@@ -85,7 +85,7 @@ public enum SPI {
             guard let mode = mode else {
                 return .failure(SPI.ParseError.invalidMode)
             }
-            let flag = first.bits()
+            let flag = first.konashi_bits()
             if flag[7] == 0 {
                 return .success(SPI.Config.disable)
             }

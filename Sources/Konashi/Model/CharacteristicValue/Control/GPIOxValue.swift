@@ -24,7 +24,7 @@ public struct GPIOxValue: CharacteristicValue, Hashable {
 
         var values = [GPIO.Value]()
         for (index, byte) in bytes.enumerated() {
-            let bits = byte.bits()
+            let bits = byte.konashi_bits()
             guard let level = Level(rawValue: bits[0]) else {
                 return .failure(CharacteristicValueParseError.invalidLevel)
             }

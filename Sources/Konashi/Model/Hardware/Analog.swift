@@ -113,7 +113,7 @@ public enum Analog {
             guard let info = info, let pin = info[InfoKey.pin.rawValue] as? Analog.Pin else {
                 return .failure(PayloadParseError.invalidInfo)
             }
-            let flag = data[0].bits()
+            let flag = data[0].konashi_bits()
             guard let direction = Direction(rawValue: UInt8(flag[0])) else {
                 return .failure(Analog.ParseError.invalidDirection)
             }

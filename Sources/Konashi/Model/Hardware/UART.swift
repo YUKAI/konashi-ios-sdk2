@@ -48,14 +48,14 @@ public enum UART {
                 return .failure(PayloadParseError.invalidByteSize)
             }
             let first = data[0]
-            let (_, lsfb) = first.split2()
+            let (_, lsfb) = first.konashi_split2()
             guard let parity = UART.Parity(rawValue: lsfb >> 2) else {
                 return .failure(UART.ParseError.invalidParity)
             }
             guard let stopBit = UART.StopBit(rawValue: lsfb & 0b00000011) else {
                 return .failure(UART.ParseError.invalidStopBit)
             }
-            let flag = first.bits()
+            let flag = first.konashi_bits()
             if flag[7] == 1 {
                 return .success(
                     UART.Config.enable(

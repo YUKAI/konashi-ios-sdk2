@@ -174,7 +174,7 @@ public enum GPIO {
                 return .failure(PayloadParseError.invalidInfo)
             }
             let first = data[0]
-            let second = data[1].bits()
+            let second = data[1].konashi_bits()
             guard let function = GPIO.Function(rawValue: first & 0x0F) else {
                 return .failure(GPIO.ParseError.invalidFunction)
             }

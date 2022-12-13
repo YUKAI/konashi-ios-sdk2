@@ -28,7 +28,7 @@ public struct AnalogxOutputValue: CharacteristicValue, Hashable {
 
         var values = [Analog.OutputValue]()
         let newBytes = [UInt8](bytes.dropFirst())
-        let (msb, lsb) = bytes[0].split2()
+        let (msb, lsb) = bytes[0].konashi_split2()
         guard let vdacReference = Analog.VDACVoltageReference(rawValue: msb) else {
             return .failure(Analog.ParseError.invalidVDACVoltageReference)
         }
@@ -44,7 +44,7 @@ public struct AnalogxOutputValue: CharacteristicValue, Hashable {
             values.append(
                 Analog.OutputValue(
                     pin: pin,
-                    isValid: first.split2().lsfb == 1,
+                    isValid: first.konashi_split2().lsfb == 1,
                     value: UInt16.compose(fsb: byte[1], lsb: byte[2]),
                     transitionDuration: UInt32.compose(
                         first: byte[3],

@@ -70,7 +70,7 @@ public enum I2C {
             if data.count != byteSize {
                 return .failure(PayloadParseError.invalidByteSize)
             }
-            let flag = data[0].bits()
+            let flag = data[0].konashi_bits()
             guard let mode = I2C.Mode(rawValue: flag[0]) else {
                 return .failure(I2C.ParseError.invalidMode)
             }

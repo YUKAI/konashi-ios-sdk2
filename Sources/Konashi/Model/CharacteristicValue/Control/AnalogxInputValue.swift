@@ -38,7 +38,7 @@ public struct AnalogxInputValue: CharacteristicValue, Hashable {
             values.append(
                 Analog.InputValue(
                     pin: pin,
-                    isValid: first.split2().lsfb == 1,
+                    isValid: first.konashi_split2().lsfb == 1,
                     step: UInt16.compose(fsb: byte[1], lsb: byte[2])
                 )
             )

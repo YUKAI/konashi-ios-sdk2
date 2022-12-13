@@ -38,7 +38,7 @@ public struct HardwarePWMxConfig: CharacteristicValue, Hashable {
         }
 
         let configBytes = [UInt8](bytes[4 ..< 7])
-        let (clk, presc) = configBytes[0].split2()
+        let (clk, presc) = configBytes[0].konashi_split2()
         guard let clock = PWM.Hardware.Clock(rawValue: clk) else {
             return .failure(PWM.ParseError.invalidClock)
         }
