@@ -110,7 +110,7 @@ public final class KonashiPeripheral: Peripheral {
     fileprivate var readyPromise = Promise<Void>.pending()
     fileprivate var discoveredServices = [CBService]()
     fileprivate var configuredCharacteristics = [CBCharacteristic]()
-    private var timer: Timer?
+    private var readRssiTimer: Timer?
     private let peripheral: CBPeripheral
     private var observation: NSKeyValueObservation?
     private var internalCancellable = Set<AnyCancellable>()
@@ -122,7 +122,7 @@ public final class KonashiPeripheral: Peripheral {
     }
 
     deinit {
-        timer?.invalidate()
+        readRssiTimer?.invalidate()
     }
 
     // MARK: - Connection
@@ -220,7 +220,7 @@ public final class KonashiPeripheral: Peripheral {
             CentralManager.shared.disconnect(weakSelf.peripheral)
         }.always { [weak self] in
             if let weakSelf = self {
-                weakSelf.timer?.invalidate()
+                weakSelf.readRssiTimer?.invalidate()
             }
             cancellable.removeAll()
         }
@@ -236,7 +236,7 @@ public final class KonashiPeripheral: Peripheral {
         peripheral.delegate = delegate
         if repeats {
             stopReadRSSI()
-            timer = Timer.scheduledTimer(withTimeInterval: interval, repeats: true) { [weak self] _ in
+            readRssiTimer = Timer.scheduledTimer(withTimeInterval: interval, repeats: true) { [weak self] _ in
                 guard let weakSelf = self else {
                     return
                 }
@@ -250,7 +250,7 @@ public final class KonashiPeripheral: Peripheral {
 
     /// Stops reading RSSI value.
     public func stopReadRSSI() {
-        timer?.invalidate()
+        readRssiTimer?.invalidate()
     }
 
     // MARK: - Write/Read Command
@@ -400,7 +400,7 @@ public final class KonashiPeripheral: Peripheral {
                 return
             }
             if peripheral == weakSelf.peripheral {
-                weakSelf.timer?.invalidate()
+                weakSelf.readRssiTimer?.invalidate()
                 weakSelf.internalCancellable.removeAll()
             }
         }.store(in: &internalCancellable)
