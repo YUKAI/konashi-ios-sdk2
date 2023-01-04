@@ -27,8 +27,11 @@ public class MeshManager {
     public static let shared = MeshManager()
 
     public let receivedMessageSubject = PassthroughSubject<ReceivedMessage, Never>()
-    public var networkKey: NetworkKey?
-    public var applicationKey: ApplicationKey?
+    public private(set) var networkKey: NetworkKey?
+    public private(set) var applicationKey: ApplicationKey?
+    public var numberOfNodes: Int {
+        return networkManager.meshNetwork?.nodes.count ?? 0
+    }
     internal let networkManager: MeshNetworkManager
 //    private(set) var connection: NetworkConnection!
 
