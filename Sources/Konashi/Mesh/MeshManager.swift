@@ -36,7 +36,7 @@ public class MeshManager {
         return networkManager.meshNetwork?.nodes ?? []
     }
     internal let networkManager: MeshNetworkManager
-//    private(set) var connection: NetworkConnection!
+    private(set) var connection: MeshNetworkConnection?
 
     public init() {
         networkManager = MeshNetworkManager()
@@ -132,12 +132,15 @@ public class MeshManager {
     /// Sets up the local Elements and reinitializes the `NetworkConnection`
     /// so that it starts scanning for devices advertising the new Network ID.
     private func meshNetworkDidChange() {
-//        connection?.close()
-//        let meshNetwork = meshNetworkManager.meshNetwork!
-//        connection = NetworkConnection(to: meshNetwork)
-//        connection.dataDelegate = meshNetworkManager
-//        meshNetworkManager.transmitter = connection
-//        connection.open()
+        guard let network = networkManager.meshNetwork else {
+            return
+        }
+        connection?.close()
+        connection = MeshNetworkConnection(to: network)
+        connection?.dataDelegate = networkManager
+        connection?.logger = networkManager.logger
+        networkManager.transmitter = connection
+        connection?.open()
     }
 }
 

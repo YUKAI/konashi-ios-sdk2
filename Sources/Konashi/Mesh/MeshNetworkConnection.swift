@@ -20,7 +20,7 @@ import nRFMeshProvision
 /// receive outgoing messages. However, the `dataDelegate` will be
 /// notified about messages received from any of the connected proxies.
 class MeshNetworkConnection: NSObject, Bearer {
-    private let connectionModeKey = "connectionMode"
+    private let connectionModeKey = "konashi-ios-sdk2_connectionMode"
 
     /// Maximum number of connections that `NetworkConnection` can
     /// handle.
