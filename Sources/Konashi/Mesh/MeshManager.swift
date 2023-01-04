@@ -9,7 +9,7 @@ import Combine
 import Foundation
 import nRFMeshProvision
 
-class MeshManager {
+public class MeshManager {
     struct ReceivedMessage {
         let message: MeshMessage
         let source: Address
@@ -137,7 +137,7 @@ class MeshManager {
 }
 
 extension MeshManager: MeshNetworkDelegate {
-    func meshNetworkManager(
+    public func meshNetworkManager(
         _ manager: MeshNetworkManager,
         didReceiveMessage message: MeshMessage,
         sentFrom source: Address,
