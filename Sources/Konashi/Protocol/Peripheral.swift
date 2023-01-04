@@ -27,7 +27,7 @@ public protocol Peripheral: Hashable {
     var status: ConnectionStatus { get }
 
     // TODO: Add document
-    var meshNode: MeshNode? { get }
+    var meshNode: (any NodeCompatible)? { get }
 
     // MARK: - Connection
 

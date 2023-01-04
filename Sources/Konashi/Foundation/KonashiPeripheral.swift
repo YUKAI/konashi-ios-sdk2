@@ -86,7 +86,7 @@ public final class KonashiPeripheral: Peripheral {
     }
 
     // TODO: Add document
-    public var meshNode: MeshNode?
+    public var meshNode: NodeCompatible?
 
     /// A publisher of peripheral state.
     @Published public private(set) var currentStatus: ConnectionStatus = .disconnected

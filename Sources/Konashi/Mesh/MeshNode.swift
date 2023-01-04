@@ -9,7 +9,7 @@ import Combine
 import Foundation
 import nRFMeshProvision
 
-public class MeshNode {
+public class MeshNode: NodeCompatible {
     public enum Element: UInt16 {
         case configuration = 0x008A
         case control0 = 0x008B
@@ -181,6 +181,10 @@ public class MeshNode {
 
     public var unicastAddress: Address? {
         return node?.unicastAddress
+    }
+
+    public var deviceKey: Data? {
+        return node?.deviceKey
     }
 
     private var cancellable = Set<AnyCancellable>()
