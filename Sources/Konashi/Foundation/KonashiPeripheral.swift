@@ -110,6 +110,7 @@ public final class KonashiPeripheral: Peripheral {
     @Published public var provisioningState: ProvisioningState?
 
     private let advertisementData: [String: Any]
+    private var meshNode: MeshNode?
 
     // swiftlint:enable weak_delegate
 

@@ -181,7 +181,7 @@ public class MeshNode {
 
     private var cancellable = Set<AnyCancellable>()
     private var node: Node?
-    private(set) var peripheral: KonashiPeripheral
+    private(set) weak var peripheral: KonashiPeripheral?
     private(set) var manager: MeshManager
     private(set) lazy var receivedMessagePublisher: AnyPublisher<MeshManager.ReceivedMessage, Never> = manager.receivedMessageSubject.eraseToAnyPublisher()
 
