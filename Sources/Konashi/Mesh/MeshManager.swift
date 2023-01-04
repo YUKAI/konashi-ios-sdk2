@@ -20,7 +20,7 @@ public class MeshManager {
         case invalidMeshNetwork
     }
 
-    enum StorageError: Error {
+    public enum StorageError: Error {
         case failedToSave
     }
 
