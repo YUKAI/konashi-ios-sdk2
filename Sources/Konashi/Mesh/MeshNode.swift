@@ -229,7 +229,7 @@ public class MeshNode {
         let result = try await receivedMessagePublisher.filter { message in
             message.source == MeshNode.Element.sensor.rawValue
         }.compactMap { message in
-            message.message as? SensorStatus
+            message.body as? SensorStatus
         }.timeout(.seconds(timeoutInterval), scheduler: DispatchQueue.main)
             .eraseToAnyPublisher()
             .async()

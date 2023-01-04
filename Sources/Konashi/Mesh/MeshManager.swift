@@ -11,7 +11,7 @@ import nRFMeshProvision
 
 public class MeshManager {
     public struct ReceivedMessage {
-        public let message: MeshMessage
+        public let body: MeshMessage
         public let source: Address
         public let destination: Address
     }
@@ -143,7 +143,7 @@ extension MeshManager: MeshNetworkDelegate {
         to destination: Address
     ) {
         receivedMessageSubject.send(
-            ReceivedMessage(message: message, source: source, destination: destination)
+            ReceivedMessage(body: message, source: source, destination: destination)
         )
     }
 }
