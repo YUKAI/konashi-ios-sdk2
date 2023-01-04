@@ -8,7 +8,7 @@
 import Combine
 
 public extension PassthroughSubject where Output == MeshManager.ReceivedMessage {
-    func receiveMessge(for node: MeshNode) -> Publishers.Filter<PassthroughSubject> {
+    func filter(for node: NodeCompatible) -> Publishers.Filter<PassthroughSubject> {
         return filter { message in
             message.source == node.unicastAddress
         }
