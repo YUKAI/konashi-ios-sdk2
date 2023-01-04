@@ -178,7 +178,9 @@ public class MeshNode {
         case elementNotFound(_ address: Element)
         case modelNotFound(_ model: Element.Model)
     }
-
+    public var unicastAddress: Address? {
+        return node?.unicastAddress
+    }
     private var cancellable = Set<AnyCancellable>()
     private var node: Node?
     private(set) weak var peripheral: KonashiPeripheral?

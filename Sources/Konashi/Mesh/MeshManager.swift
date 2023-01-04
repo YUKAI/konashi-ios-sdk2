@@ -11,9 +11,9 @@ import nRFMeshProvision
 
 public class MeshManager {
     public struct ReceivedMessage {
-        let message: MeshMessage
-        let source: Address
-        let destination: Address
+        public let message: MeshMessage
+        public let source: Address
+        public let destination: Address
     }
 
     public enum NetworkError: Error {
