@@ -378,6 +378,7 @@ public final class KonashiPeripheral: Peripheral {
 
     // MARK: - Mesh
 
+    @discardableResult
     public func provision(for manager: MeshManager) async throws -> MeshNode {
         guard let unprovisionedDevice = UnprovisionedDevice(advertisementData: advertisementData) else {
             throw MeshError.invalidUnprovisionedDevice
@@ -423,7 +424,7 @@ public final class KonashiPeripheral: Peripheral {
                 publicKey: .noOobPublicKey,
                 authenticationMethod: .noOob
             )
-            let node = MeshNode(peripheral: self, manager: manager, uuid: unprovisionedDevice.uuid)
+            let node = MeshNode(manager: manager, uuid: unprovisionedDevice.uuid)
             // Congiure GATT Proxy
             try node.setGattProxyEnabled(true)
             // Add an application key

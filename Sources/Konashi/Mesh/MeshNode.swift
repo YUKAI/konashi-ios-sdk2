@@ -185,12 +185,10 @@ public class MeshNode {
 
     private var cancellable = Set<AnyCancellable>()
     public private(set) var node: Node?
-    private(set) weak var peripheral: KonashiPeripheral?
     private(set) var manager: MeshManager
     private(set) lazy var receivedMessagePublisher: AnyPublisher<MeshManager.ReceivedMessage, Never> = manager.receivedMessageSubject.eraseToAnyPublisher()
 
-    init(peripheral: KonashiPeripheral, manager: MeshManager, uuid: UUID) {
-        self.peripheral = peripheral
+    init(manager: MeshManager, uuid: UUID) {
         self.manager = manager
         node = manager.node(for: uuid)
     }
