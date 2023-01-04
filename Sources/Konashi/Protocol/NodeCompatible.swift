@@ -12,4 +12,5 @@ public protocol NodeCompatible {
     var unicastAddress: Address? { get }
     var deviceKey: Data? { get }
     var name: String? { get }
+    var uuid: UUID? { get }
 }

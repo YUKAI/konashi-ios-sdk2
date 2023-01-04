@@ -191,6 +191,10 @@ public class MeshNode: NodeCompatible {
         return node?.name
     }
 
+    public var uuid: UUID? {
+        return node?.uuid
+    }
+    
     private var cancellable = Set<AnyCancellable>()
     public private(set) var node: Node?
     private(set) var manager: MeshManager
