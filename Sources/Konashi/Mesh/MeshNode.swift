@@ -186,6 +186,10 @@ public class MeshNode: NodeCompatible {
     public var deviceKey: Data? {
         return node?.deviceKey
     }
+    
+    public var name: String? {
+        return node?.name
+    }
 
     private var cancellable = Set<AnyCancellable>()
     public private(set) var node: Node?
