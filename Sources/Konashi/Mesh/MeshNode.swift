@@ -195,6 +195,10 @@ public class MeshNode: NodeCompatible {
         return node?.uuid
     }
     
+    public var isProvisioner: Bool {
+        return node?.isProvisioner ?? false
+    }
+    
     private var cancellable = Set<AnyCancellable>()
     public private(set) var node: Node?
     private(set) var manager: MeshManager

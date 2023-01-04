@@ -13,4 +13,5 @@ public protocol NodeCompatible {
     var deviceKey: Data? { get }
     var name: String? { get }
     var uuid: UUID? { get }
+    var isProvisioner: Bool { get }
 }
