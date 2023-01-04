@@ -178,11 +178,13 @@ public class MeshNode {
         case elementNotFound(_ address: Element)
         case modelNotFound(_ model: Element.Model)
     }
+
     public var unicastAddress: Address? {
         return node?.unicastAddress
     }
+
     private var cancellable = Set<AnyCancellable>()
-    private(set) public var node: Node?
+    public private(set) var node: Node?
     private(set) weak var peripheral: KonashiPeripheral?
     private(set) var manager: MeshManager
     private(set) lazy var receivedMessagePublisher: AnyPublisher<MeshManager.ReceivedMessage, Never> = manager.receivedMessageSubject.eraseToAnyPublisher()
@@ -192,21 +194,21 @@ public class MeshNode {
         self.manager = manager
         node = manager.node(for: uuid)
     }
-    
+
     func setGattProxyEnabled(_ enabled: Bool) throws {
         guard let node else {
             throw OperationError.invalidNode
         }
         try manager.networkManager.send(ConfigGATTProxySet(enable: enabled), to: node)
     }
-    
+
     func addApplicationKey(_ applicationKey: ApplicationKey) throws {
         guard let node else {
             throw OperationError.invalidNode
         }
         try manager.networkManager.send(ConfigAppKeyAdd(applicationKey: applicationKey), to: node)
     }
-    
+
     func bindApplicationKey(_ applicationKey: ApplicationKey, to model: Element.Model) throws {
         guard let node else {
             throw OperationError.invalidNode
