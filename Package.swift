@@ -19,9 +19,24 @@ let package = Package(
     dependencies: [
         // Dependencies declare other packages that this package depends on.
         // .package(url: /* package url */, from: "1.0.0"),
-        .package(url: "https://github.com/CombineCommunity/CombineExt.git", from: "1.0.0"),
-        .package(name: "Promises", url: "https://github.com/google/promises.git", from: "2.0.0"),
-        .package(name: "Difference", url: "https://github.com/krzysztofzablocki/Difference.git", from: "1.0.0")
+        .package(
+            url: "https://github.com/CombineCommunity/CombineExt.git",
+            from: "1.0.0"
+        ),
+        .package(
+            url: "https://github.com/krzysztofzablocki/Difference.git",
+            from: "1.0.0"
+        ),
+        .package(
+            name: "NordicMesh",
+            url: "https://github.com/NordicSemiconductor/IOS-nRF-Mesh-Library",
+            from: "3.2.0"
+        ),
+        .package(
+            name: "Promises",
+            url: "https://github.com/google/promises.git",
+            from: "2.0.0"
+        )
     ],
     targets: [
         // Targets are the basic building blocks of a package. A target can define a module or a test suite.
@@ -29,17 +44,19 @@ let package = Package(
         .target(
             name: "Konashi",
             dependencies: [
-                "Promises",
-                "CombineExt"
+                "CombineExt",
+                "NordicMesh",
+                "Promises"
             ]
         ),
         .testTarget(
             name: "KonashiTests",
             dependencies: [
                 "Konashi",
-                "Promises",
                 "CombineExt",
-                "Difference"
+                "Difference",
+                "NordicMesh",
+                "Promises"
             ]
         )
     ]

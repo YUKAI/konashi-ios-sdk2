@@ -7,6 +7,7 @@
 
 import Combine
 import CoreBluetooth
+import nRFMeshProvision
 import Promises
 
 /// A utility class of managiment procetudes such as discover, connect and disconnect peripherals.
@@ -15,6 +16,11 @@ public final class CentralManager: NSObject {
     public enum ScanError: Error {
         /// The Konashi device was not found within the timeout time.
         case peripheralNotFound
+    }
+
+    public enum ScanTarget {
+        case all
+        case unprovisioned
     }
 
     /// A shared instance of CentralManager.
@@ -80,7 +86,7 @@ public final class CentralManager: NSObject {
 
     /// Attempt to scan available peripherals.
     /// - Returns: A promise object for this method.
-    public func scan() -> Promise<Void> {
+    public func scan(for target: ScanTarget = .all) -> Promise<Void> {
         if manager.state == .poweredOn {
             statePromise.fulfill(())
         }
@@ -92,11 +98,20 @@ public final class CentralManager: NSObject {
                 guard let weakSelf = self else {
                     return
                 }
+                var services: [CBUUID] {
+                    if target == .unprovisioned {
+                        return [
+                            SettingsService.serviceUUID,
+                            MeshProvisioningService.uuid
+                        ]
+                    }
+                    return [
+                        SettingsService.serviceUUID
+                    ]
+                }
                 weakSelf.isScanning = true
                 weakSelf.manager.scanForPeripherals(
-                    withServices: [
-                        SettingsService.serviceUUID
-                    ],
+                    withServices: services,
                     options: [
                         CBCentralManagerScanOptionAllowDuplicatesKey: false
                     ]
@@ -182,7 +197,10 @@ extension CentralManager: CBCentralManagerDelegate {
     ) {
         didDiscoverSubject.send(
             (
-                peripheral: KonashiPeripheral(peripheral: peripheral),
+                peripheral: KonashiPeripheral(
+                    peripheral: peripheral,
+                    advertisementData: advertisementData
+                ),
                 advertisementData: advertisementData,
                 rssi: RSSI
             )
