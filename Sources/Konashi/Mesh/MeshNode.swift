@@ -186,9 +186,8 @@ public class MeshNode {
     private var cancellable = Set<AnyCancellable>()
     public private(set) var node: Node?
     private(set) var manager: MeshManager
-    private(set) lazy var receivedMessagePublisher: AnyPublisher<MeshManager.ReceivedMessage, Never> = manager.receivedMessageSubject.eraseToAnyPublisher()
 
-    init(manager: MeshManager, uuid: UUID) {
+    public init(manager: MeshManager, uuid: UUID) {
         self.manager = manager
         node = manager.node(for: uuid)
     }
@@ -224,7 +223,7 @@ public class MeshNode {
         }
         let model = try node.findElement(of: .sensor).findModel(of: .sensorServer)
         try manager.networkManager.send(SensorGet(), to: model)
-        let result = try await receivedMessagePublisher.filter { message in
+        let result = try await manager.receivedMessageSubject.filter { message in
             message.source == MeshNode.Element.sensor.rawValue
         }.compactMap { message in
             message.body as? SensorStatus
