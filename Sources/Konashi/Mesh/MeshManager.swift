@@ -10,17 +10,13 @@ import Foundation
 import nRFMeshProvision
 
 public class MeshManager {
-    struct ReceivedMessage {
+    public struct ReceivedMessage {
         let message: MeshMessage
         let source: Address
         let destination: Address
     }
 
-    static let shared = MeshManager()
-    internal let networkManager: MeshNetworkManager
-//    private(set) var connection: NetworkConnection!
-
-    enum NetworkError: Error {
+    public enum NetworkError: Error {
         case invalidMeshNetwork
     }
 
@@ -28,12 +24,15 @@ public class MeshManager {
         case failedToSave
     }
 
-    let receivedMessageSubject = PassthroughSubject<ReceivedMessage, Never>()
+    public static let shared = MeshManager()
 
-    var networkKey: NetworkKey?
-    var applicationKey: ApplicationKey?
+    public let receivedMessageSubject = PassthroughSubject<ReceivedMessage, Never>()
+    public var networkKey: NetworkKey?
+    public var applicationKey: ApplicationKey?
+    internal let networkManager: MeshNetworkManager
+//    private(set) var connection: NetworkConnection!
 
-    init() {
+    public init() {
         networkManager = MeshNetworkManager()
         networkManager.acknowledgmentTimerInterval = 0.150
         networkManager.transmissionTimerInterval = 0.600
@@ -56,7 +55,7 @@ public class MeshManager {
         }
     }
 
-    func provision(unprovisionedDevice: UnprovisionedDevice, over bearer: ProvisioningBearer) throws -> ProvisioningManager {
+    public func provision(unprovisionedDevice: UnprovisionedDevice, over bearer: ProvisioningBearer) throws -> ProvisioningManager {
         return try networkManager.provision(unprovisionedDevice: unprovisionedDevice, over: bearer)
     }
 
@@ -64,12 +63,12 @@ public class MeshManager {
         return networkManager.meshNetwork?.node(withUuid: uuid)
     }
 
-    func setLogger(_ logger: LoggerDelegate) {
+    public func setLogger(_ logger: LoggerDelegate) {
         networkManager.logger = logger
 //        connection.logger = logger
     }
 
-    func addNetworkKey(_ newKeyData: Data) throws {
+    public func addNetworkKey(_ newKeyData: Data) throws {
         guard let network = networkManager.meshNetwork else {
             throw NetworkError.invalidMeshNetwork
         }
@@ -90,7 +89,7 @@ public class MeshManager {
         }
     }
 
-    func addApplicationKey(_ newKeyData: Data) throws {
+    public func addApplicationKey(_ newKeyData: Data) throws {
         guard let network = networkManager.meshNetwork else {
             throw NetworkError.invalidMeshNetwork
         }
