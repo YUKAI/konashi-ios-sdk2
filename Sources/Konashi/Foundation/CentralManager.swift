@@ -39,7 +39,7 @@ public final class CentralManager: NSObject {
     }
 
     // TODO: Add document
-    public var discoversUniquePeripherals = false
+    public var discoversUniquePeripherals = true
 
     /// A subject that sends any operation errors.
     public let operationErrorSubject = PassthroughSubject<Error, Never>()
