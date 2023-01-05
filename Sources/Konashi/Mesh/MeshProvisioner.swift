@@ -30,13 +30,13 @@ class MeshProvisioner {
             self.currentContinuation = continuation
             do {
                 try provisioningManager.identify(andAttractFor: attractFor)
-            } catch {
+            }
+            catch {
                 continuation.resume(throwing: error)
             }
         }
     }
 }
-
 
 extension MeshProvisioner: ProvisioningDelegate {
     public func provisioningState(
