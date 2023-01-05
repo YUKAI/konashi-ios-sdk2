@@ -196,20 +196,24 @@ public class MeshNode: NodeCompatible {
         return node.isProvisioner
     }
     
-    public var receivedMessageSubject: Publishers.Filter<PassthroughSubject<ReceivedMessage, Never>> {
-        return manager.receivedMessageSubject.filter(for: self)
-    }
+    public var receivedMessageSubject = PassthroughSubject<ReceivedMessage, Never>()
 
     private var cancellable = Set<AnyCancellable>()
     public private(set) var node: Node
     private(set) var manager: MeshManager
 
     public init?(manager: MeshManager, uuid: UUID) {
-        self.manager = manager
         guard let node = manager.node(for: uuid) else {
             return nil
         }
+        self.manager = manager
         self.node = node
+        self.manager.receivedMessageSubject.filter(for: self).sink { [weak self] message in
+            guard let self else {
+                return
+            }
+            self.receivedMessageSubject.send(message)
+        }.store(in: &cancellable)
     }
 
     public func element(for element: NodeElement) -> nRFMeshProvision.Element? {
