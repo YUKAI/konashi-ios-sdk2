@@ -28,7 +28,8 @@ public protocol Peripheral: Hashable {
     var status: Published<ConnectionStatus>.Publisher { get }
 
     var provisioningState: Published<ProvisioningState?>.Publisher { get }
-    
+    var isProvisionable: Bool { get }
+
     // TODO: Add document
     var meshNode: (any NodeCompatible)? { get }
 

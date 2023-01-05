@@ -129,6 +129,9 @@ public final class KonashiPeripheral: Peripheral {
     public var provisioningState: Published<ProvisioningState?>.Publisher {
         return $currentProvisioningState
     }
+    public var isProvisionable: Bool {
+        return UnprovisionedDevice(advertisementData: advertisementData) != nil
+    }
     @Published public private(set) var currentProvisioningState: ProvisioningState?
     private var provisioningManager: ProvisioningManager?
     private let advertisementData: [String: Any]
