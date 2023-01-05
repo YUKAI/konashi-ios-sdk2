@@ -15,5 +15,15 @@ public protocol NodeCompatible {
     var uuid: UUID? { get }
     var isProvisioner: Bool { get }
     
-    func element(for address: Address) -> Element?
+    func element(for element: NodeElement) -> Element?
+    func model(for model: NodeModel) -> Model?
+}
+
+public protocol NodeElement {
+    var address: Address { get }
+}
+
+public protocol NodeModel {
+    var element: NodeElement { get }
+    var identifier: UInt32 { get }
 }

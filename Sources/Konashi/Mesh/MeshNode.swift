@@ -10,7 +10,11 @@ import Foundation
 import nRFMeshProvision
 
 public class MeshNode: NodeCompatible {
-    public enum Element: UInt16 {
+    public enum Element: UInt16, NodeElement {
+        public var address: nRFMeshProvision.Address {
+            return self.rawValue
+        }
+        
         case configuration = 0x008A
         case control0 = 0x008B
         case control1 = 0x008C
@@ -27,7 +31,7 @@ public class MeshNode: NodeCompatible {
         case ledHue = 0x0097
         case ledSaturation = 0x0098
 
-        public enum Model {
+        public enum Model: NodeModel {
             // Element 1
             case configurationServer
             case healthServer
@@ -94,7 +98,7 @@ public class MeshNode: NodeCompatible {
             // Element 15
             // TODO: TBA
 
-            var identifier: UInt16 {
+            public var identifier: UInt32 {
                 switch self {
                 case .configurationServer:
                     return 0x0000
@@ -139,34 +143,34 @@ public class MeshNode: NodeCompatible {
                 }
             }
 
-            var element: Element {
+            public var element: NodeElement {
                 switch self {
                 case .configurationServer, .healthServer:
-                    return .configuration
+                    return Element.configuration
                 case .gpio0InputClient, .gpio0OutputServer, .hardwarePWM0Server:
-                    return .control0
+                    return Element.control0
                 case .gpio1InputClient, .gpio1OutputServer, .hardwarePWM1Server:
-                    return .control1
+                    return Element.control1
                 case .gpio2InputServer, .gpio2OutputServer, .hardwarePWM2Server:
-                    return .control2
+                    return Element.control2
                 case .gpio3InputClient, .gpio3OutputServer, .hardwarePWM3Server:
-                    return .control3
+                    return Element.control3
                 case .gpio4InputClient, .gpio4OutputServer, .softwarePWM0Server:
-                    return .control4
+                    return Element.control4
                 case .gpio5InputClient, .gpio5OutputServer, .softwarePWM1Server:
-                    return .control5
+                    return Element.control5
                 case .gpio6InputClient, .gpio6OutputServer, .softwarePWM2Server:
-                    return .control6
+                    return Element.control6
                 case .gpio7InputClient, .gpio7OutputServer, .softwarePWM3Server:
-                    return .control7
+                    return Element.control7
                 case .analog0InputClient, .analog0OutputServer:
-                    return .control8
+                    return Element.control8
                 case .analog1InputClient, .analog1OutputServer:
-                    return .control9
+                    return Element.control9
                 case .analog2InputClient, .analog2OutputServer:
-                    return .control10
+                    return Element.control10
                 case .sensorServer:
-                    return .sensor
+                    return Element.sensor
                 }
             }
         }
@@ -175,8 +179,8 @@ public class MeshNode: NodeCompatible {
     public enum OperationError: Error {
         case invalidNode
         case invalidParentElement
-        case elementNotFound(_ address: Element)
-        case modelNotFound(_ model: Element.Model)
+        case elementNotFound(_ address: NodeElement)
+        case modelNotFound(_ model: NodeModel)
     }
 
     public var unicastAddress: Address? {
@@ -208,8 +212,12 @@ public class MeshNode: NodeCompatible {
         node = manager.node(for: uuid)
     }
 
-    public func element(for address: nRFMeshProvision.Address) -> nRFMeshProvision.Element? {
-        return node?.element(withAddress: address)
+    public func element(for element: NodeElement) -> nRFMeshProvision.Element? {
+        return node?.element(withAddress: element.address)
+    }
+    
+    public func model(for model: NodeModel) -> nRFMeshProvision.Model? {
+        return node?.element(withAddress: model.element.address)?.model(withModelId: model.identifier)
     }
 
     func setGattProxyEnabled(_ enabled: Bool) throws {
@@ -251,5 +259,17 @@ public class MeshNode: NodeCompatible {
             .eraseToAnyPublisher()
             .async()
         return result.values
+    }
+}
+
+extension nRFMeshProvision.Node {
+    func findElement(of element: MeshNode.Element) throws -> nRFMeshProvision.Element {
+        return try findElement(of: element as NodeElement)
+    }
+}
+
+extension nRFMeshProvision.Element {
+    func findModel(of model: MeshNode.Element.Model) throws -> nRFMeshProvision.Model {
+        return try findModel(of: model as NodeModel)
     }
 }
