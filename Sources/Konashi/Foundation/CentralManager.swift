@@ -27,7 +27,7 @@ public final class CentralManager: NSObject {
 
     public enum ScanTarget {
         case all
-        case unprovisioned
+        case meshNode
     }
 
     /// A shared instance of CentralManager.
@@ -106,9 +106,8 @@ public final class CentralManager: NSObject {
                     return
                 }
                 var services: [CBUUID] {
-                    if target == .unprovisioned {
+                    if target == .meshNode {
                         return [
-                            SettingsService.serviceUUID,
                             MeshProvisioningService.uuid
                         ]
                     }
