@@ -23,6 +23,7 @@ public protocol NodeCompatible {
     func sendConfig(_ message: ConfigMessage) throws -> MessageHandle
     @discardableResult
     func sendMessage(_ message: MeshMessage, to model: Model) throws -> MessageHandle
+    func removeFromNetwork() throws
 }
 
 public protocol NodeElement {

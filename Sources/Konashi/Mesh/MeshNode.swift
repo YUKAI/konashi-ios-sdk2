@@ -233,6 +233,13 @@ public class MeshNode: NodeCompatible {
     public func sendMessage(_ message: nRFMeshProvision.MeshMessage, to model: nRFMeshProvision.Model) throws -> MessageHandle {
         return try manager.networkManager.send(message, to: model)
     }
+    
+    public func removeFromNetwork() throws {
+        guard let network = manager.networkManager.meshNetwork else {
+            throw MeshManager.NetworkError.invalidMeshNetwork
+        }
+        network.remove(node: node)
+    }
 
     func setGattProxyEnabled(_ enabled: Bool) throws {
         try manager.networkManager.send(ConfigGATTProxySet(enable: enabled), to: node)
@@ -248,19 +255,6 @@ public class MeshNode: NodeCompatible {
             throw NodeOperationError.invalidParentElement
         }
         try manager.networkManager.send(message, to: node)
-    }
-
-    func readSensorValues(timeoutInterval: TimeInterval = 5) async throws -> [SensorValue] {
-        let model = try node.findElement(of: .sensor).findModel(of: .sensorServer)
-        try manager.networkManager.send(SensorGet(), to: model)
-        let result = try await manager.receivedMessageSubject.filter { message in
-            message.source == MeshNode.Element.sensor.rawValue
-        }.compactMap { message in
-            message.body as? SensorStatus
-        }.timeout(.seconds(timeoutInterval), scheduler: DispatchQueue.main)
-            .eraseToAnyPublisher()
-            .async()
-        return result.values
     }
 }
 
