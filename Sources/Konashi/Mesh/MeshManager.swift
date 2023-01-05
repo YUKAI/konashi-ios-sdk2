@@ -12,7 +12,7 @@ import nRFMeshProvision
 public class MeshManager {
     public enum NetworkError: Error, LocalizedError {
         case invalidMeshNetwork
-        
+
         public var errorDescription: String? {
             switch self {
             case .invalidMeshNetwork:
@@ -24,7 +24,7 @@ public class MeshManager {
     public enum StorageError: Error, LocalizedError {
         case failedToSave
         case failedToCreateMeshNetwork
-        
+
         public var errorDescription: String? {
             switch self {
             case .failedToSave:
@@ -128,7 +128,7 @@ public class MeshManager {
            let networkKey = network.networkKeys[index] {
             try newApplicationKey.bind(to: networkKey)
         }
-        if networkManager.save() == false  {
+        if networkManager.save() == false {
             throw StorageError.failedToSave
         }
     }

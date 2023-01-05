@@ -40,7 +40,7 @@ public enum NodeOperationError: Error, LocalizedError {
     case invalidParentElement(modelIdentifier: UInt16)
     case elementNotFound(_ address: NodeElement)
     case modelNotFound(_ model: NodeModel)
-    
+
     public var errorDescription: String? {
         switch self {
         case .invalidNode:

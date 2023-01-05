@@ -195,7 +195,7 @@ public class MeshNode: NodeCompatible {
     public var isProvisioner: Bool {
         return node.isProvisioner
     }
-    
+
     public var receivedMessageSubject = PassthroughSubject<ReceivedMessage, Never>()
 
     private var cancellable = Set<AnyCancellable>()
@@ -233,7 +233,7 @@ public class MeshNode: NodeCompatible {
     public func sendMessage(_ message: nRFMeshProvision.MeshMessage, to model: nRFMeshProvision.Model) throws -> MessageHandle {
         return try manager.networkManager.send(message, to: model)
     }
-    
+
     public func removeFromNetwork() throws {
         guard let network = manager.networkManager.meshNetwork else {
             throw MeshManager.NetworkError.invalidMeshNetwork

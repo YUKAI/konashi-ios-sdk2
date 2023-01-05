@@ -29,7 +29,7 @@ public final class KonashiPeripheral: Peripheral {
     /// An error that the reason of why a peripheral could not ready to use.
     public enum PeripheralError: Error, LocalizedError {
         case couldNotFindCharacteristic
-        
+
         public var errorDescription: String? {
             switch self {
             case .couldNotFindCharacteristic:
@@ -42,7 +42,7 @@ public final class KonashiPeripheral: Peripheral {
         case invalidUnprovisionedDevice
         case invalidNetworkKey
         case invalidApplicationKey
-        
+
         public var errorDescription: String? {
             switch self {
             case .invalidUnprovisionedDevice:
@@ -102,6 +102,7 @@ public final class KonashiPeripheral: Peripheral {
     public var status: Published<ConnectionStatus>.Publisher {
         return $currentConnectionStatus
     }
+
     /// A publisher of peripheral state.
     @Published public private(set) var currentConnectionStatus: ConnectionStatus = .disconnected
 
@@ -129,9 +130,11 @@ public final class KonashiPeripheral: Peripheral {
     public var provisioningState: Published<ProvisioningState?>.Publisher {
         return $currentProvisioningState
     }
+
     public var isProvisionable: Bool {
         return UnprovisionedDevice(advertisementData: advertisementData) != nil
     }
+
     @Published public private(set) var currentProvisioningState: ProvisioningState?
     private var provisioningManager: ProvisioningManager?
     private let advertisementData: [String: Any]
