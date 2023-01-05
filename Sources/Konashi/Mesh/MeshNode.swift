@@ -220,10 +220,12 @@ public class MeshNode: NodeCompatible {
         return node.element(withAddress: model.element.address)?.model(withModelId: model.identifier)
     }
 
+    @discardableResult
     public func sendConfig(_ message: nRFMeshProvision.ConfigMessage) throws -> MessageHandle {
         return try manager.networkManager.send(message, to: node)
     }
 
+    @discardableResult
     public func sendMessage(_ message: nRFMeshProvision.MeshMessage, to model: nRFMeshProvision.Model) throws -> MessageHandle {
         return try manager.networkManager.send(message, to: model)
     }

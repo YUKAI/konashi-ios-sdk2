@@ -19,7 +19,9 @@ public protocol NodeCompatible {
 
     func element(for element: NodeElement) -> Element?
     func model(for model: NodeModel) -> Model?
+    @discardableResult
     func sendConfig(_ message: ConfigMessage) throws -> MessageHandle
+    @discardableResult
     func sendMessage(_ message: MeshMessage, to model: Model) throws -> MessageHandle
 }
 
