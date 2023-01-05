@@ -261,42 +261,42 @@ public struct SettingsService: Service {
                 }
                 bytes.append(byte)
             }
-            if let phy = mainAdvertiserSecondaryPHY {
+            if let mainAdvertiserSecondaryPHY {
                 var byte: UInt8 = 0b11110000
-                byte |= phy.rawValue
+                byte |= mainAdvertiserSecondaryPHY.rawValue
                 bytes.append(byte)
             }
-            if let phyBitMask = mainAdvertiserPreferredConnectionPHY {
+            if let mainAdvertiserPreferredConnectionPHY {
                 var byte: UInt8 = 0b11100000
-                byte |= phyBitMask.rawValue
+                byte |= mainAdvertiserPreferredConnectionPHY.rawValue
                 bytes.append(byte)
             }
-            if let phy = extraAdvertiserPrimaryPHY {
+            if let extraAdvertiserPrimaryPHY {
                 var byte: UInt8 = 0b11010000
-                byte |= phy.rawValue
+                byte |= extraAdvertiserPrimaryPHY.rawValue
                 bytes.append(byte)
             }
-            if let phy = extraAdvertiserSecondaryPHY {
+            if let extraAdvertiserSecondaryPHY {
                 var byte: UInt8 = 0b11000000
-                byte |= phy.rawValue
+                byte |= extraAdvertiserSecondaryPHY.rawValue
                 bytes.append(byte)
             }
-            if let contents = extraAdvertiserContents {
+            if let extraAdvertiserContents {
                 var byte: UInt8 = 0b10110000
-                if contents.manufacturerData {
+                if extraAdvertiserContents.manufacturerData {
                     byte |= 0b00000100
                 }
-                if contents.deviceUUID {
+                if extraAdvertiserContents.deviceUUID {
                     byte |= 0b00000010
                 }
-                if contents.deviceName {
+                if extraAdvertiserContents.deviceName {
                     byte |= 0b00000001
                 }
 
                 bytes.append(contentsOf: [
                     byte,
-                    contents.gpioxInputValue.rawValue,
-                    contents.aioxInputValue.rawValue,
+                    extraAdvertiserContents.gpioxInputValue.rawValue,
+                    extraAdvertiserContents.aioxInputValue.rawValue,
                     0x00
                 ])
             }

@@ -63,10 +63,10 @@ public extension KonashiPeripheral {
     @discardableResult
     func digitalRead(_ pin: GPIO.Pin) -> Promise<Level> {
         return Promise<Level> { [weak self] resolve, reject in
-            guard let weakSelf = self else {
+            guard let self else {
                 return
             }
-            weakSelf.read(characteristic: ControlService.gpioInput).then { readValue in
+            self.read(characteristic: ControlService.gpioInput).then { readValue in
                 let value = readValue.values.first { val in
                     return val.pin == pin
                 }
@@ -121,10 +121,10 @@ public extension KonashiPeripheral {
     @discardableResult
     func analogRead(_ pin: Analog.Pin) -> Promise<Analog.InputValue> {
         return Promise<Analog.InputValue> { [weak self] resolve, reject in
-            guard let weakSelf = self else {
+            guard let self else {
                 return
             }
-            weakSelf.read(characteristic: ControlService.analogInput).then { readValue in
+            self.read(characteristic: ControlService.analogInput).then { readValue in
                 let value = readValue.values.first { val in
                     return val.pin == pin
                 }
@@ -348,15 +348,15 @@ public extension KonashiPeripheral {
     func i2cRead(address: UInt8, readLength: UInt8) -> Promise<[UInt8]> {
         var cancellable = Set<AnyCancellable>()
         return Promise<[UInt8]> { [weak self] resolve, reject in
-            guard let weakSelf = self else {
+            guard let self else {
                 return
             }
-            weakSelf.controlService.i2cDataInput.value.sink { readValue in
+            self.controlService.i2cDataInput.value.sink { readValue in
                 if readValue.address == address {
                     resolve(readValue.readBytes)
                 }
             }.store(in: &cancellable)
-            weakSelf.i2cTransfer(
+            self.i2cTransfer(
                 address: address,
                 operation: .read,
                 readLength: readLength,
@@ -379,7 +379,7 @@ public extension KonashiPeripheral {
     @discardableResult
     func i2cTransfer(address: UInt8, operation: I2C.Operation, readLength: UInt8, writeData: [UInt8]) -> Promise<any Peripheral> {
         return Promise<any Peripheral> { [weak self] resolve, reject in
-            guard let weakSelf = self else {
+            guard let self else {
                 return
             }
             if address > 0x7F {
@@ -394,7 +394,7 @@ public extension KonashiPeripheral {
                 reject(I2C.OperationError.badWriteLength)
                 return
             }
-            weakSelf.write(
+            self.write(
                 characteristic: ControlService.controlCommand,
                 command: .i2cTransfer(
                     I2C.TransferControlPayload(

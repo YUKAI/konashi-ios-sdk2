@@ -148,20 +148,20 @@ public enum Analog {
 
         func compose() -> [UInt8] {
             var bytes = [UInt8]()
-            if let payload = adcUpdatePeriod {
-                bytes += payload.compose()
+            if let adcUpdatePeriod {
+                bytes += adcUpdatePeriod.compose()
             }
-            if let payload = adcVoltageReferenceConfig {
-                bytes += payload.compose()
+            if let adcVoltageReferenceConfig {
+                bytes += adcVoltageReferenceConfig.compose()
             }
-            if let payload = vdacVoltageReferenceConfig {
-                bytes += payload.compose()
+            if let vdacVoltageReferenceConfig {
+                bytes += vdacVoltageReferenceConfig.compose()
             }
-            if let payload = idacCurrentRangeConfig {
-                bytes += payload.compose()
+            if let idacCurrentRangeConfig {
+                bytes += idacCurrentRangeConfig.compose()
             }
-            if let payload = pinConfig {
-                bytes += payload.compose()
+            if let pinConfig {
+                bytes += pinConfig.compose()
             }
 
             return bytes

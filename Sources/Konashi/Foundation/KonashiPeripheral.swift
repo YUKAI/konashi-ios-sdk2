@@ -178,43 +178,43 @@ public final class KonashiPeripheral: Peripheral {
         configuredCharacteristics.removeAll()
         return Promise<any Peripheral> { [unowned self] resolve, reject in
             self.isReady.sink { [weak self] ready in
-                guard let weakSelf = self else {
+                guard let self else {
                     return
                 }
                 if ready {
                     NotificationCenter.default.post(
                         name: KonashiPeripheral.readyToUse,
                         object: nil,
-                        userInfo: [KonashiPeripheral.instanceKey: weakSelf]
+                        userInfo: [KonashiPeripheral.instanceKey: self]
                     )
-                    resolve(weakSelf)
+                    resolve(self)
                 }
             }.store(in: &cancellable)
             CentralManager.shared.didConnectSubject.sink { [weak self] connectedPeripheral in
-                guard let weakSelf = self else {
+                guard let self else {
                     return
                 }
-                if connectedPeripheral == weakSelf.peripheral {
+                if connectedPeripheral == self.peripheral {
                     NotificationCenter.default.post(
                         name: KonashiPeripheral.didConnect,
                         object: nil,
-                        userInfo: [KonashiPeripheral.instanceKey: weakSelf]
+                        userInfo: [KonashiPeripheral.instanceKey: self]
                     )
                 }
             }.store(in: &cancellable)
             CentralManager.shared.didFailedToConnectSubject.sink { [weak self] result in
-                guard let weakSelf = self else {
+                guard let self else {
                     return
                 }
-                if result.0 == weakSelf.peripheral, let error = result.1 {
+                if result.0 == self.peripheral, let error = result.1 {
                     NotificationCenter.default.post(
                         name: KonashiPeripheral.didFailedToConnect,
                         object: nil,
-                        userInfo: [KonashiPeripheral.instanceKey: weakSelf]
+                        userInfo: [KonashiPeripheral.instanceKey: self]
                     )
                     reject(error)
-                    weakSelf.currentConnectionStatus = .error(error)
-                    weakSelf.operationErrorSubject.send(error)
+                    self.currentConnectionStatus = .error(error)
+                    self.operationErrorSubject.send(error)
                 }
             }.store(in: &cancellable)
             CentralManager.shared.connect(self.peripheral)
@@ -228,40 +228,40 @@ public final class KonashiPeripheral: Peripheral {
     public func disconnect() -> Promise<Void> {
         var cancellable = Set<AnyCancellable>()
         return Promise<Void> { [weak self] resolve, reject in
-            guard let weakSelf = self else {
+            guard let self else {
                 return
             }
-            weakSelf.readyPromise = Promise<Void>.pending()
+            self.readyPromise = Promise<Void>.pending()
             CentralManager.shared.didDisconnectSubject.sink { [weak self] result in
-                guard let weakSelf = self else {
+                guard let self else {
                     return
                 }
-                if result.0 == weakSelf.peripheral {
+                if result.0 == self.peripheral {
                     if let error = result.1 {
                         NotificationCenter.default.post(
                             name: KonashiPeripheral.didFailedToDisconnect,
                             object: nil,
-                            userInfo: [KonashiPeripheral.instanceKey: weakSelf]
+                            userInfo: [KonashiPeripheral.instanceKey: self]
                         )
                         reject(error)
-                        weakSelf.currentConnectionStatus = .error(error)
-                        weakSelf.operationErrorSubject.send(error)
+                        self.currentConnectionStatus = .error(error)
+                        self.operationErrorSubject.send(error)
                     }
                     else {
                         NotificationCenter.default.post(
                             name: KonashiPeripheral.didDisconnect,
                             object: nil,
-                            userInfo: [KonashiPeripheral.instanceKey: weakSelf]
+                            userInfo: [KonashiPeripheral.instanceKey: self]
                         )
-                        weakSelf.currentConnectionStatus = .disconnected
+                        self.currentConnectionStatus = .disconnected
                         resolve(())
                     }
                 }
             }.store(in: &cancellable)
-            CentralManager.shared.disconnect(weakSelf.peripheral)
+            CentralManager.shared.disconnect(self.peripheral)
         }.always { [weak self] in
-            if let weakSelf = self {
-                weakSelf.readRssiTimer?.invalidate()
+            if let self {
+                self.readRssiTimer?.invalidate()
             }
             cancellable.removeAll()
         }
@@ -278,10 +278,10 @@ public final class KonashiPeripheral: Peripheral {
         if repeats {
             stopReadRSSI()
             readRssiTimer = Timer.scheduledTimer(withTimeInterval: interval, repeats: true) { [weak self] _ in
-                guard let weakSelf = self else {
+                guard let self else {
                     return
                 }
-                weakSelf.readRSSI()
+                self.readRSSI()
             }
         }
         else {
@@ -311,38 +311,38 @@ public final class KonashiPeripheral: Peripheral {
         var cancellable = Set<AnyCancellable>()
         let promise = Promise<any Peripheral>.pending()
         readyPromise.then { [weak self] _ in
-            guard let weakSelf = self else {
+            guard let self else {
                 return
             }
-            if let characteristic = weakSelf.peripheral.services?.find(characteristic: characteristic) {
+            if let characteristic = self.peripheral.services?.find(characteristic: characteristic) {
                 if type == .withResponse {
-                    weakSelf.didWriteValueSubject.sink { uuid, error in
+                    self.didWriteValueSubject.sink { uuid, error in
                         if uuid == characteristic.uuid {
                             if let error {
                                 promise.reject(error)
-                                weakSelf.operationErrorSubject.send(error)
+                                self.operationErrorSubject.send(error)
                             }
                             else {
-                                promise.fulfill(weakSelf)
+                                promise.fulfill(self)
                             }
                         }
                     }.store(in: &cancellable)
                 }
-                weakSelf.peripheral.writeValue(command.compose(), for: characteristic, type: type)
+                self.peripheral.writeValue(command.compose(), for: characteristic, type: type)
                 if type == .withoutResponse {
-                    promise.fulfill(weakSelf)
+                    promise.fulfill(self)
                 }
             }
             else {
                 promise.reject(PeripheralError.couldNotFindCharacteristic)
-                weakSelf.operationErrorSubject.send(PeripheralError.couldNotFindCharacteristic)
+                self.operationErrorSubject.send(PeripheralError.couldNotFindCharacteristic)
             }
         }.catch { [weak self] error in
             promise.reject(error)
-            guard let weakSelf = self else {
+            guard let self else {
                 return
             }
-            weakSelf.operationErrorSubject.send(error)
+            self.operationErrorSubject.send(error)
         }
         promise.always {
             cancellable.removeAll()
@@ -358,22 +358,22 @@ public final class KonashiPeripheral: Peripheral {
         var cancellable = Set<AnyCancellable>()
         let promise = Promise<Value>.pending()
         readyPromise.then { [weak self] _ in
-            guard let weakSelf = self else {
+            guard let self else {
                 return
             }
-            if let targetCharacteristic = weakSelf.peripheral.services?.find(characteristic: characteristic) {
-                weakSelf.didUpdateValueSubject.sink { updatedCharacteristic, error in
+            if let targetCharacteristic = self.peripheral.services?.find(characteristic: characteristic) {
+                self.didUpdateValueSubject.sink { updatedCharacteristic, error in
                     if updatedCharacteristic != targetCharacteristic {
                         return
                     }
                     if let error {
                         promise.reject(error)
-                        weakSelf.operationErrorSubject.send(error)
+                        self.operationErrorSubject.send(error)
                         return
                     }
                     guard let value = updatedCharacteristic.value else {
                         promise.reject(OperationError.invalidReadValue)
-                        weakSelf.operationErrorSubject.send(OperationError.invalidReadValue)
+                        self.operationErrorSubject.send(OperationError.invalidReadValue)
                         return
                     }
                     switch characteristic.parse(data: value) {
@@ -381,21 +381,21 @@ public final class KonashiPeripheral: Peripheral {
                         promise.fulfill(value)
                     case let .failure(error):
                         promise.reject(error)
-                        weakSelf.operationErrorSubject.send(error)
+                        self.operationErrorSubject.send(error)
                     }
                 }.store(in: &cancellable)
-                weakSelf.peripheral.readValue(for: targetCharacteristic)
+                self.peripheral.readValue(for: targetCharacteristic)
             }
             else {
                 promise.reject(PeripheralError.couldNotFindCharacteristic)
-                weakSelf.operationErrorSubject.send(PeripheralError.couldNotFindCharacteristic)
+                self.operationErrorSubject.send(PeripheralError.couldNotFindCharacteristic)
             }
         }.catch { [weak self] error in
             promise.reject(error)
-            guard let weakSelf = self else {
+            guard let self else {
                 return
             }
-            weakSelf.operationErrorSubject.send(error)
+            self.operationErrorSubject.send(error)
         }
         promise.always {
             cancellable.removeAll()
@@ -502,49 +502,49 @@ public final class KonashiPeripheral: Peripheral {
     private func prepareCombine() {
         internalCancellable.removeAll()
         CentralManager.shared.didDisconnectSubject.sink { [weak self] peripheral, _ in
-            guard let weakSelf = self else {
+            guard let self else {
                 return
             }
-            if peripheral == weakSelf.peripheral {
-                weakSelf.readRssiTimer?.invalidate()
-                weakSelf.internalCancellable.removeAll()
+            if peripheral == self.peripheral {
+                self.readRssiTimer?.invalidate()
+                self.internalCancellable.removeAll()
             }
         }.store(in: &internalCancellable)
         $isConnecting.removeDuplicates().sink { [weak self] connecting in
-            guard let weakSelf = self else {
+            guard let self else {
                 return
             }
             if connecting {
-                weakSelf.currentConnectionStatus = .connecting
+                self.currentConnectionStatus = .connecting
             }
         }.store(in: &internalCancellable)
         $isConnected.removeDuplicates().sink { [weak self] connected in
-            guard let weakSelf = self else {
+            guard let self else {
                 return
             }
             if connected {
-                weakSelf.currentConnectionStatus = .connected
-                weakSelf.discoverServices()
+                self.currentConnectionStatus = .connected
+                self.discoverServices()
             }
         }.store(in: &internalCancellable)
         $isCharacteristicsDiscovered.removeDuplicates().sink { [weak self] discovered in
-            guard let weakSelf = self else {
+            guard let self else {
                 return
             }
             if discovered {
-                weakSelf.configureCharacteristics()
+                self.configureCharacteristics()
             }
         }.store(in: &internalCancellable)
         isReady.removeDuplicates().sink { [weak self] ready in
-            guard let weakSelf = self else {
+            guard let self else {
                 return
             }
             if ready {
-                weakSelf.currentConnectionStatus = .readyToUse
-                weakSelf.readyPromise.fulfill(())
+                self.currentConnectionStatus = .readyToUse
+                self.readyPromise.fulfill(())
             }
             else {
-                weakSelf.readyPromise = Promise<Void>.pending()
+                self.readyPromise = Promise<Void>.pending()
             }
         }.store(in: &internalCancellable)
     }
@@ -554,22 +554,22 @@ public final class KonashiPeripheral: Peripheral {
             \.state,
             options: [.old, .new]
         ) { [weak self] peripheral, _ in
-            guard let weakSelf = self else {
+            guard let self else {
                 return
             }
             switch peripheral.state {
             case .connected:
-                weakSelf.isConnected = true
-                weakSelf.isConnecting = false
+                self.isConnected = true
+                self.isConnecting = false
             case .connecting:
-                weakSelf.isConnected = false
-                weakSelf.isConnecting = true
+                self.isConnected = false
+                self.isConnecting = true
             case .disconnected:
-                weakSelf.isConnected = false
-                weakSelf.isConnecting = false
+                self.isConnected = false
+                self.isConnecting = false
             case .disconnecting:
-                weakSelf.isConnected = false
-                weakSelf.isConnecting = true
+                self.isConnected = false
+                self.isConnecting = true
             @unknown default:
                 break
             }

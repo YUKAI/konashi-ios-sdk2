@@ -279,11 +279,11 @@ public enum PWM {
 
             func compose() -> [UInt8] {
                 var bytes = [UInt8]()
-                if let payload = clockConfig {
-                    bytes += payload.compose()
+                if let clockConfig {
+                    bytes += clockConfig.compose()
                 }
-                if let payload = pinConfig {
-                    bytes += payload.compose()
+                if let pinConfig {
+                    bytes += pinConfig.compose()
                 }
                 return bytes
             }

@@ -53,10 +53,10 @@ public extension KonashiPeripheral {
             controlService.gpioOutput.value.map {
                 return $0.values[Int(pin.rawValue)]
             }.sink { [weak self] value in
-                guard let weakSelf = self else {
+                guard let self else {
                     return
                 }
-                weakSelf.makeGPIOSubject(pin: pin).send(value)
+                self.makeGPIOSubject(pin: pin).send(value)
             }.store(in: &subjectCancellable)
             return subject
         }

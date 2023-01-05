@@ -75,22 +75,22 @@ public final class CentralManager: NSObject {
     override public init() {
         super.init()
         didConnectSubject.sink { [weak self] _ in
-            guard let weakSelf = self else {
+            guard let self else {
                 return
             }
-            weakSelf.numberOfConnectingPeripherals -= 1
+            self.numberOfConnectingPeripherals -= 1
         }.store(in: &cancellable)
         didFailedToConnectSubject.sink { [weak self] _ in
-            guard let weakSelf = self else {
+            guard let self else {
                 return
             }
-            weakSelf.numberOfConnectingPeripherals -= 1
+            self.numberOfConnectingPeripherals -= 1
         }.store(in: &cancellable)
         didFailedToConnectSubject.sink { [weak self] _ in
-            guard let weakSelf = self else {
+            guard let self else {
                 return
             }
-            weakSelf.numberOfConnectingPeripherals -= 1
+            self.numberOfConnectingPeripherals -= 1
         }.store(in: &cancellable)
     }
 
@@ -101,11 +101,11 @@ public final class CentralManager: NSObject {
             statePromise.fulfill(())
         }
         return Promise<Void> { [weak self] resolve, _ in
-            guard let weakSelf = self else {
+            guard let self else {
                 return
             }
-            weakSelf.statePromise.then { [weak self] _ in
-                guard let weakSelf = self else {
+            self.statePromise.then { [weak self] _ in
+                guard let self else {
                     return
                 }
                 var services: [CBUUID] {
@@ -118,11 +118,11 @@ public final class CentralManager: NSObject {
                         SettingsService.serviceUUID
                     ]
                 }
-                weakSelf.isScanning = true
-                weakSelf.manager.scanForPeripherals(
+                self.isScanning = true
+                self.manager.scanForPeripherals(
                     withServices: services,
                     options: [
-                        CBCentralManagerScanOptionAllowDuplicatesKey: !weakSelf.discoversUniquePeripherals
+                        CBCentralManagerScanOptionAllowDuplicatesKey: !self.discoversUniquePeripherals
                     ]
                 )
                 resolve(())
@@ -138,24 +138,24 @@ public final class CentralManager: NSObject {
     public func find(name: String, timeoutInterval: TimeInterval = 5) -> Promise<any Peripheral> {
         var cancellable = Set<AnyCancellable>()
         return Promise<any Peripheral> { [weak self] resolve, reject in
-            guard let weakSelf = self else {
+            guard let self else {
                 return
             }
             var didFound = false
-            weakSelf.scan().delay(timeoutInterval).then { [weak self] _ in
-                guard let weakSelf = self else {
+            self.scan().delay(timeoutInterval).then { [weak self] _ in
+                guard let self else {
                     return
                 }
                 if didFound == false {
                     reject(ScanError.peripheralNotFound)
                 }
-                weakSelf.stopScan()
+                self.stopScan()
             }
-            weakSelf.didDiscoverSubject.sink { peripheral, _, _ in
+            self.didDiscoverSubject.sink { peripheral, _, _ in
                 if peripheral.name == name {
                     didFound = true
                     resolve(peripheral)
-                    weakSelf.stopScan()
+                    self.stopScan()
                 }
             }.store(in: &cancellable)
         }.always {

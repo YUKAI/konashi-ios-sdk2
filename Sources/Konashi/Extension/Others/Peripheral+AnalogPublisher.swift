@@ -24,10 +24,10 @@ public extension KonashiPeripheral {
             controlService.analogInput.value.map {
                 return $0.values[Int(pin.rawValue)]
             }.sink { [weak self] value in
-                guard let weakSelf = self else {
+                guard let self else {
                     return
                 }
-                weakSelf.makeAnalogInputSubject(pin: pin).send(value)
+                self.makeAnalogInputSubject(pin: pin).send(value)
             }.store(in: &subjectCancellable)
             return subject
         }
