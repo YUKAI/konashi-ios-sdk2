@@ -208,6 +208,10 @@ public class MeshNode: NodeCompatible {
         node = manager.node(for: uuid)
     }
 
+    public func element(for address: nRFMeshProvision.Address) -> nRFMeshProvision.Element? {
+        return node?.element(withAddress: address)
+    }
+
     func setGattProxyEnabled(_ enabled: Bool) throws {
         guard let node else {
             throw OperationError.invalidNode

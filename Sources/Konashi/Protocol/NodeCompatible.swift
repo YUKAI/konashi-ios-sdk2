@@ -14,4 +14,6 @@ public protocol NodeCompatible {
     var name: String? { get }
     var uuid: UUID? { get }
     var isProvisioner: Bool { get }
+    
+    func element(for address: Address) -> Element?
 }
