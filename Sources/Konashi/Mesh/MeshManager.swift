@@ -86,7 +86,7 @@ public class MeshManager {
             name: "Konashi Mesh Network Key"
         )
         networkKey = newNetworkKey
-        if networkManager.save() {
+        if networkManager.save() == false {
             throw StorageError.failedToSave
         }
     }
@@ -111,7 +111,7 @@ public class MeshManager {
            let networkKey = network.networkKeys[index] {
             try newApplicationKey.bind(to: networkKey)
         }
-        if networkManager.save() {
+        if networkManager.save() == false  {
             throw StorageError.failedToSave
         }
     }
