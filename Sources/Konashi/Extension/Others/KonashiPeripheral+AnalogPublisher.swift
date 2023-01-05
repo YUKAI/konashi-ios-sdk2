@@ -1,5 +1,5 @@
 //
-//  Peripheral+AnalogPublisher.swift
+//  KonashiPeripheral+AnalogPublisher.swift
 //  konashi-ios-sdk2
 //
 //  Created by Akira Matsuda on 2021/08/18.

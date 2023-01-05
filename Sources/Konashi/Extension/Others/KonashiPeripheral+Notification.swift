@@ -1,5 +1,5 @@
 //
-//  Peripheral+Notification.swift
+//  KonashiPeripheral+Notification.swift
 //  konashi-ios-sdk2
 //
 //  Created by Akira Matsuda on 2022/02/23.
