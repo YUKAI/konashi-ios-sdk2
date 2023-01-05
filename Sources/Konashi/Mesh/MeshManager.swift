@@ -10,12 +10,6 @@ import Foundation
 import nRFMeshProvision
 
 public class MeshManager {
-    public struct ReceivedMessage {
-        public let body: MeshMessage
-        public let source: Address
-        public let destination: Address
-    }
-
     public enum NetworkError: Error {
         case invalidMeshNetwork
     }
