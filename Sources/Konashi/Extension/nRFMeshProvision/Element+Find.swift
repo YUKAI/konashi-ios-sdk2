@@ -10,7 +10,7 @@ import nRFMeshProvision
 extension nRFMeshProvision.Element {
     func findModel(of model: NodeModel) throws -> nRFMeshProvision.Model {
         guard let meshModel = self.model(withModelId: UInt32(model.identifier)) else {
-            throw MeshNode.OperationError.modelNotFound(model)
+            throw NodeOperationError.modelNotFound(model)
         }
         return meshModel
     }

@@ -176,13 +176,6 @@ public class MeshNode: NodeCompatible {
         }
     }
 
-    public enum OperationError: Error {
-        case invalidNode
-        case invalidParentElement
-        case elementNotFound(_ address: NodeElement)
-        case modelNotFound(_ model: NodeModel)
-    }
-
     public var unicastAddress: Address? {
         return node?.unicastAddress
     }
@@ -222,32 +215,32 @@ public class MeshNode: NodeCompatible {
 
     func setGattProxyEnabled(_ enabled: Bool) throws {
         guard let node else {
-            throw OperationError.invalidNode
+            throw NodeOperationError.invalidNode
         }
         try manager.networkManager.send(ConfigGATTProxySet(enable: enabled), to: node)
     }
 
     func addApplicationKey(_ applicationKey: ApplicationKey) throws {
         guard let node else {
-            throw OperationError.invalidNode
+            throw NodeOperationError.invalidNode
         }
         try manager.networkManager.send(ConfigAppKeyAdd(applicationKey: applicationKey), to: node)
     }
 
     func bindApplicationKey(_ applicationKey: ApplicationKey, to model: Element.Model) throws {
         guard let node else {
-            throw OperationError.invalidNode
+            throw NodeOperationError.invalidNode
         }
         let meshModel = try node.findElement(of: model.element).findModel(of: model)
         guard let message = ConfigModelAppBind(applicationKey: applicationKey, to: meshModel) else {
-            throw OperationError.invalidParentElement
+            throw NodeOperationError.invalidParentElement
         }
         try manager.networkManager.send(message, to: node)
     }
 
     func readSensorValues(timeoutInterval: TimeInterval = 5) async throws -> [SensorValue] {
         guard let node else {
-            throw OperationError.invalidNode
+            throw NodeOperationError.invalidNode
         }
         let model = try node.findElement(of: .sensor).findModel(of: .sensorServer)
         try manager.networkManager.send(SensorGet(), to: model)

@@ -27,3 +27,10 @@ public protocol NodeModel {
     var element: NodeElement { get }
     var identifier: UInt32 { get }
 }
+
+public enum NodeOperationError: Error {
+    case invalidNode
+    case invalidParentElement
+    case elementNotFound(_ address: NodeElement)
+    case modelNotFound(_ model: NodeModel)
+}

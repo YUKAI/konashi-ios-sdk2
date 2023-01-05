@@ -10,7 +10,7 @@ import nRFMeshProvision
 extension nRFMeshProvision.Node {
     func findElement(of element: NodeElement) throws -> nRFMeshProvision.Element {
         guard let element = self.element(withAddress: element.address) else {
-            throw MeshNode.OperationError.elementNotFound(element)
+            throw NodeOperationError.elementNotFound(element)
         }
         return element
     }
