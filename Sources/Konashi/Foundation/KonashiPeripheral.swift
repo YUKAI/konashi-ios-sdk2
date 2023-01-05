@@ -81,8 +81,8 @@ public final class KonashiPeripheral: Peripheral {
     }()
 
     /// A connection status of a peripheral.
-    public var status: Published<ConnectionStatus> {
-        return _currentConnectionStatus
+    public var status: Published<ConnectionStatus>.Publisher {
+        return $currentConnectionStatus
     }
     /// A publisher of peripheral state.
     @Published public private(set) var currentConnectionStatus: ConnectionStatus = .disconnected
@@ -108,8 +108,8 @@ public final class KonashiPeripheral: Peripheral {
 
     // TODO: Add document
     public var meshNode: NodeCompatible?
-    public var provisioningState: Published<ProvisioningState?> {
-        return _currentProvisioningState
+    public var provisioningState: Published<ProvisioningState?>.Publisher {
+        return $currentProvisioningState
     }
     @Published public private(set) var currentProvisioningState: ProvisioningState?
     private var provisioningManager: ProvisioningManager?
