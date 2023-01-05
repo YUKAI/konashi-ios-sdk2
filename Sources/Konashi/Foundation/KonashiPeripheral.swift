@@ -82,10 +82,10 @@ public final class KonashiPeripheral: Peripheral {
 
     /// A connection status of a peripheral.
     public var status: Published<ConnectionStatus> {
-        return _currentStatus
+        return _currentConnectionStatus
     }
     /// A publisher of peripheral state.
-    @Published public private(set) var currentStatus: ConnectionStatus = .disconnected
+    @Published public private(set) var currentConnectionStatus: ConnectionStatus = .disconnected
 
     /// A publisher of RSSI value.
     @Published public fileprivate(set) var rssi: NSNumber?
@@ -111,7 +111,7 @@ public final class KonashiPeripheral: Peripheral {
     public var provisioningState: Published<ProvisioningState?> {
         return _currentProvisioningState
     }
-    @Published public var currentProvisioningState: ProvisioningState?
+    @Published public private(set) var currentProvisioningState: ProvisioningState?
     private var provisioningManager: ProvisioningManager?
     private let advertisementData: [String: Any]
 
@@ -189,7 +189,7 @@ public final class KonashiPeripheral: Peripheral {
                         userInfo: [KonashiPeripheral.instanceKey: weakSelf]
                     )
                     reject(error)
-                    weakSelf.currentStatus = .error(error)
+                    weakSelf.currentConnectionStatus = .error(error)
                     weakSelf.operationErrorSubject.send(error)
                 }
             }.store(in: &cancellable)
@@ -220,7 +220,7 @@ public final class KonashiPeripheral: Peripheral {
                             userInfo: [KonashiPeripheral.instanceKey: weakSelf]
                         )
                         reject(error)
-                        weakSelf.currentStatus = .error(error)
+                        weakSelf.currentConnectionStatus = .error(error)
                         weakSelf.operationErrorSubject.send(error)
                     }
                     else {
@@ -229,7 +229,7 @@ public final class KonashiPeripheral: Peripheral {
                             object: nil,
                             userInfo: [KonashiPeripheral.instanceKey: weakSelf]
                         )
-                        weakSelf.currentStatus = .disconnected
+                        weakSelf.currentConnectionStatus = .disconnected
                         resolve(())
                     }
                 }
@@ -393,7 +393,7 @@ public final class KonashiPeripheral: Peripheral {
             throw MeshError.invalidApplicationKey
         }
 
-        if currentStatus == .disconnected {
+        if currentConnectionStatus == .disconnected {
             try await connect()
         }
         try await asyncWrite(
@@ -491,7 +491,7 @@ public final class KonashiPeripheral: Peripheral {
                 return
             }
             if connecting {
-                weakSelf.currentStatus = .connecting
+                weakSelf.currentConnectionStatus = .connecting
             }
         }.store(in: &internalCancellable)
         $isConnected.removeDuplicates().sink { [weak self] connected in
@@ -499,7 +499,7 @@ public final class KonashiPeripheral: Peripheral {
                 return
             }
             if connected {
-                weakSelf.currentStatus = .connected
+                weakSelf.currentConnectionStatus = .connected
                 weakSelf.discoverServices()
             }
         }.store(in: &internalCancellable)
@@ -516,7 +516,7 @@ public final class KonashiPeripheral: Peripheral {
                 return
             }
             if ready {
-                weakSelf.currentStatus = .readyToUse
+                weakSelf.currentConnectionStatus = .readyToUse
                 weakSelf.readyPromise.fulfill(())
             }
             else {
