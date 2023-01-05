@@ -57,5 +57,5 @@ public protocol Peripheral: Hashable {
 
     // TODO: Add document
     @discardableResult
-    func provision(for manager: MeshManager) async throws -> MeshNode
+    func provision(for manager: MeshManager) async throws -> NodeCompatible
 }

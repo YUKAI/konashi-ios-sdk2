@@ -381,7 +381,7 @@ public final class KonashiPeripheral: Peripheral {
     // MARK: - Mesh
 
     @discardableResult
-    public func provision(for manager: MeshManager) async throws -> MeshNode {
+    public func provision(for manager: MeshManager) async throws -> NodeCompatible {
         guard let unprovisionedDevice = UnprovisionedDevice(advertisementData: advertisementData) else {
             throw MeshError.invalidUnprovisionedDevice
         }
