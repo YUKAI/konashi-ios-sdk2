@@ -557,15 +557,15 @@ public final class KonashiPeripheral: Peripheral {
         }.store(in: &internalCancellable)
     }
 
+    private var kvoCancellable: AnyCancellable?
     private func prepareKVO() {
-        observation = peripheral.observe(
-            \.state,
-            options: [.old, .new]
-        ) { [weak self] peripheral, _ in
+        kvoCancellable?.cancel()
+        kvoCancellable = peripheral.publisher(for: \.state).removeDuplicates().sink { [weak self] state in
             guard let self else {
                 return
             }
-            switch peripheral.state {
+            print("new state \(state.rawValue)")
+            switch state {
             case .connected:
                 self.isConnected = true
                 self.isConnecting = false
