@@ -16,7 +16,7 @@ public final class CentralManager: NSObject {
     public enum ScanError: Error, LocalizedError {
         /// The Konashi device was not found within the timeout time.
         case peripheralNotFound
-        
+
         public var errorDescription: String? {
             switch self {
             case .peripheralNotFound:
@@ -37,6 +37,9 @@ public final class CentralManager: NSObject {
     public var state: CBManagerState {
         return manager.state
     }
+
+    // TODO: Add document
+    public var discoversUniquePeripherals = false
 
     /// A subject that sends any operation errors.
     public let operationErrorSubject = PassthroughSubject<Error, Never>()
@@ -119,7 +122,7 @@ public final class CentralManager: NSObject {
                 weakSelf.manager.scanForPeripherals(
                     withServices: services,
                     options: [
-                        CBCentralManagerScanOptionAllowDuplicatesKey: false
+                        CBCentralManagerScanOptionAllowDuplicatesKey: !weakSelf.discoversUniquePeripherals
                     ]
                 )
                 resolve(())
