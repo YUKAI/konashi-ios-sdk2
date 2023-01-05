@@ -17,6 +17,8 @@ public protocol NodeCompatible {
     
     func element(for element: NodeElement) -> Element?
     func model(for model: NodeModel) -> Model?
+    func sendConfig(_ message: ConfigMessage) throws -> MessageHandle
+    func sendMessage(_ message: MeshMessage, to model: Model) throws -> MessageHandle
 }
 
 public protocol NodeElement {

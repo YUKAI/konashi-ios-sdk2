@@ -213,6 +213,17 @@ public class MeshNode: NodeCompatible {
         return node?.element(withAddress: model.element.address)?.model(withModelId: model.identifier)
     }
 
+    public func sendConfig(_ message: nRFMeshProvision.ConfigMessage) throws -> MessageHandle {
+        guard let node else {
+            throw NodeOperationError.invalidNode
+        }
+        return try manager.networkManager.send(message, to: node)
+    }
+
+    public func sendMessage(_ message: nRFMeshProvision.MeshMessage, to model: nRFMeshProvision.Model) throws -> MessageHandle {
+        return try manager.networkManager.send(message, to: model)
+    }
+    
     func setGattProxyEnabled(_ enabled: Bool) throws {
         guard let node else {
             throw NodeOperationError.invalidNode
