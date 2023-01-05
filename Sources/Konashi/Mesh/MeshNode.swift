@@ -177,46 +177,50 @@ public class MeshNode: NodeCompatible {
     }
 
     public var unicastAddress: Address? {
-        return node?.unicastAddress
+        return node.unicastAddress
     }
 
     public var deviceKey: Data? {
-        return node?.deviceKey
+        return node.deviceKey
     }
 
     public var name: String? {
-        return node?.name
+        return node.name
     }
 
     public var uuid: UUID? {
-        return node?.uuid
+        return node.uuid
     }
 
     public var isProvisioner: Bool {
-        return node?.isProvisioner ?? false
+        return node.isProvisioner
+    }
+    
+    public var receivedMessageSubject: PassthroughSubject<ReceivedMessage, Never> {
+        return manager.receivedMessageSubject
     }
 
     private var cancellable = Set<AnyCancellable>()
-    public private(set) var node: Node?
+    public private(set) var node: Node
     private(set) var manager: MeshManager
 
-    public init(manager: MeshManager, uuid: UUID) {
+    public init?(manager: MeshManager, uuid: UUID) {
         self.manager = manager
-        node = manager.node(for: uuid)
+        guard let node = manager.node(for: uuid) else {
+            return nil
+        }
+        self.node = node
     }
 
     public func element(for element: NodeElement) -> nRFMeshProvision.Element? {
-        return node?.element(withAddress: element.address)
+        return node.element(withAddress: element.address)
     }
 
     public func model(for model: NodeModel) -> nRFMeshProvision.Model? {
-        return node?.element(withAddress: model.element.address)?.model(withModelId: model.identifier)
+        return node.element(withAddress: model.element.address)?.model(withModelId: model.identifier)
     }
 
     public func sendConfig(_ message: nRFMeshProvision.ConfigMessage) throws -> MessageHandle {
-        guard let node else {
-            throw NodeOperationError.invalidNode
-        }
         return try manager.networkManager.send(message, to: node)
     }
 
@@ -225,23 +229,14 @@ public class MeshNode: NodeCompatible {
     }
 
     func setGattProxyEnabled(_ enabled: Bool) throws {
-        guard let node else {
-            throw NodeOperationError.invalidNode
-        }
         try manager.networkManager.send(ConfigGATTProxySet(enable: enabled), to: node)
     }
 
     func addApplicationKey(_ applicationKey: ApplicationKey) throws {
-        guard let node else {
-            throw NodeOperationError.invalidNode
-        }
         try manager.networkManager.send(ConfigAppKeyAdd(applicationKey: applicationKey), to: node)
     }
 
     func bindApplicationKey(_ applicationKey: ApplicationKey, to model: Element.Model) throws {
-        guard let node else {
-            throw NodeOperationError.invalidNode
-        }
         let meshModel = try node.findElement(of: model.element).findModel(of: model)
         guard let message = ConfigModelAppBind(applicationKey: applicationKey, to: meshModel) else {
             throw NodeOperationError.invalidParentElement
@@ -250,9 +245,6 @@ public class MeshNode: NodeCompatible {
     }
 
     func readSensorValues(timeoutInterval: TimeInterval = 5) async throws -> [SensorValue] {
-        guard let node else {
-            throw NodeOperationError.invalidNode
-        }
         let model = try node.findElement(of: .sensor).findModel(of: .sensorServer)
         try manager.networkManager.send(SensorGet(), to: model)
         let result = try await manager.receivedMessageSubject.filter { message in

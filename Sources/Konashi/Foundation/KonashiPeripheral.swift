@@ -426,7 +426,9 @@ public final class KonashiPeripheral: Peripheral {
                 publicKey: .noOobPublicKey,
                 authenticationMethod: .noOob
             )
-            let node = MeshNode(manager: manager, uuid: unprovisionedDevice.uuid)
+            guard let node = MeshNode(manager: manager, uuid: unprovisionedDevice.uuid) else {
+                throw NodeOperationError.invalidNode
+            }
             // Congiure GATT Proxy
             try node.setGattProxyEnabled(true)
             // Add an application key

@@ -5,6 +5,7 @@
 //  Created by Akira Matsuda on 2023/01/04.
 //
 
+import Combine
 import Foundation
 import nRFMeshProvision
 
@@ -14,6 +15,7 @@ public protocol NodeCompatible {
     var name: String? { get }
     var uuid: UUID? { get }
     var isProvisioner: Bool { get }
+    var receivedMessageSubject: PassthroughSubject<ReceivedMessage, Never> { get }
 
     func element(for element: NodeElement) -> Element?
     func model(for model: NodeModel) -> Model?
