@@ -136,7 +136,6 @@ public final class KonashiPeripheral: Peripheral {
     }
 
     @Published public private(set) var currentProvisioningState: ProvisioningState?
-    private var provisioningManager: ProvisioningManager?
     private let advertisementData: [String: Any]
 
     // swiftlint:enable weak_delegate
@@ -443,9 +442,16 @@ public final class KonashiPeripheral: Peripheral {
             over: bearer
         )
         provisioningManager.networkKey = networkKey
-        provisioningManager.delegate = self
         bearer.open()
         do {
+            let provisioner = MeshProvisioner(for: provisioningManager)
+            let cancellable = provisioner.$state.sink { [weak self] newState in
+                guard let self else {
+                    return
+                }
+                self.currentProvisioningState = newState
+            }
+            try await provisioner.identify()
             try provisioningManager.provision(
                 usingAlgorithm: .fipsP256EllipticCurve,
                 publicKey: .noOobPublicKey,
@@ -460,6 +466,8 @@ public final class KonashiPeripheral: Peripheral {
             try node.addApplicationKey(applicationKey)
             // Bind the application key to sensor server
             try node.bindApplicationKey(applicationKey, to: .sensorServer)
+
+            cancellable.cancel()
             return node
         }
         catch {
@@ -644,125 +652,4 @@ extension KonashiPeripheralDelegate: CBPeripheralDelegate {
     }
 
     public func peripheral(_ peripheral: CBPeripheral, didModifyServices invalidatedServices: [CBService]) {}
-}
-
-extension KonashiPeripheral: ProvisioningDelegate {
-    public func provisioningState(
-        of unprovisionedDevice: UnprovisionedDevice,
-        didChangeTo state: ProvisioningState
-    ) {
-        currentProvisioningState = state
-//        DispatchQueue.main.async { [weak self] in
-//            guard let self = self else { return }
-//            switch state {
-//
-//            case .requestingCapabilities:
-//                self.presentStatusDialog(message: "Identifying...")
-//
-//            case .capabilitiesReceived(let capabilities):
-//                self.elementsCountLabel.text = "\(capabilities.numberOfElements)"
-//                self.supportedAlgorithmsLabel.text = "\(capabilities.algorithms)"
-//                self.publicKeyTypeLabel.text = "\(capabilities.publicKeyType)"
-//                self.staticOobTypeLabel.text = "\(capabilities.staticOobType)"
-//                self.outputOobSizeLabel.text = "\(capabilities.outputOobSize)"
-//                self.supportedOutputOobActionsLabel.text = "\(capabilities.outputOobActions)"
-//                self.inputOobSizeLabel.text = "\(capabilities.inputOobSize)"
-//                self.supportedInputOobActionsLabel.text = "\(capabilities.inputOobActions)"
-//
-//                // If the Unicast Address was set to automatic (nil), it should be
-//                // set to the correct value by now, as we know the number of elements.
-//                let addressValid = self.provisioningManager.isUnicastAddressValid == true
-//                if !addressValid {
-//                   self.provisioningManager.unicastAddress = nil
-//                }
-//                self.unicastAddressLabel.text = self.provisioningManager.unicastAddress?.asString() ?? "No address available"
-//                self.actionProvision.isEnabled = addressValid
-//
-//                let capabilitiesWereAlreadyReceived = self.capabilitiesReceived
-//                self.capabilitiesReceived = true
-//
-//                let deviceSupported = self.provisioningManager.isDeviceSupported == true
-//
-//                self.dismissStatusDialog {
-//                    if deviceSupported && addressValid {
-//                        // If the device got disconnected after the capabilities were received
-//                        // the first time, the app had to send invitation again.
-//                        // This time we can just directly proceed with provisioning.
-//                        if capabilitiesWereAlreadyReceived {
-//                            self.startProvisioning()
-//                        }
-//                    } else {
-//                        if !deviceSupported {
-//                            self.presentAlert(title: "Error", message: "Selected device is not supported.")
-//                            self.actionProvision.isEnabled = false
-//                        } else if !addressValid {
-//                            self.presentAlert(title: "Error", message: "No available Unicast Address in Provisioner's range.")
-//                        }
-//                    }
-//                }
-//
-//            case .complete:
-//                self.bearer.close()
-//                self.presentStatusDialog(message: "Disconnecting...")
-//
-//            case let .fail(error):
-//                self.dismissStatusDialog {
-//                    self.presentAlert(title: "Error", message: error.localizedDescription)
-//                    self.abort()
-//                }
-//
-//            default:
-//                break
-//            }
-//        }
-    }
-
-    public func authenticationActionRequired(_ action: AuthAction) {
-//        switch action {
-//        case let .provideStaticKey(callback: callback):
-//            self.dismissStatusDialog {
-//                let message = "Enter 16-character hexadecimal string."
-//                self.presentTextAlert(title: "Static OOB Key", message: message,
-//                                      type: .keyRequired, cancelHandler: nil) { hex in
-//                    callback(Data(hex: hex))
-//                }
-//            }
-//        case let .provideNumeric(maximumNumberOfDigits: _, outputAction: action, callback: callback):
-//            self.dismissStatusDialog {
-//                var message: String
-//                switch action {
-//                case .blink:
-//                    message = "Enter number of blinks."
-//                case .beep:
-//                    message = "Enter number of beeps."
-//                case .vibrate:
-//                    message = "Enter number of vibrations."
-//                case .outputNumeric:
-//                    message = "Enter the number displayed on the device."
-//                default:
-//                    message = "Action \(action) is not supported."
-//                }
-//                self.presentTextAlert(title: "Authentication", message: message,
-//                                      type: .unsignedNumberRequired, cancelHandler: nil) { text in
-//                    callback(UInt(text)!)
-//                }
-//            }
-//        case let .provideAlphanumeric(maximumNumberOfCharacters: _, callback: callback):
-//            self.dismissStatusDialog {
-//                let message = "Enter the text displayed on the device."
-//                self.presentTextAlert(title: "Authentication", message: message,
-//                                      type: .nameRequired, cancelHandler: nil) { text in
-//                    callback(text)
-//                }
-//            }
-//        case let .displayAlphanumeric(text):
-//            self.presentStatusDialog(message: "Enter the following text on your device:\n\n\(text)")
-//        case let .displayNumber(value, inputAction: action):
-//            self.presentStatusDialog(message: "Perform \(action) \(value) times on your device.")
-//        }
-    }
-
-    public func inputComplete() {
-//        self.presentStatusDialog(message: "Provisioning...")
-    }
 }
