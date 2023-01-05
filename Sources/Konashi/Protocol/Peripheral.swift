@@ -8,6 +8,7 @@
 import Combine
 import CombineExt
 import CoreBluetooth
+import nRFMeshProvision
 import Promises
 
 extension Peripheral {
@@ -24,8 +25,10 @@ public protocol Peripheral: Hashable {
     var services: [Service] { get }
 
     /// A connection status of a peripheral.
-    var status: ConnectionStatus { get }
+    var status: Published<ConnectionStatus> { get }
 
+    var provisioningState: Published<ProvisioningState?> { get }
+    
     // TODO: Add document
     var meshNode: (any NodeCompatible)? { get }
 

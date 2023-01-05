@@ -81,15 +81,12 @@ public final class KonashiPeripheral: Peripheral {
     }()
 
     /// A connection status of a peripheral.
-    public var status: ConnectionStatus {
-        return currentStatus
+    public var status: Published<ConnectionStatus> {
+        return _currentStatus
     }
-
-    // TODO: Add document
-    public var meshNode: NodeCompatible?
-
     /// A publisher of peripheral state.
     @Published public private(set) var currentStatus: ConnectionStatus = .disconnected
+
     /// A publisher of RSSI value.
     @Published public fileprivate(set) var rssi: NSNumber?
     /// This variable indicates that whether a peripheral is ready to use or not.
@@ -109,9 +106,13 @@ public final class KonashiPeripheral: Peripheral {
     // swiftlint:disable weak_delegate
     private lazy var delegate: KonashiPeripheralDelegate = .init(peripheral: self)
 
+    // TODO: Add document
+    public var meshNode: NodeCompatible?
+    public var provisioningState: Published<ProvisioningState?> {
+        return _currentProvisioningState
+    }
+    @Published public var currentProvisioningState: ProvisioningState?
     private var provisioningManager: ProvisioningManager?
-    @Published public var provisioningState: ProvisioningState?
-
     private let advertisementData: [String: Any]
 
     // swiftlint:enable weak_delegate
@@ -392,7 +393,7 @@ public final class KonashiPeripheral: Peripheral {
             throw MeshError.invalidApplicationKey
         }
 
-        if status == .disconnected {
+        if currentStatus == .disconnected {
             try await connect()
         }
         try await asyncWrite(
@@ -626,7 +627,7 @@ extension KonashiPeripheral: ProvisioningDelegate {
         of unprovisionedDevice: UnprovisionedDevice,
         didChangeTo state: ProvisioningState
     ) {
-        provisioningState = state
+        currentProvisioningState = state
 //        DispatchQueue.main.async { [weak self] in
 //            guard let self = self else { return }
 //            switch state {
