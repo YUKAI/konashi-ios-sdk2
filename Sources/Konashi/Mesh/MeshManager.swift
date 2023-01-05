@@ -10,12 +10,29 @@ import Foundation
 import nRFMeshProvision
 
 public class MeshManager {
-    public enum NetworkError: Error {
+    public enum NetworkError: Error, LocalizedError {
         case invalidMeshNetwork
+        
+        public var errorDescription: String? {
+            switch self {
+            case .invalidMeshNetwork:
+                return "Mesh network should not be nil."
+            }
+        }
     }
 
-    public enum StorageError: Error {
+    public enum StorageError: Error, LocalizedError {
         case failedToSave
+        case failedToCreateMeshNetwork
+        
+        public var errorDescription: String? {
+            switch self {
+            case .failedToSave:
+                return "Failed to save keys to local storage."
+            case .failedToCreateMeshNetwork:
+                return "Failed to save mesh network settings to local storage."
+            }
+        }
     }
 
     public static let shared = MeshManager()
@@ -120,7 +137,7 @@ public class MeshManager {
         let provisioner = Provisioner(name: "Konashi Mesh Manager")
         _ = networkManager.createNewMeshNetwork(withName: "Konashi Mesh Network", by: provisioner)
         if networkManager.save() == false {
-            throw StorageError.failedToSave
+            throw StorageError.failedToCreateMeshNetwork
         }
         meshNetworkDidChange()
     }

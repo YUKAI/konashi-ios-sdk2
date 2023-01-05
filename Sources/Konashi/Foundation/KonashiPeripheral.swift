@@ -27,14 +27,32 @@ public extension KonashiPeripheral {
 /// A remote peripheral device.
 public final class KonashiPeripheral: Peripheral {
     /// An error that the reason of why a peripheral could not ready to use.
-    public enum PeripheralError: Error {
+    public enum PeripheralError: Error, LocalizedError {
         case couldNotFindCharacteristic
+        
+        public var errorDescription: String? {
+            switch self {
+            case .couldNotFindCharacteristic:
+                return "Could not find characteristics."
+            }
+        }
     }
 
-    public enum MeshError: Error {
+    public enum MeshError: Error, LocalizedError {
         case invalidUnprovisionedDevice
         case invalidNetworkKey
         case invalidApplicationKey
+        
+        public var errorDescription: String? {
+            switch self {
+            case .invalidUnprovisionedDevice:
+                return "Failed to convert advertisement data."
+            case .invalidNetworkKey:
+                return "Network key shoud not be nil."
+            case .invalidApplicationKey:
+                return "Application key shoud not be nil."
+            }
+        }
     }
 
     /// An error that a peripheral returns during read / write operation.

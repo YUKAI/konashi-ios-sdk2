@@ -252,7 +252,7 @@ public class MeshNode: NodeCompatible {
     func bindApplicationKey(_ applicationKey: ApplicationKey, to model: Element.Model) throws {
         let meshModel = try node.findElement(of: model.element).findModel(of: model)
         guard let message = ConfigModelAppBind(applicationKey: applicationKey, to: meshModel) else {
-            throw NodeOperationError.invalidParentElement
+            throw NodeOperationError.invalidParentElement(modelIdentifier: meshModel.modelIdentifier)
         }
         try manager.networkManager.send(message, to: node)
     }

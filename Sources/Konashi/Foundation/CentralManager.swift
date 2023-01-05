@@ -13,9 +13,16 @@ import Promises
 /// A utility class of managiment procetudes such as discover, connect and disconnect peripherals.
 /// This class is a wrapper of CBCentralManager.
 public final class CentralManager: NSObject {
-    public enum ScanError: Error {
+    public enum ScanError: Error, LocalizedError {
         /// The Konashi device was not found within the timeout time.
         case peripheralNotFound
+        
+        public var errorDescription: String? {
+            switch self {
+            case .peripheralNotFound:
+                return "Counld not find any peripherals."
+            }
+        }
     }
 
     public enum ScanTarget {

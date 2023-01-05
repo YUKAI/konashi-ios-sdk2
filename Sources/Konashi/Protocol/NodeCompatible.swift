@@ -35,9 +35,22 @@ public protocol NodeModel {
     var identifier: UInt32 { get }
 }
 
-public enum NodeOperationError: Error {
+public enum NodeOperationError: Error, LocalizedError {
     case invalidNode
-    case invalidParentElement
+    case invalidParentElement(modelIdentifier: UInt16)
     case elementNotFound(_ address: NodeElement)
     case modelNotFound(_ model: NodeModel)
+    
+    public var errorDescription: String? {
+        switch self {
+        case .invalidNode:
+            return "Node should not be nil."
+        case let .invalidParentElement(modelIdentifier):
+            return "A parent element of the model (identifier: \(modelIdentifier)) should not be nil."
+        case let .elementNotFound(address):
+            return "Failed to find the element (address: \(address))."
+        case let .modelNotFound(model):
+            return "Faild to find the model (identifier: \(model.identifier))."
+        }
+    }
 }
