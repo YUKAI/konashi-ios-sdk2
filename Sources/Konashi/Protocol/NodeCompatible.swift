@@ -14,7 +14,7 @@ public protocol NodeCompatible {
     var name: String? { get }
     var uuid: UUID? { get }
     var isProvisioner: Bool { get }
-    
+
     func element(for element: NodeElement) -> Element?
     func model(for model: NodeModel) -> Model?
     func sendConfig(_ message: ConfigMessage) throws -> MessageHandle

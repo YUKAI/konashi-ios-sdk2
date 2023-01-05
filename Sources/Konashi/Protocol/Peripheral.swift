@@ -54,7 +54,7 @@ public protocol Peripheral: Hashable {
     /// - Returns: A promise object of read value.
     @discardableResult
     func read<Value: CharacteristicValue>(characteristic: ReadableCharacteristic<Value>) -> Promise<Value>
-    
+
     // TODO: Add document
     @discardableResult
     func provision(for manager: MeshManager) async throws -> MeshNode

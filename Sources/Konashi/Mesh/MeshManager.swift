@@ -32,9 +32,11 @@ public class MeshManager {
     public var numberOfNodes: Int {
         return networkManager.meshNetwork?.nodes.count ?? 0
     }
+
     public var allNodes: [Node] {
         return networkManager.meshNetwork?.nodes ?? []
     }
+
     internal let networkManager: MeshNetworkManager
     private(set) var connection: MeshNetworkConnection?
 

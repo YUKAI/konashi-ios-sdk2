@@ -12,9 +12,9 @@ import nRFMeshProvision
 public class MeshNode: NodeCompatible {
     public enum Element: UInt16, NodeElement {
         public var address: nRFMeshProvision.Address {
-            return self.rawValue
+            return rawValue
         }
-        
+
         case configuration = 0x008A
         case control0 = 0x008B
         case control1 = 0x008C
@@ -183,7 +183,7 @@ public class MeshNode: NodeCompatible {
     public var deviceKey: Data? {
         return node?.deviceKey
     }
-    
+
     public var name: String? {
         return node?.name
     }
@@ -191,11 +191,11 @@ public class MeshNode: NodeCompatible {
     public var uuid: UUID? {
         return node?.uuid
     }
-    
+
     public var isProvisioner: Bool {
         return node?.isProvisioner ?? false
     }
-    
+
     private var cancellable = Set<AnyCancellable>()
     public private(set) var node: Node?
     private(set) var manager: MeshManager
@@ -208,7 +208,7 @@ public class MeshNode: NodeCompatible {
     public func element(for element: NodeElement) -> nRFMeshProvision.Element? {
         return node?.element(withAddress: element.address)
     }
-    
+
     public func model(for model: NodeModel) -> nRFMeshProvision.Model? {
         return node?.element(withAddress: model.element.address)?.model(withModelId: model.identifier)
     }
@@ -223,7 +223,7 @@ public class MeshNode: NodeCompatible {
     public func sendMessage(_ message: nRFMeshProvision.MeshMessage, to model: nRFMeshProvision.Model) throws -> MessageHandle {
         return try manager.networkManager.send(message, to: model)
     }
-    
+
     func setGattProxyEnabled(_ enabled: Bool) throws {
         guard let node else {
             throw NodeOperationError.invalidNode
