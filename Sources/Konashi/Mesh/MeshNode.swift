@@ -196,8 +196,8 @@ public class MeshNode: NodeCompatible {
         return node.isProvisioner
     }
     
-    public var receivedMessageSubject: PassthroughSubject<ReceivedMessage, Never> {
-        return manager.receivedMessageSubject
+    public var receivedMessageSubject: Publishers.Filter<PassthroughSubject<ReceivedMessage, Never>> {
+        return manager.receivedMessageSubject.filter(for: self)
     }
 
     private var cancellable = Set<AnyCancellable>()
