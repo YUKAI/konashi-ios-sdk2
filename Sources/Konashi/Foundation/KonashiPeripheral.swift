@@ -406,6 +406,9 @@ public final class KonashiPeripheral: Peripheral {
 
     @discardableResult
     public func provision(for manager: MeshManager) async throws -> NodeCompatible {
+        if manager.connection == nil {
+            throw MeshManager.NetworkError.noNetworkConnection
+        }
         guard let unprovisionedDevice = UnprovisionedDevice(advertisementData: advertisementData) else {
             throw MeshError.invalidUnprovisionedDevice
         }
