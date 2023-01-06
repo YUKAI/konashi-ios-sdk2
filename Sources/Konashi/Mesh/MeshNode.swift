@@ -241,42 +241,24 @@ public class MeshNode: NodeCompatible {
         network.remove(node: node)
     }
 
-    private enum Invocation {
-        case gattProxyEnabled(CheckedContinuation<Void, Error>)
-        case addApplicationKey(CheckedContinuation<Void, Error>)
-        case bindApplicationKey(CheckedContinuation<Void, Error>)
-    }
-
-    private var invocation: Invocation?
+    private var currentContinuation: CheckedContinuation<Void, Error>?
     private var incovationCancellable: AnyCancellable?
     private func throwError(_ error: Error) {
-        switch invocation {
-        case let .gattProxyEnabled(continuation),
-             let .addApplicationKey(continuation),
-             let .bindApplicationKey(continuation):
-            continuation.resume(throwing: error)
-        case .none:
-            break
-        }
-        invocation = nil
+        currentContinuation?.resume(throwing: error)
+        currentContinuation = nil
         incovationCancellable?.cancel()
         incovationCancellable = nil
     }
 
     private func resume() {
-        switch invocation {
-        case let .gattProxyEnabled(continuation),
-             let .addApplicationKey(continuation),
-             let .bindApplicationKey(continuation):
-            continuation.resume(returning: ())
-        case .none:
-            break
-        }
+        currentContinuation?.resume(returning: ())
+        currentContinuation = nil
     }
 
     private func send(config: ConfigMessage) async throws {
         return try await withCheckedThrowingContinuation { continuation in
             do {
+                self.currentContinuation = continuation
                 self.incovationCancellable = manager.didSendMessageSubject.sink { [weak self] result in
                     guard let self else {
                         return
