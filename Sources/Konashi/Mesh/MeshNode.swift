@@ -221,7 +221,8 @@ public class MeshNode: NodeCompatible {
         do {
             node.name = name
             try manager.save()
-        } catch {
+        }
+        catch {
             node.name = oldName
             throw error
         }
@@ -252,44 +253,33 @@ public class MeshNode: NodeCompatible {
         network.remove(node: node)
     }
 
-    private var currentContinuation: CheckedContinuation<Void, Error>?
-    private var incovationCancellable: AnyCancellable?
-    private func throwError(_ error: Error) {
-        currentContinuation?.resume(throwing: error)
-        currentContinuation = nil
-        incovationCancellable?.cancel()
-        incovationCancellable = nil
-    }
-
-    private func resume() {
-        currentContinuation?.resume(returning: ())
-        currentContinuation = nil
-    }
-
     private func send(config: ConfigMessage) async throws {
         return try await withCheckedThrowingContinuation { continuation in
-            do {
-                self.currentContinuation = continuation
-                self.incovationCancellable = manager.didSendMessageSubject.sink { [weak self] result in
-                    guard let self else {
+            Task {
+                do {
+                    guard let connection = self.manager.connection else {
+                        continuation.resume(throwing: MeshManager.NetworkError.noNetworkConnection)
                         return
                     }
-                    switch result {
-                    case .finished:
-                        break
-                    case let .failure(error):
-                        self.throwError(error)
+                    if connection.isOpen == false {
+                        let isOpen = try await self.manager.connection?.$isOpen
+                            .removeDuplicates()
+                            .timeout(.seconds(5), scheduler: DispatchQueue.global(qos: .userInteractive))
+                            .filter({ $0 })
+                            .eraseToAnyPublisher()
+                            .async()
+                        guard let isOpen, isOpen == true else {
+                            continuation.resume(throwing: MeshManager.NetworkError.bearerIsClosed)
+                            return
+                        }
                     }
-                } receiveValue: { [weak self] _ in
-                    guard let self else {
-                        return
-                    }
-                    self.resume()
+                    try manager.networkManager.send(config, to: self.node)
+                    _ = try await manager.didSendMessageSubject.eraseToAnyPublisher().async()
+                    continuation.resume(returning: ())
                 }
-                try manager.networkManager.send(config, to: self.node)
-            }
-            catch {
-                continuation.resume(throwing: error)
+                catch {
+                    continuation.resume(throwing: error)
+                }
             }
         }
     }
