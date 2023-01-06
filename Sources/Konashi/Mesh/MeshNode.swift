@@ -265,7 +265,7 @@ public class MeshNode: NodeCompatible {
                         let isOpen = try await self.manager.connection?.$isOpen
                             .removeDuplicates()
                             .timeout(.seconds(5), scheduler: DispatchQueue.global(qos: .userInteractive))
-                            .filter({ $0 })
+                            .filter { $0 }
                             .eraseToAnyPublisher()
                             .async()
                         guard let isOpen, isOpen == true else {

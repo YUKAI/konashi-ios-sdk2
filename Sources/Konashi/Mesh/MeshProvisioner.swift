@@ -49,7 +49,7 @@ class MeshProvisioner {
                             return true
                         }
                         return false
-                    }.compactMap{ state in
+                    }.compactMap { state in
                         if case let .capabilitiesReceived(capabilities) = state {
                             return capabilities
                         }
