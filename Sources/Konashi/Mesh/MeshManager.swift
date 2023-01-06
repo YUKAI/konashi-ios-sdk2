@@ -37,6 +37,7 @@ public class MeshManager {
 
     public static let shared = MeshManager()
 
+    public let didSendMessageSubject = PassthroughSubject<SendMessage, MessageTransmissionError>()
     public let receivedMessageSubject = PassthroughSubject<ReceivedMessage, Never>()
     public private(set) var networkKey: NetworkKey?
     public private(set) var applicationKey: ApplicationKey?
@@ -150,6 +151,8 @@ public class MeshManager {
         guard let network = networkManager.meshNetwork else {
             return
         }
+        networkKey = network.networkKeys.first
+        applicationKey = network.applicationKeys.first
         connection?.close()
         connection = MeshNetworkConnection(to: network)
         connection?.dataDelegate = networkManager
@@ -166,8 +169,32 @@ extension MeshManager: MeshNetworkDelegate {
         sentFrom source: Address,
         to destination: Address
     ) {
-        receivedMessageSubject.send(
-            ReceivedMessage(body: message, source: source, destination: destination)
+        receivedMessageSubject.send(ReceivedMessage(body: message, source: source, destination: destination))
+    }
+
+    public func meshNetworkManager(
+        _ manager: MeshNetworkManager,
+        didSendMessage message: MeshMessage,
+        from localElement: Element,
+        to destination: Address
+    ) {
+        didSendMessageSubject.send(SendMessage(body: message, from: localElement, destination: destination))
+    }
+
+    public func meshNetworkManager(
+        _ manager: MeshNetworkManager,
+        failedToSendMessage message: MeshMessage,
+        from localElement: Element,
+        to destination: Address,
+        error: Error
+    ) {
+        didSendMessageSubject.send(
+            completion: .failure(
+                MessageTransmissionError(
+                    error: error,
+                    message: SendMessage(body: message, from: localElement, destination: destination)
+                )
+            )
         )
     }
 }
