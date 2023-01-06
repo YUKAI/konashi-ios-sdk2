@@ -419,21 +419,21 @@ public final class KonashiPeripheral: Peripheral {
         if currentConnectionStatus == .disconnected {
             try await connect()
         }
+//        try await asyncWrite(
+//            characteristic: SettingsService.settingsCommand,
+//            command: .bluetooth(
+//                payload: SettingsService.BluetoothSettingPayload(
+//                    bluetoothFunction: .init(
+//                        function: .mesh,
+//                        enabled: true
+//                    )
+//                )
+//            )
+//        )
         try await asyncWrite(
             characteristic: SettingsService.settingsCommand,
             command: .system(
                 payload: .nvmUseSet(enabled: true)
-            )
-        )
-        try await asyncWrite(
-            characteristic: SettingsService.settingsCommand,
-            command: .bluetooth(
-                payload: SettingsService.BluetoothSettingPayload(
-                    bluetoothFunction: .init(
-                        function: .mesh,
-                        enabled: true
-                    )
-                )
             )
         )
         let bearer = MeshBearer(for: PBGattBearer(target: peripheral))
@@ -463,11 +463,11 @@ public final class KonashiPeripheral: Peripheral {
                 throw NodeOperationError.invalidNode
             }
             // Congiure GATT Proxy
-            try node.setGattProxyEnabled(true)
+            try await node.setGattProxyEnabled(true)
             // Add an application key
-            try node.addApplicationKey(applicationKey)
+            try await node.addApplicationKey(applicationKey)
             // Bind the application key to sensor server
-            try node.bindApplicationKey(applicationKey, to: .sensorServer)
+            try await node.bindApplicationKey(applicationKey, to: .sensorServer)
 
             cancellable.cancel()
             return node

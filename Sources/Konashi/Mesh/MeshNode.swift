@@ -241,20 +241,80 @@ public class MeshNode: NodeCompatible {
         network.remove(node: node)
     }
 
-    func setGattProxyEnabled(_ enabled: Bool) throws {
-        try manager.networkManager.send(ConfigGATTProxySet(enable: enabled), to: node)
+    enum Invocation {
+        case gattProxyEnabled(CheckedContinuation<Void, Error>)
+        case addApplicationKey(CheckedContinuation<Void, Error>)
+        case bindApplicationKey(CheckedContinuation<Void, Error>)
     }
 
-    func addApplicationKey(_ applicationKey: ApplicationKey) throws {
-        try manager.networkManager.send(ConfigAppKeyAdd(applicationKey: applicationKey), to: node)
+    private var invocation: Invocation?
+    private var incovationCancellable: AnyCancellable?
+    private func throwError(_ error: Error) {
+        switch invocation {
+        case let .gattProxyEnabled(continuation),
+            let .addApplicationKey(continuation),
+            let .bindApplicationKey(continuation):
+            continuation.resume(throwing: error)
+        case .none:
+            break
+        }
+        invocation = nil
+        incovationCancellable?.cancel()
+        incovationCancellable = nil
     }
 
-    func bindApplicationKey(_ applicationKey: ApplicationKey, to model: Element.Model) throws {
+    private func resume() {
+        switch invocation {
+        case let .gattProxyEnabled(continuation),
+            let .addApplicationKey(continuation),
+            let .bindApplicationKey(continuation):
+            continuation.resume(returning: ())
+        case .none:
+            break
+        }
+    }
+    
+    private func send(config: ConfigMessage) async throws {
+        return try await withCheckedThrowingContinuation { continuation in
+            do {
+                self.incovationCancellable = manager.didSendMessageSubject.sink { [weak self] result in
+                    guard let self else {
+                        return
+                    }
+                    switch result {
+                    case .finished:
+                        break
+                    case let .failure(error):
+                        self.throwError(error)
+                        break
+                    }
+                } receiveValue: { [weak self] _ in
+                    guard let self else {
+                        return
+                    }
+                    self.resume()
+                }
+                try manager.networkManager.send(config, to: self.node)
+            } catch {
+                continuation.resume(throwing: error)
+            }
+        }
+    }
+    
+    func setGattProxyEnabled(_ enabled: Bool) async throws {
+        try await send(config: ConfigGATTProxySet(enable: enabled))
+    }
+
+    func addApplicationKey(_ applicationKey: ApplicationKey) async throws {
+        try await send(config: ConfigAppKeyAdd(applicationKey: applicationKey))
+    }
+
+    func bindApplicationKey(_ applicationKey: ApplicationKey, to model: Element.Model) async throws {
         let meshModel = try node.findElement(of: model.element).findModel(of: model)
         guard let message = ConfigModelAppBind(applicationKey: applicationKey, to: meshModel) else {
             throw NodeOperationError.invalidParentElement(modelIdentifier: meshModel.modelIdentifier)
         }
-        try manager.networkManager.send(message, to: node)
+        try await send(config: message)
     }
 }
 
