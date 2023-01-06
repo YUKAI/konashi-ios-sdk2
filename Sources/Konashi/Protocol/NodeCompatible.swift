@@ -17,6 +17,7 @@ public protocol NodeCompatible {
     var isProvisioner: Bool { get }
     var receivedMessageSubject: PassthroughSubject<ReceivedMessage, Never> { get }
 
+    func updateName(_ name: String?) throws
     func element(for element: NodeElement) -> Element?
     func model(for model: NodeModel) -> Model?
     @discardableResult
