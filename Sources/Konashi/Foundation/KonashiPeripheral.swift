@@ -436,13 +436,13 @@ public final class KonashiPeripheral: Peripheral {
                 )
             )
         )
-        let bearer = PBGattBearer(target: peripheral)
+        let bearer = MeshBearer(for: PBGattBearer(target: peripheral))
         let provisioningManager = try manager.provision(
             unprovisionedDevice: unprovisionedDevice,
-            over: bearer
+            over: bearer.originalBearer
         )
         provisioningManager.networkKey = networkKey
-        bearer.open()
+        try await bearer.open()
         do {
             let provisioner = MeshProvisioner(for: provisioningManager)
             let cancellable = provisioner.$state.sink { [weak self] newState in
@@ -451,7 +451,7 @@ public final class KonashiPeripheral: Peripheral {
                 }
                 self.currentProvisioningState = newState
             }
-            try await provisioner.identify()
+            _ = try await provisioner.identify()
             try provisioningManager.provision(
                 usingAlgorithm: .fipsP256EllipticCurve,
                 publicKey: .noOobPublicKey,
@@ -471,7 +471,7 @@ public final class KonashiPeripheral: Peripheral {
             return node
         }
         catch {
-            bearer.close()
+            try await bearer.close()
             throw error
         }
     }
