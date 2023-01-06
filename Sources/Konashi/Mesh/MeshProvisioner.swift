@@ -9,12 +9,32 @@ import Foundation
 import nRFMeshProvision
 
 class MeshProvisioner {
-    public enum ProvisioningError: Error {
-        case invalidUnicastAddress
-        case unsupportedDevice
+    public enum ProvisioningError: Error, LocalizedError {
+        case unknown
+        case invalidUnicastAddress(UnprovisionedDevice)
+        case invalidCapability
+        case unsupportedDevice(UnprovisionedDevice)
+        
+        public var errorDescription: String? {
+            switch self {
+            case .unknown:
+                return "Unknown error."
+            case let .invalidUnicastAddress(device):
+                return "The device \(device.uuid) has invalid unicast address."
+            case .invalidCapability:
+                return "Provisioning capability should not be nil."
+            case let .unsupportedDevice(device):
+                return "The device \(device.uuid) is not able to provision."
+            }
+        }
     }
 
-    private var currentContinuation: CheckedContinuation<ProvisioningCapabilities, Error>?
+    enum Invocation {
+        case provision(CheckedContinuation<Void, Error>)
+        case identify(CheckedContinuation<ProvisioningCapabilities, Error>)
+    }
+
+    private var invocation: Invocation?
     private var provisioningManager: ProvisioningManager
 
     @Published var state: ProvisioningState?
@@ -27,13 +47,84 @@ class MeshProvisioner {
     func identify(attractFor: UInt8 = 5) async throws -> ProvisioningCapabilities {
         provisioningManager.delegate = self
         return try await withCheckedThrowingContinuation { continuation in
-            self.currentContinuation = continuation
+            self.invocation = .identify(continuation)
             do {
                 try provisioningManager.identify(andAttractFor: attractFor)
             }
             catch {
                 continuation.resume(throwing: error)
+                self.invocation = nil
             }
+        }
+    }
+    
+    func provision(
+        usingAlgorithm algorithm: Algorithm,
+        publicKey: PublicKey,
+        authenticationMethod: AuthenticationMethod
+    ) async throws {
+        provisioningManager.delegate = self
+        return try await withCheckedThrowingContinuation { continuation in
+            self.invocation = .provision(continuation)
+            do {
+                try provisioningManager.provision(
+                    usingAlgorithm: algorithm,
+                    publicKey: publicKey,
+                    authenticationMethod: authenticationMethod
+                )
+            }
+            catch {
+                continuation.resume(throwing: error)
+                self.invocation = nil
+            }
+        }
+    }
+    
+    func throwError(_ error: Error) {
+        switch invocation {
+        case let .identify(continuation):
+            continuation.resume(throwing: error)
+        case let .provision(continuation):
+            continuation.resume(throwing: error)
+        case .none:
+            break
+        }
+        invocation = nil
+    }
+
+    func resume(_ result: ProvisioningState) {
+        do {
+            switch result {
+            case .complete:
+                try resumeProvision()
+            case let .capabilitiesReceived(capabilities):
+                try resumeIdentify(capabilities)
+            default:
+                throwError(ProvisioningError.unknown)
+            }
+        }
+        catch {
+            throwError(error)
+        }
+    }
+    
+    private func resumeProvision() throws {
+        if case let .provision(continuation) = invocation {
+            continuation.resume(returning: ())
+            invocation = nil
+        }
+        else {
+            throw ProvisioningError.unknown
+        }
+    }
+
+    private func resumeIdentify(_ capabilities: ProvisioningCapabilities) throws {
+        if case let .identify(continuation) = invocation {
+            continuation.resume(returning: capabilities)
+            invocation = nil
+        }
+        else {
+            throw ProvisioningError.unknown
         }
     }
 }
@@ -45,26 +136,28 @@ extension MeshProvisioner: ProvisioningDelegate {
     ) {
         self.state = state
         switch state {
-        case let .capabilitiesReceived(capabilities):
-            if let currentContinuation {
-                if provisioningManager.isUnicastAddressValid == false {
-                    currentContinuation.resume(throwing: ProvisioningError.invalidUnicastAddress)
-                    self.currentContinuation = nil
-                    return
-                }
-                if provisioningManager.isDeviceSupported == false {
-                    currentContinuation.resume(throwing: ProvisioningError.unsupportedDevice)
-                    self.currentContinuation = nil
-                    return
-                }
-                currentContinuation.resume(returning: capabilities)
-                self.currentContinuation = nil
+        case .capabilitiesReceived:
+            guard let isUnicastAddressValid = provisioningManager.isUnicastAddressValid else {
+                throwError(ProvisioningError.unknown)
+                return
             }
+            if isUnicastAddressValid == false {
+                throwError(ProvisioningError.invalidUnicastAddress(unprovisionedDevice))
+                return
+            }
+            guard let isDeviceSupported = provisioningManager.isDeviceSupported else {
+                throwError(ProvisioningError.invalidCapability)
+                return
+            }
+            if isDeviceSupported == false {
+                throwError(ProvisioningError.unsupportedDevice(unprovisionedDevice))
+                return
+            }
+            resume(state)
         case let .fail(error):
-            if let currentContinuation {
-                currentContinuation.resume(throwing: error)
-                self.currentContinuation = nil
-            }
+            throwError(error)
+        case .complete:
+            resume(state)
         default:
             break
         }
