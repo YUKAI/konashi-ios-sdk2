@@ -40,43 +40,35 @@ class MeshProvisioner {
     @discardableResult
     func identify(attractFor: UInt8 = 5) async throws -> ProvisioningCapabilities {
         provisioningManager.delegate = self
-        return try await withCheckedThrowingContinuation { continuation in
-            Task {
-                do {
-                    try provisioningManager.identify(andAttractFor: attractFor)
-                    let capabilities = try await $state.filter { state in
-                        if case .capabilitiesReceived = state {
-                            return true
-                        }
-                        return false
-                    }.compactMap { state in
-                        if case let .capabilitiesReceived(capabilities) = state {
-                            return capabilities
-                        }
-                        return nil
-                    }.eraseToAnyPublisher().async()
-                    guard let isUnicastAddressValid = provisioningManager.isUnicastAddressValid else {
-                        continuation.resume(throwing: ProvisioningError.unknown)
-                        return
-                    }
-                    if isUnicastAddressValid == false {
-                        continuation.resume(throwing: ProvisioningError.invalidUnicastAddress)
-                        return
-                    }
-                    guard let isDeviceSupported = provisioningManager.isDeviceSupported else {
-                        continuation.resume(throwing: ProvisioningError.invalidCapability)
-                        return
-                    }
-                    if isDeviceSupported == false {
-                        continuation.resume(throwing: ProvisioningError.invalidUnicastAddress)
-                        return
-                    }
-                    continuation.resume(returning: capabilities)
+        do {
+            try provisioningManager.identify(andAttractFor: attractFor)
+            let capabilities = try await $state.filter { state in
+                if case .capabilitiesReceived = state {
+                    return true
                 }
-                catch {
-                    continuation.resume(throwing: error)
+                return false
+            }.compactMap { state in
+                if case let .capabilitiesReceived(capabilities) = state {
+                    return capabilities
                 }
+                return nil
+            }.eraseToAnyPublisher().async()
+            guard let isUnicastAddressValid = provisioningManager.isUnicastAddressValid else {
+                throw ProvisioningError.unknown
             }
+            if isUnicastAddressValid == false {
+                throw ProvisioningError.invalidUnicastAddress
+            }
+            guard let isDeviceSupported = provisioningManager.isDeviceSupported else {
+                throw ProvisioningError.invalidCapability
+            }
+            if isDeviceSupported == false {
+                throw ProvisioningError.invalidUnicastAddress
+            }
+            return capabilities
+        }
+        catch {
+            throw error
         }
     }
 
@@ -86,26 +78,22 @@ class MeshProvisioner {
         authenticationMethod: AuthenticationMethod
     ) async throws {
         provisioningManager.delegate = self
-        return try await withCheckedThrowingContinuation { continuation in
-            Task {
-                do {
-                    try provisioningManager.provision(
-                        usingAlgorithm: algorithm,
-                        publicKey: publicKey,
-                        authenticationMethod: authenticationMethod
-                    )
-                    _ = try await $state.filter { state in
-                        if case .complete = state {
-                            return true
-                        }
-                        return false
-                    }.eraseToAnyPublisher().async()
-                    continuation.resume(returning: ())
+        do {
+            try provisioningManager.provision(
+                usingAlgorithm: algorithm,
+                publicKey: publicKey,
+                authenticationMethod: authenticationMethod
+            )
+            _ = try await $state.filter { state in
+                if case .complete = state {
+                    return true
                 }
-                catch {
-                    continuation.resume(throwing: error)
-                }
-            }
+                return false
+            }.eraseToAnyPublisher().async()
+            return
+        }
+        catch {
+            throw error
         }
     }
 }

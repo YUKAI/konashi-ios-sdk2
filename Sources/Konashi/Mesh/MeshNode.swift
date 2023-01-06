@@ -254,33 +254,27 @@ public class MeshNode: NodeCompatible {
     }
 
     private func send(config: ConfigMessage) async throws {
-        return try await withCheckedThrowingContinuation { continuation in
-            Task {
-                do {
-                    guard let connection = self.manager.connection else {
-                        continuation.resume(throwing: MeshManager.NetworkError.noNetworkConnection)
-                        return
-                    }
-                    if connection.isOpen == false {
-                        let isOpen = try await self.manager.connection?.$isOpen
-                            .removeDuplicates()
-                            .timeout(.seconds(5), scheduler: DispatchQueue.global(qos: .userInteractive))
-                            .filter { $0 }
-                            .eraseToAnyPublisher()
-                            .async()
-                        guard let isOpen, isOpen == true else {
-                            continuation.resume(throwing: MeshManager.NetworkError.bearerIsClosed)
-                            return
-                        }
-                    }
-                    try manager.networkManager.send(config, to: self.node)
-                    _ = try await manager.didSendMessageSubject.eraseToAnyPublisher().async()
-                    continuation.resume(returning: ())
-                }
-                catch {
-                    continuation.resume(throwing: error)
+        do {
+            guard let connection = self.manager.connection else {
+                throw MeshManager.NetworkError.noNetworkConnection
+            }
+            if connection.isOpen == false {
+                let isOpen = try await connection.$isOpen
+                    .removeDuplicates()
+                    .timeout(.seconds(5), scheduler: DispatchQueue.global(qos: .userInteractive))
+                    .filter { $0 }
+                    .eraseToAnyPublisher()
+                    .async()
+                guard isOpen == true else {
+                    throw MeshManager.NetworkError.bearerIsClosed
                 }
             }
+            try manager.networkManager.send(config, to: self.node)
+            _ = try await manager.didSendMessageSubject.eraseToAnyPublisher().async()
+            return
+        }
+        catch {
+            throw error
         }
     }
 
