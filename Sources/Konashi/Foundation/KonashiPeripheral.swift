@@ -437,10 +437,12 @@ public final class KonashiPeripheral: Peripheral {
             )
         )
         let bearer = MeshBearer(for: PBGattBearer(target: peripheral))
+        bearer.originalBearer.logger = manager.logger
         let provisioningManager = try manager.provision(
             unprovisionedDevice: unprovisionedDevice,
             over: bearer.originalBearer
         )
+        provisioningManager.logger = manager.logger
         provisioningManager.networkKey = networkKey
         try await bearer.open()
         do {

@@ -82,9 +82,11 @@ public class MeshManager {
         return networkManager.meshNetwork?.node(withUuid: uuid)
     }
 
+    private(set) var logger: LoggerDelegate?
     public func setLogger(_ logger: LoggerDelegate) {
+        self.logger = logger
         networkManager.logger = logger
-//        connection.logger = logger
+        connection?.logger = logger
     }
 
     public func addNetworkKey(_ newKeyData: Data) throws {
@@ -151,7 +153,7 @@ public class MeshManager {
         connection?.close()
         connection = MeshNetworkConnection(to: network)
         connection?.dataDelegate = networkManager
-        connection?.logger = networkManager.logger
+        connection?.logger = logger
         networkManager.transmitter = connection
         connection?.open()
     }
