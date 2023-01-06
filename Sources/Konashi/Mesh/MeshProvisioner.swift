@@ -11,30 +11,24 @@ import nRFMeshProvision
 class MeshProvisioner {
     public enum ProvisioningError: Error, LocalizedError {
         case unknown
-        case invalidUnicastAddress(UnprovisionedDevice)
+        case invalidUnicastAddress
         case invalidCapability
-        case unsupportedDevice(UnprovisionedDevice)
+        case unsupportedDevice
 
         public var errorDescription: String? {
             switch self {
             case .unknown:
                 return "Unknown error."
-            case let .invalidUnicastAddress(device):
-                return "The device \(device.uuid) has invalid unicast address."
+            case .invalidUnicastAddress:
+                return "The device has invalid unicast address."
             case .invalidCapability:
                 return "Provisioning capability should not be nil."
-            case let .unsupportedDevice(device):
-                return "The device \(device.uuid) is not able to provision."
+            case .unsupportedDevice:
+                return "The device is not able to provision."
             }
         }
     }
 
-    private enum Invocation {
-        case provision(CheckedContinuation<Void, Error>)
-        case identify(CheckedContinuation<ProvisioningCapabilities, Error>)
-    }
-
-    private var invocation: Invocation?
     private var provisioningManager: ProvisioningManager
 
     @Published var state: ProvisioningState?
@@ -47,13 +41,41 @@ class MeshProvisioner {
     func identify(attractFor: UInt8 = 5) async throws -> ProvisioningCapabilities {
         provisioningManager.delegate = self
         return try await withCheckedThrowingContinuation { continuation in
-            self.invocation = .identify(continuation)
-            do {
-                try provisioningManager.identify(andAttractFor: attractFor)
-            }
-            catch {
-                continuation.resume(throwing: error)
-                self.invocation = nil
+            Task {
+                do {
+                    try provisioningManager.identify(andAttractFor: attractFor)
+                    let capabilities = try await $state.filter { state in
+                        if case .capabilitiesReceived = state {
+                            return true
+                        }
+                        return false
+                    }.compactMap{ state in
+                        if case let .capabilitiesReceived(capabilities) = state {
+                            return capabilities
+                        }
+                        return nil
+                    }.eraseToAnyPublisher().async()
+                    guard let isUnicastAddressValid = provisioningManager.isUnicastAddressValid else {
+                        continuation.resume(throwing: ProvisioningError.unknown)
+                        return
+                    }
+                    if isUnicastAddressValid == false {
+                        continuation.resume(throwing: ProvisioningError.invalidUnicastAddress)
+                        return
+                    }
+                    guard let isDeviceSupported = provisioningManager.isDeviceSupported else {
+                        continuation.resume(throwing: ProvisioningError.invalidCapability)
+                        return
+                    }
+                    if isDeviceSupported == false {
+                        continuation.resume(throwing: ProvisioningError.invalidUnicastAddress)
+                        return
+                    }
+                    continuation.resume(returning: capabilities)
+                }
+                catch {
+                    continuation.resume(throwing: error)
+                }
             }
         }
     }
@@ -65,66 +87,25 @@ class MeshProvisioner {
     ) async throws {
         provisioningManager.delegate = self
         return try await withCheckedThrowingContinuation { continuation in
-            self.invocation = .provision(continuation)
-            do {
-                try provisioningManager.provision(
-                    usingAlgorithm: algorithm,
-                    publicKey: publicKey,
-                    authenticationMethod: authenticationMethod
-                )
+            Task {
+                do {
+                    try provisioningManager.provision(
+                        usingAlgorithm: algorithm,
+                        publicKey: publicKey,
+                        authenticationMethod: authenticationMethod
+                    )
+                    _ = try await $state.filter { state in
+                        if case .complete = state {
+                            return true
+                        }
+                        return false
+                    }.eraseToAnyPublisher().async()
+                    continuation.resume(returning: ())
+                }
+                catch {
+                    continuation.resume(throwing: error)
+                }
             }
-            catch {
-                continuation.resume(throwing: error)
-                self.invocation = nil
-            }
-        }
-    }
-
-    func throwError(_ error: Error) {
-        switch invocation {
-        case let .identify(continuation):
-            continuation.resume(throwing: error)
-        case let .provision(continuation):
-            continuation.resume(throwing: error)
-        case .none:
-            break
-        }
-        invocation = nil
-    }
-
-    func resume(_ result: ProvisioningState) {
-        do {
-            switch result {
-            case .complete:
-                try resumeProvision()
-            case let .capabilitiesReceived(capabilities):
-                try resumeIdentify(capabilities)
-            default:
-                throwError(ProvisioningError.unknown)
-            }
-        }
-        catch {
-            throwError(error)
-        }
-    }
-
-    private func resumeProvision() throws {
-        if case let .provision(continuation) = invocation {
-            continuation.resume(returning: ())
-            invocation = nil
-        }
-        else {
-            throw ProvisioningError.unknown
-        }
-    }
-
-    private func resumeIdentify(_ capabilities: ProvisioningCapabilities) throws {
-        if case let .identify(continuation) = invocation {
-            continuation.resume(returning: capabilities)
-            invocation = nil
-        }
-        else {
-            throw ProvisioningError.unknown
         }
     }
 }
@@ -135,32 +116,6 @@ extension MeshProvisioner: ProvisioningDelegate {
         didChangeTo state: ProvisioningState
     ) {
         self.state = state
-        switch state {
-        case .capabilitiesReceived:
-            guard let isUnicastAddressValid = provisioningManager.isUnicastAddressValid else {
-                throwError(ProvisioningError.unknown)
-                return
-            }
-            if isUnicastAddressValid == false {
-                throwError(ProvisioningError.invalidUnicastAddress(unprovisionedDevice))
-                return
-            }
-            guard let isDeviceSupported = provisioningManager.isDeviceSupported else {
-                throwError(ProvisioningError.invalidCapability)
-                return
-            }
-            if isDeviceSupported == false {
-                throwError(ProvisioningError.unsupportedDevice(unprovisionedDevice))
-                return
-            }
-            resume(state)
-        case let .fail(error):
-            throwError(error)
-        case .complete:
-            resume(state)
-        default:
-            break
-        }
     }
 
     public func authenticationActionRequired(_ action: AuthAction) {
