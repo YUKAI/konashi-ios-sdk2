@@ -10,26 +10,26 @@ import Foundation
 import nRFMeshProvision
 
 public class MeshNode: NodeCompatible {
-    public enum Element: UInt16, NodeElement {
-        public var address: nRFMeshProvision.Address {
+    public enum Element: Int, NodeElement {
+        public var index: Int {
             return rawValue
         }
 
-        case configuration = 0x008A
-        case control0 = 0x008B
-        case control1 = 0x008C
-        case control2 = 0x008D
-        case control3 = 0x008E
-        case control4 = 0x008F
-        case control5 = 0x0090
-        case control6 = 0x0091
-        case control7 = 0x0092
-        case control8 = 0x0093
-        case control9 = 0x0094
-        case control10 = 0x0095
-        case sensor = 0x0096
-        case ledHue = 0x0097
-        case ledSaturation = 0x0098
+        case configuration // Element 1
+        case control0 // Element 2
+        case control1 // Element 3
+        case control2 // Element 4
+        case control3 // Element 5
+        case control4 // Element 6
+        case control5 // Element 7
+        case control6 // Element 8
+        case control7 // Element 9
+        case control8 // Element 10
+        case control9 // Element 11
+        case control10 // Element 12
+        case sensor // Element 13
+        case ledHue // Element 14
+        case ledSaturation // Element 15
 
         public enum Model: NodeModel {
             // Element 1
@@ -229,11 +229,11 @@ public class MeshNode: NodeCompatible {
     }
 
     public func element(for element: NodeElement) -> nRFMeshProvision.Element? {
-        return node.element(withAddress: element.address)
+        return node.elements[safe: element.index]
     }
 
     public func model(for model: NodeModel) -> nRFMeshProvision.Model? {
-        return node.element(withAddress: model.element.address)?.model(withModelId: model.identifier)
+        return node.elements[safe: model.element.index]?.model(withModelId: model.identifier)
     }
 
     @discardableResult

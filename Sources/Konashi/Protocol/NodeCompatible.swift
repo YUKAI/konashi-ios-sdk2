@@ -28,7 +28,7 @@ public protocol NodeCompatible {
 }
 
 public protocol NodeElement {
-    var address: Address { get }
+    var index: Int { get }
 }
 
 public protocol NodeModel {
