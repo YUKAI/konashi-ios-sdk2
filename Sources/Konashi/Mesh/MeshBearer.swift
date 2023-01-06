@@ -7,12 +7,12 @@
 
 import nRFMeshProvision
 
-class MeshBearer<T: Bearer>{
+class MeshBearer<T: Bearer> {
     private var currentContinuation: CheckedContinuation<Void, Error>?
     private(set) var originalBearer: T
 
     init(for bearer: T) {
-        self.originalBearer = bearer
+        originalBearer = bearer
     }
 
     func open() async throws {
@@ -22,7 +22,7 @@ class MeshBearer<T: Bearer>{
             self.originalBearer.open()
         }
     }
-    
+
     func close() async throws {
         originalBearer.delegate = self
         return try await withCheckedThrowingContinuation { continuation in

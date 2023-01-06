@@ -241,7 +241,7 @@ public class MeshNode: NodeCompatible {
         network.remove(node: node)
     }
 
-    enum Invocation {
+    private enum Invocation {
         case gattProxyEnabled(CheckedContinuation<Void, Error>)
         case addApplicationKey(CheckedContinuation<Void, Error>)
         case bindApplicationKey(CheckedContinuation<Void, Error>)
@@ -252,8 +252,8 @@ public class MeshNode: NodeCompatible {
     private func throwError(_ error: Error) {
         switch invocation {
         case let .gattProxyEnabled(continuation),
-            let .addApplicationKey(continuation),
-            let .bindApplicationKey(continuation):
+             let .addApplicationKey(continuation),
+             let .bindApplicationKey(continuation):
             continuation.resume(throwing: error)
         case .none:
             break
@@ -266,14 +266,14 @@ public class MeshNode: NodeCompatible {
     private func resume() {
         switch invocation {
         case let .gattProxyEnabled(continuation),
-            let .addApplicationKey(continuation),
-            let .bindApplicationKey(continuation):
+             let .addApplicationKey(continuation),
+             let .bindApplicationKey(continuation):
             continuation.resume(returning: ())
         case .none:
             break
         }
     }
-    
+
     private func send(config: ConfigMessage) async throws {
         return try await withCheckedThrowingContinuation { continuation in
             do {
@@ -286,7 +286,6 @@ public class MeshNode: NodeCompatible {
                         break
                     case let .failure(error):
                         self.throwError(error)
-                        break
                     }
                 } receiveValue: { [weak self] _ in
                     guard let self else {
@@ -295,12 +294,13 @@ public class MeshNode: NodeCompatible {
                     self.resume()
                 }
                 try manager.networkManager.send(config, to: self.node)
-            } catch {
+            }
+            catch {
                 continuation.resume(throwing: error)
             }
         }
     }
-    
+
     func setGattProxyEnabled(_ enabled: Bool) async throws {
         try await send(config: ConfigGATTProxySet(enable: enabled))
     }

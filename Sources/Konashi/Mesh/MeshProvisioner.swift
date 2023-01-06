@@ -14,7 +14,7 @@ class MeshProvisioner {
         case invalidUnicastAddress(UnprovisionedDevice)
         case invalidCapability
         case unsupportedDevice(UnprovisionedDevice)
-        
+
         public var errorDescription: String? {
             switch self {
             case .unknown:
@@ -29,7 +29,7 @@ class MeshProvisioner {
         }
     }
 
-    enum Invocation {
+    private enum Invocation {
         case provision(CheckedContinuation<Void, Error>)
         case identify(CheckedContinuation<ProvisioningCapabilities, Error>)
     }
@@ -57,7 +57,7 @@ class MeshProvisioner {
             }
         }
     }
-    
+
     func provision(
         usingAlgorithm algorithm: Algorithm,
         publicKey: PublicKey,
@@ -79,7 +79,7 @@ class MeshProvisioner {
             }
         }
     }
-    
+
     func throwError(_ error: Error) {
         switch invocation {
         case let .identify(continuation):
@@ -107,7 +107,7 @@ class MeshProvisioner {
             throwError(error)
         }
     }
-    
+
     private func resumeProvision() throws {
         if case let .provision(continuation) = invocation {
             continuation.resume(returning: ())
