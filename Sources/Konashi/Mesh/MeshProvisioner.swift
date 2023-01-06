@@ -48,7 +48,6 @@ extension MeshProvisioner: ProvisioningDelegate {
         case let .capabilitiesReceived(capabilities):
             if let currentContinuation {
                 if provisioningManager.isUnicastAddressValid == false {
-                    // TODO: throw
                     currentContinuation.resume(throwing: ProvisioningError.invalidUnicastAddress)
                     self.currentContinuation = nil
                     return
