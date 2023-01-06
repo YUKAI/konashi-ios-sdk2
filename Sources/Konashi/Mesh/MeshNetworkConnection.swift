@@ -5,6 +5,7 @@
 //  Created by Akira Matsuda on 2022/12/26.
 //
 
+import Combine
 import CoreBluetooth
 import Foundation
 import nRFMeshProvision
@@ -33,7 +34,7 @@ class MeshNetworkConnection: NSObject, Bearer {
     /// The list of connected GATT Proxies.
     private(set) var proxies: [GattBearer] = []
     /// A flag set to `true` when any of the underlying bearers is open.
-    private(set) var isOpen = false
+    @Published private(set) var isOpen = false
 
     weak var delegate: BearerDelegate?
     weak var dataDelegate: BearerDataDelegate?

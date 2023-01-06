@@ -12,11 +12,17 @@ import nRFMeshProvision
 public class MeshManager {
     public enum NetworkError: Error, LocalizedError {
         case invalidMeshNetwork
+        case noNetworkConnection
+        case bearerIsClosed
 
         public var errorDescription: String? {
             switch self {
             case .invalidMeshNetwork:
                 return "Mesh network should not be nil."
+            case .noNetworkConnection:
+                return "No network connection."
+            case .bearerIsClosed:
+                return "Network connection is closed."
             }
         }
     }
@@ -89,7 +95,7 @@ public class MeshManager {
         networkManager.logger = logger
         connection?.logger = logger
     }
-    
+
     public func save() throws {
         if networkManager.save() == false {
             throw StorageError.failedToSave
