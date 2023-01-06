@@ -216,6 +216,17 @@ public class MeshNode: NodeCompatible {
         }.store(in: &cancellable)
     }
 
+    public func updateName(_ name: String?) throws {
+        let oldName = node.name
+        do {
+            node.name = name
+            try manager.save()
+        } catch {
+            node.name = oldName
+            throw error
+        }
+    }
+
     public func element(for element: NodeElement) -> nRFMeshProvision.Element? {
         return node.element(withAddress: element.address)
     }

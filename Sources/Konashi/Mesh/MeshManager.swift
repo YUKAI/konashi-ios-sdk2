@@ -89,6 +89,12 @@ public class MeshManager {
         networkManager.logger = logger
         connection?.logger = logger
     }
+    
+    public func save() throws {
+        if networkManager.save() == false {
+            throw StorageError.failedToSave
+        }
+    }
 
     public func addNetworkKey(_ newKeyData: Data) throws {
         guard let network = networkManager.meshNetwork else {
@@ -106,9 +112,7 @@ public class MeshManager {
             name: "Konashi Mesh Network Key"
         )
         networkKey = newNetworkKey
-        if networkManager.save() == false {
-            throw StorageError.failedToSave
-        }
+        try save()
     }
 
     public func addApplicationKey(_ newKeyData: Data) throws {
@@ -131,9 +135,7 @@ public class MeshManager {
            let networkKey = network.networkKeys[index] {
             try newApplicationKey.bind(to: networkKey)
         }
-        if networkManager.save() == false {
-            throw StorageError.failedToSave
-        }
+        try save()
     }
 
     private func createNewMeshNetwork() throws {
