@@ -452,7 +452,7 @@ public final class KonashiPeripheral: Peripheral {
                 self.currentProvisioningState = newState
             }
             _ = try await provisioner.identify()
-            try provisioningManager.provision(
+            try await provisioner.provision(
                 usingAlgorithm: .fipsP256EllipticCurve,
                 publicKey: .noOobPublicKey,
                 authenticationMethod: .noOob
