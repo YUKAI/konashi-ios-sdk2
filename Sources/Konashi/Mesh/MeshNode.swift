@@ -48,7 +48,7 @@ public class MeshNode: NodeCompatible {
 
             // Element 4
             case gpio2OutputServer
-            case gpio2InputServer
+            case gpio2InputClient
             case hardwarePWM2Server
 
             // Element 5
@@ -115,7 +115,7 @@ public class MeshNode: NodeCompatible {
                     return 0x1000
                 case .gpio0InputClient,
                      .gpio1InputClient,
-                     .gpio2InputServer,
+                     .gpio2InputClient,
                      .gpio3InputClient,
                      .gpio4InputClient,
                      .gpio5InputClient,
@@ -151,7 +151,7 @@ public class MeshNode: NodeCompatible {
                     return Element.control0
                 case .gpio1InputClient, .gpio1OutputServer, .hardwarePWM1Server:
                     return Element.control1
-                case .gpio2InputServer, .gpio2OutputServer, .hardwarePWM2Server:
+                case .gpio2InputClient, .gpio2OutputServer, .hardwarePWM2Server:
                     return Element.control2
                 case .gpio3InputClient, .gpio3OutputServer, .hardwarePWM3Server:
                     return Element.control3
