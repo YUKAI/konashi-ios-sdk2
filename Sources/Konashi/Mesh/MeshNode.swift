@@ -236,16 +236,6 @@ public class MeshNode: NodeCompatible {
         return node.elements[safe: model.element.index]?.model(withModelId: model.identifier)
     }
 
-    @discardableResult
-    public func sendConfig(_ message: nRFMeshProvision.ConfigMessage) throws -> MessageHandle {
-        return try manager.networkManager.send(message, to: node)
-    }
-
-    @discardableResult
-    public func sendMessage(_ message: nRFMeshProvision.MeshMessage, to model: nRFMeshProvision.Model) throws -> MessageHandle {
-        return try manager.networkManager.send(message, to: model)
-    }
-
     public func removeFromNetwork() throws {
         guard let network = manager.networkManager.meshNetwork else {
             throw MeshManager.NetworkError.invalidMeshNetwork
@@ -253,33 +243,35 @@ public class MeshNode: NodeCompatible {
         network.remove(node: node)
     }
 
-    private func send(config: ConfigMessage) async throws {
+    public func send(message: MeshMessage, to model: nRFMeshProvision.Model) async throws {
         do {
             guard let connection = manager.connection else {
                 throw MeshManager.NetworkError.noNetworkConnection
             }
             if connection.isOpen == false {
-                return try await withCheckedThrowingContinuation { continuation in
-                    let uuid = UUID()
-                    SharedCancellable.shared.cancelablle[uuid] = connection.$isOpen
-                        .first()
-                        .sink { result in
-                            Task { [weak self] in
-                                guard let self else {
-                                    return
-                                }
-                                if result {
-                                    try self.manager.networkManager.send(config, to: self.node)
-                                    _ = try await self.manager.didSendMessageSubject.eraseToAnyPublisher().async()
-                                    continuation.resume(returning: ())
-                                }
-                                else {
-                                    continuation.resume(throwing: MeshManager.NetworkError.bearerIsClosed)
-                                }
-                                SharedCancellable.shared.cancelablle[uuid]?.cancel()
-                                SharedCancellable.shared.cancelablle.removeValue(forKey: uuid)
-                            }
-                        }
+                let result = try await connection.$isOpen.eraseToAnyPublisher().async()
+                if result == false {
+                    throw MeshManager.NetworkError.bearerIsClosed
+                }
+            }
+            try manager.networkManager.send(message, to: model)
+            _ = try await manager.didSendMessageSubject.eraseToAnyPublisher().async()
+            return
+        }
+        catch {
+            throw error
+        }
+    }
+
+    public func send(config: ConfigMessage) async throws {
+        do {
+            guard let connection = manager.connection else {
+                throw MeshManager.NetworkError.noNetworkConnection
+            }
+            if connection.isOpen == false {
+                let result = try await connection.$isOpen.eraseToAnyPublisher().async()
+                if result == false {
+                    throw MeshManager.NetworkError.bearerIsClosed
                 }
             }
             try manager.networkManager.send(config, to: node)

@@ -18,12 +18,10 @@ public protocol NodeCompatible {
     var receivedMessageSubject: PassthroughSubject<ReceivedMessage, Never> { get }
 
     func updateName(_ name: String?) throws
+    func send(message: nRFMeshProvision.MeshMessage, to model: nRFMeshProvision.Model) async throws
+    func send(config: nRFMeshProvision.ConfigMessage) async throws
     func element(for element: NodeElement) -> Element?
     func model(for model: NodeModel) -> Model?
-    @discardableResult
-    func sendConfig(_ message: ConfigMessage) throws -> MessageHandle
-    @discardableResult
-    func sendMessage(_ message: MeshMessage, to model: Model) throws -> MessageHandle
     func removeFromNetwork() throws
 }
 
