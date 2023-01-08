@@ -195,6 +195,10 @@ public class MeshNode: NodeCompatible {
     public var isProvisioner: Bool {
         return node.isProvisioner
     }
+    
+    public var elements: [nRFMeshProvision.Element] {
+        return node.elements
+    }
 
     public var receivedMessageSubject = PassthroughSubject<ReceivedMessage, Never>()
 
@@ -208,12 +212,14 @@ public class MeshNode: NodeCompatible {
         }
         self.manager = manager
         self.node = node
-        self.manager.receivedMessageSubject.filter(for: self).sink { [weak self] message in
-            guard let self else {
-                return
-            }
-            self.receivedMessageSubject.send(message)
-        }.store(in: &cancellable)
+        self.manager.didReceiveMessageSubject
+            .filter(for: self)
+            .sink { [weak self] message in
+                guard let self else {
+                    return
+                }
+                self.receivedMessageSubject.send(message)
+            }.store(in: &cancellable)
     }
 
     public func updateName(_ name: String?) throws {
@@ -243,32 +249,62 @@ public class MeshNode: NodeCompatible {
         network.remove(node: node)
     }
 
-    public func send(message: nRFMeshProvision.MeshMessage, to model: nRFMeshProvision.Model) async throws {
-        try await manager.waitUntilConnectionOpen()
+    @discardableResult
+    public func send(message: nRFMeshProvision.MeshMessage, to model: nRFMeshProvision.Model) async throws -> NodeCompatible {
+        try await checkOperationAvailability()
+        if node.isCompositionDataReceived == false {
+            throw NodeOperationError.noCompositionData
+        }
         try manager.networkManager.send(message, to: model)
-        _ = try await manager.didSendMessageSubject.eraseToAnyPublisher().async()
+        return self
     }
 
-    public func send(config: nRFMeshProvision.ConfigMessage) async throws {
-        try await manager.waitUntilConnectionOpen()
+    @discardableResult
+    public func send(config: nRFMeshProvision.ConfigMessage) async throws -> NodeCompatible {
+        try await checkOperationAvailability()
         try manager.networkManager.send(config, to: node)
-        _ = try await manager.didSendMessageSubject.eraseToAnyPublisher().async()
+        return self
     }
 
-    public func setGattProxyEnabled(_ enabled: Bool) async throws {
+    @discardableResult
+    public func waitForSendMessage() async throws -> SendMessage {
+        try await checkOperationAvailability()
+        return try await manager.didSendMessageSubject.eraseToAnyPublisher().async()
+    }
+
+    @discardableResult
+    public func waitForResponse<T>(for messageType: T) async throws -> ReceivedMessage {
+        try await checkOperationAvailability()
+        return try await manager.didReceiveMessageSubject
+            .filter { type(of: $0.body) is T }
+            .eraseToAnyPublisher()
+            .async()
+    }
+
+    @discardableResult
+    public func setGattProxyEnabled(_ enabled: Bool) async throws -> NodeCompatible {
         try await send(config: ConfigGATTProxySet(enable: enabled))
+        return self
     }
 
-    public func addApplicationKey(_ applicationKey: ApplicationKey) async throws {
+    @discardableResult
+    public func addApplicationKey(_ applicationKey: ApplicationKey) async throws -> NodeCompatible {
         try await send(config: ConfigAppKeyAdd(applicationKey: applicationKey))
+        return self
     }
 
-    public func bindApplicationKey(_ applicationKey: ApplicationKey, to model: NodeModel) async throws {
+    @discardableResult
+    public func bindApplicationKey(_ applicationKey: ApplicationKey, to model: NodeModel) async throws -> NodeCompatible {
         let meshModel = try node.findElement(of: model.element).findModel(of: model)
         guard let message = ConfigModelAppBind(applicationKey: applicationKey, to: meshModel) else {
             throw NodeOperationError.invalidParentElement(modelIdentifier: meshModel.modelIdentifier)
         }
         try await send(config: message)
+        return self
+    }
+
+    private func checkOperationAvailability() async throws {
+        try await manager.waitUntilConnectionOpen()
     }
 }
 
