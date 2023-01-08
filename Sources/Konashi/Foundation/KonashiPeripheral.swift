@@ -447,6 +447,7 @@ public final class KonashiPeripheral: Peripheral {
             guard let node = MeshNode(manager: manager, uuid: unprovisionedDevice.uuid) else {
                 throw NodeOperationError.invalidNode
             }
+            meshNode = node
             // Set name
             try node.updateName(name)
             cancellable.cancel()
