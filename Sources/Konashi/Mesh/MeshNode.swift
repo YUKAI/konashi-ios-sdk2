@@ -243,55 +243,27 @@ public class MeshNode: NodeCompatible {
         network.remove(node: node)
     }
 
-    public func send(message: MeshMessage, to model: nRFMeshProvision.Model) async throws {
-        do {
-            guard let connection = manager.connection else {
-                throw MeshManager.NetworkError.noNetworkConnection
-            }
-            if connection.isOpen == false {
-                let result = try await connection.$isOpen.eraseToAnyPublisher().async()
-                if result == false {
-                    throw MeshManager.NetworkError.bearerIsClosed
-                }
-            }
-            try manager.networkManager.send(message, to: model)
-            _ = try await manager.didSendMessageSubject.eraseToAnyPublisher().async()
-            return
-        }
-        catch {
-            throw error
-        }
+    public func send(message: nRFMeshProvision.MeshMessage, to model: nRFMeshProvision.Model) async throws {
+        try await manager.waitUntilConnectionOpen()
+        try manager.networkManager.send(message, to: model)
+        _ = try await manager.didSendMessageSubject.eraseToAnyPublisher().async()
     }
 
-    public func send(config: ConfigMessage) async throws {
-        do {
-            guard let connection = manager.connection else {
-                throw MeshManager.NetworkError.noNetworkConnection
-            }
-            if connection.isOpen == false {
-                let result = try await connection.$isOpen.eraseToAnyPublisher().async()
-                if result == false {
-                    throw MeshManager.NetworkError.bearerIsClosed
-                }
-            }
-            try manager.networkManager.send(config, to: node)
-            _ = try await manager.didSendMessageSubject.eraseToAnyPublisher().async()
-            return
-        }
-        catch {
-            throw error
-        }
+    public func send(config: nRFMeshProvision.ConfigMessage) async throws {
+        try await manager.waitUntilConnectionOpen()
+        try manager.networkManager.send(config, to: node)
+        _ = try await manager.didSendMessageSubject.eraseToAnyPublisher().async()
     }
 
-    func setGattProxyEnabled(_ enabled: Bool) async throws {
+    public func setGattProxyEnabled(_ enabled: Bool) async throws {
         try await send(config: ConfigGATTProxySet(enable: enabled))
     }
 
-    func addApplicationKey(_ applicationKey: ApplicationKey) async throws {
+    public func addApplicationKey(_ applicationKey: ApplicationKey) async throws {
         try await send(config: ConfigAppKeyAdd(applicationKey: applicationKey))
     }
 
-    func bindApplicationKey(_ applicationKey: ApplicationKey, to model: Element.Model) async throws {
+    public func bindApplicationKey(_ applicationKey: ApplicationKey, to model: NodeModel) async throws {
         let meshModel = try node.findElement(of: model.element).findModel(of: model)
         guard let message = ConfigModelAppBind(applicationKey: applicationKey, to: meshModel) else {
             throw NodeOperationError.invalidParentElement(modelIdentifier: meshModel.modelIdentifier)

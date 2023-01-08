@@ -23,6 +23,10 @@ public protocol NodeCompatible {
     func element(for element: NodeElement) -> Element?
     func model(for model: NodeModel) -> Model?
     func removeFromNetwork() throws
+
+    func setGattProxyEnabled(_ enabled: Bool) async throws
+    func addApplicationKey(_ applicationKey: ApplicationKey) async throws
+    func bindApplicationKey(_ applicationKey: ApplicationKey, to model: NodeModel) async throws
 }
 
 public protocol NodeElement {
