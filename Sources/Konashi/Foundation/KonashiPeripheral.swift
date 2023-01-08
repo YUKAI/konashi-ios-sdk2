@@ -38,23 +38,6 @@ public final class KonashiPeripheral: Peripheral {
         }
     }
 
-    public enum MeshError: Error, LocalizedError {
-        case invalidUnprovisionedDevice
-        case invalidNetworkKey
-        case invalidApplicationKey
-
-        public var errorDescription: String? {
-            switch self {
-            case .invalidUnprovisionedDevice:
-                return "Failed to convert advertisement data."
-            case .invalidNetworkKey:
-                return "Network key shoud not be nil."
-            case .invalidApplicationKey:
-                return "Application key shoud not be nil."
-            }
-        }
-    }
-
     /// An error that a peripheral returns during read / write operation.
     public enum OperationError: LocalizedError {
         case invalidReadValue
@@ -410,13 +393,10 @@ public final class KonashiPeripheral: Peripheral {
             throw MeshManager.NetworkError.noNetworkConnection
         }
         guard let unprovisionedDevice = UnprovisionedDevice(advertisementData: advertisementData) else {
-            throw MeshError.invalidUnprovisionedDevice
+            throw MeshManager.ConfigurationError.invalidUnprovisionedDevice
         }
         guard let networkKey = manager.networkKey else {
-            throw MeshError.invalidNetworkKey
-        }
-        guard let applicationKey = manager.applicationKey else {
-            throw MeshError.invalidApplicationKey
+            throw MeshManager.ConfigurationError.invalidNetworkKey
         }
 
         if currentConnectionStatus == .disconnected {
