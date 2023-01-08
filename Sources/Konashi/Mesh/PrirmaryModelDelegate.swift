@@ -16,8 +16,14 @@ class PrirmaryModelDelegate: ModelDelegate {
     let publicationMessageComposer: MessageComposer? = nil
 
     init() {
-        let types: [StaticVendorMessage.Type] = [
-            PrirmaryStatus.self
+        let types: [SensorMessage.Type] = [
+            SensorDescriptorStatus.self,
+            SensorCadenceStatus.self,
+            SensorSettingsStatus.self,
+            SensorSettingStatus.self,
+            SensorStatus.self,
+            SensorColumnStatus.self,
+            SensorSeriesStatus.self
         ]
         messageTypes = types.toMap()
     }
@@ -58,21 +64,4 @@ private extension PrirmaryModelDelegate {
     func handle(_ message: MeshMessage, sentFrom source: Address) {
         // Ignore.
     }
-}
-
-struct PrirmaryStatus: StaticVendorMessage {
-    // The Op Code consists of:
-    // 0xC0-0000 - Vendor Op Code bitmask
-    // 0x04-0000 - The Op Code defined by...
-    // 0x00-0925 - Yukai Engineering Inc. company ID (in Little Endian) as defined here:
-    //             https://www.bluetooth.com/specifications/assigned-numbers/company-identifiers/
-    static let opCode: UInt32 = 0xC40925
-
-    var parameters: Data? {
-        return nil
-    }
-
-    init() {}
-
-    init?(parameters: Data) {}
 }
