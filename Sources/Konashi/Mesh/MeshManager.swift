@@ -10,10 +10,28 @@ import Foundation
 import nRFMeshProvision
 
 public class MeshManager {
+    public enum ConfigurationError: Error, LocalizedError {
+        case invalidUnprovisionedDevice
+        case invalidNetworkKey
+        case invalidApplicationKey
+
+        public var errorDescription: String? {
+            switch self {
+            case .invalidUnprovisionedDevice:
+                return "Failed to convert advertisement data."
+            case .invalidNetworkKey:
+                return "Network key shoud not be nil."
+            case .invalidApplicationKey:
+                return "Application key shoud not be nil."
+            }
+        }
+    }
+
     public enum NetworkError: Error, LocalizedError {
         case invalidMeshNetwork
         case noNetworkConnection
         case bearerIsClosed
+        case timeout
 
         public var errorDescription: String? {
             switch self {
@@ -23,6 +41,8 @@ public class MeshManager {
                 return "No network connection."
             case .bearerIsClosed:
                 return "Network connection is closed."
+            case .timeout:
+                return "Operation timeout."
             }
         }
     }
@@ -44,7 +64,7 @@ public class MeshManager {
     public static let shared = MeshManager()
 
     public let didSendMessageSubject = PassthroughSubject<SendMessage, MessageTransmissionError>()
-    public let receivedMessageSubject = PassthroughSubject<ReceivedMessage, Never>()
+    public let didReceiveMessageSubject = PassthroughSubject<ReceivedMessage, Never>()
     public private(set) var networkKey: NetworkKey?
     public private(set) var applicationKey: ApplicationKey?
     public var numberOfNodes: Int {
@@ -52,6 +72,7 @@ public class MeshManager {
     }
 
     public var allNodes: [Node] {
+        // TODO: MeshNodeに変更する
         return networkManager.meshNetwork?.nodes ?? []
     }
 
@@ -145,7 +166,12 @@ public class MeshManager {
     }
 
     private func createNewMeshNetwork() throws {
-        let provisioner = Provisioner(name: "Konashi Mesh Manager")
+        let provisioner = Provisioner(
+            name: "Konashi Mesh Manager",
+            allocatedUnicastRange: [AddressRange(0x0001...0x199A)],
+            allocatedGroupRange:   [AddressRange(0xC000...0xCC9A)],
+            allocatedSceneRange:   [SceneRange(0x0001...0x3333)]
+        )
         _ = networkManager.createNewMeshNetwork(withName: "Konashi Mesh Network", by: provisioner)
         if networkManager.save() == false {
             throw StorageError.failedToCreateMeshNetwork
@@ -162,6 +188,11 @@ public class MeshManager {
         networkKey = network.networkKeys.first
         applicationKey = network.applicationKeys.first
         connection?.close()
+        networkManager.localElements = [
+            Element(name: "Primary Element", location: .first, models: [
+                Model(vendorModelId: .primaryModelId, companyId: .yukaiCompanyId, delegate: PrirmaryModelDelegate())
+            ])
+        ]
         connection = MeshNetworkConnection(to: network)
         connection?.dataDelegate = networkManager
         connection?.logger = logger
@@ -194,7 +225,7 @@ extension MeshManager: MeshNetworkDelegate {
         sentFrom source: Address,
         to destination: Address
     ) {
-        receivedMessageSubject.send(ReceivedMessage(body: message, source: source, destination: destination))
+        didReceiveMessageSubject.send(ReceivedMessage(body: message, source: source, destination: destination))
     }
 
     public func meshNetworkManager(
