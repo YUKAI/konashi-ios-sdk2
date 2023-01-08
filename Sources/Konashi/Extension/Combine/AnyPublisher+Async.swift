@@ -13,17 +13,12 @@ enum AsyncError: Error {
     case finishedWithoutValue
 }
 
-fileprivate class AnyPublisherCancellable {
-    static let shared = AnyPublisherCancellable()
-    var cancelablle = [UUID: AnyCancellable]()
-}
-
 extension AnyPublisher {
     func async() async throws -> Output {
         try await withCheckedThrowingContinuation { continuation in
             let uuid = UUID()
             var finishedWithoutValue = true
-            AnyPublisherCancellable.shared.cancelablle[uuid] = first()
+            SharedCancellable.shared.cancelablle[uuid] = first()
                 .sink { result in
                     switch result {
                     case .finished:
@@ -33,13 +28,13 @@ extension AnyPublisher {
                     case let .failure(error):
                         continuation.resume(throwing: error)
                     }
-                    AnyPublisherCancellable.shared.cancelablle[uuid]?.cancel()
-                    AnyPublisherCancellable.shared.cancelablle.removeValue(forKey: uuid)
+                    SharedCancellable.shared.cancelablle[uuid]?.cancel()
+                    SharedCancellable.shared.cancelablle.removeValue(forKey: uuid)
                 } receiveValue: { value in
                     finishedWithoutValue = false
                     continuation.resume(with: .success(value))
-                    AnyPublisherCancellable.shared.cancelablle[uuid]?.cancel()
-                    AnyPublisherCancellable.shared.cancelablle.removeValue(forKey: uuid)
+                    SharedCancellable.shared.cancelablle[uuid]?.cancel()
+                    SharedCancellable.shared.cancelablle.removeValue(forKey: uuid)
                 }
         }
     }

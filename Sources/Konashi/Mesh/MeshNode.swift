@@ -255,18 +255,31 @@ public class MeshNode: NodeCompatible {
 
     private func send(config: ConfigMessage) async throws {
         do {
-            guard let connection = self.manager.connection else {
+            guard let connection = manager.connection else {
                 throw MeshManager.NetworkError.noNetworkConnection
             }
             if connection.isOpen == false {
-                let isOpen = try await connection.$isOpen
-                    .removeDuplicates()
-                    .timeout(.seconds(5), scheduler: DispatchQueue.global(qos: .userInteractive))
-                    .filter { $0 }
-                    .eraseToAnyPublisher()
-                    .async()
-                guard isOpen == true else {
-                    throw MeshManager.NetworkError.bearerIsClosed
+                return try await withCheckedThrowingContinuation { continuation in
+                    let uuid = UUID()
+                    SharedCancellable.shared.cancelablle[uuid] = connection.$isOpen
+                        .first()
+                        .sink { result in
+                            Task { [weak self] in
+                                guard let self else {
+                                    return
+                                }
+                                if result {
+                                    try self.manager.networkManager.send(config, to: self.node)
+                                    _ = try await self.manager.didSendMessageSubject.eraseToAnyPublisher().async()
+                                    continuation.resume(returning: ())
+                                }
+                                else {
+                                    continuation.resume(throwing: MeshManager.NetworkError.bearerIsClosed)
+                                }
+                                SharedCancellable.shared.cancelablle[uuid]?.cancel()
+                                SharedCancellable.shared.cancelablle.removeValue(forKey: uuid)
+                            }
+                        }
                 }
             }
             try manager.networkManager.send(config, to: self.node)
