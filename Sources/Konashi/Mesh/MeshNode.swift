@@ -195,7 +195,7 @@ public class MeshNode: NodeCompatible {
     public var isProvisioner: Bool {
         return node.isProvisioner
     }
-    
+
     public var elements: [nRFMeshProvision.Element] {
         return node.elements
     }

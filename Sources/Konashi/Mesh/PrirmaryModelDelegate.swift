@@ -9,35 +9,36 @@ import Foundation
 import nRFMeshProvision
 
 class PrirmaryModelDelegate: ModelDelegate {
-    let messageTypes: [UInt32 : MeshMessage.Type]
+    let messageTypes: [UInt32: MeshMessage.Type]
     let isSubscriptionSupported: Bool = true
-    
+
     // TODO: Implement Sensor Client publications.
     let publicationMessageComposer: MessageComposer? = nil
-    
+
     init() {
         let types: [StaticVendorMessage.Type] = [
             PrirmaryStatus.self
         ]
         messageTypes = types.toMap()
     }
-    
-    func model(_ model: Model,
-               didReceiveAcknowledgedMessage request: AcknowledgedMeshMessage,
-               from source: Address,
-               sentTo destination: MeshAddress
+
+    func model(
+        _ model: Model,
+        didReceiveAcknowledgedMessage request: AcknowledgedMeshMessage,
+        from source: Address,
+        sentTo destination: MeshAddress
     ) throws -> MeshMessage {
         switch request {
-            // No acknowledged message supported by this Model.
+        // No acknowledged message supported by this Model.
         default:
             fatalError("Message not supported: \(request)")
         }
     }
-    
+
     func model(
         _ model: Model,
         didReceiveUnacknowledgedMessage message: MeshMessage,
-       from source: Address,
+        from source: Address,
         sentTo destination: MeshAddress
     ) {
         handle(message, sentFrom: source)
@@ -46,8 +47,9 @@ class PrirmaryModelDelegate: ModelDelegate {
     func model(
         _ model: Model,
         didReceiveResponse response: MeshMessage,
-               toAcknowledgedMessage request: AcknowledgedMeshMessage,
-               from source: Address) {
+        toAcknowledgedMessage request: AcknowledgedMeshMessage,
+        from source: Address
+    ) {
         handle(response, sentFrom: source)
     }
 }
@@ -65,7 +67,7 @@ struct PrirmaryStatus: StaticVendorMessage {
     // 0x00-0925 - Yukai Engineering Inc. company ID (in Little Endian) as defined here:
     //             https://www.bluetooth.com/specifications/assigned-numbers/company-identifiers/
     static let opCode: UInt32 = 0xC40925
-    
+
     var parameters: Data? {
         return nil
     }

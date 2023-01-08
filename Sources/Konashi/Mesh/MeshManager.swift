@@ -168,9 +168,9 @@ public class MeshManager {
     private func createNewMeshNetwork() throws {
         let provisioner = Provisioner(
             name: "Konashi Mesh Manager",
-            allocatedUnicastRange: [AddressRange(0x0001...0x199A)],
-            allocatedGroupRange:   [AddressRange(0xC000...0xCC9A)],
-            allocatedSceneRange:   [SceneRange(0x0001...0x3333)]
+            allocatedUnicastRange: [AddressRange(0x0001 ... 0x199A)],
+            allocatedGroupRange: [AddressRange(0xC000 ... 0xCC9A)],
+            allocatedSceneRange: [SceneRange(0x0001 ... 0x3333)]
         )
         _ = networkManager.createNewMeshNetwork(withName: "Konashi Mesh Network", by: provisioner)
         if networkManager.save() == false {
