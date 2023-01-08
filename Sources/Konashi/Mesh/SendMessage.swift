@@ -12,7 +12,7 @@ public struct SendMessage {
     public let from: Element
     public let destination: Address
 
-    init(body: MeshMessage, from: Element, destination: Address) {
+    public init(body: MeshMessage, from: Element, destination: Address) {
         self.body = body
         self.from = from
         self.destination = destination
