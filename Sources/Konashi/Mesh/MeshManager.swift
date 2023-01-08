@@ -168,6 +168,23 @@ public class MeshManager {
         networkManager.transmitter = connection
         connection?.open()
     }
+
+    func waitUntilConnectionOpen(timeoutInterval: TimeInterval = 10) async throws {
+        guard let connection else {
+            throw MeshManager.NetworkError.noNetworkConnection
+        }
+        if connection.isOpen == false {
+            let result = try await connection.$isOpen
+                .removeDuplicates()
+                .timeout(.seconds(timeoutInterval), scheduler: DispatchQueue.global())
+                .filter { $0 }
+                .eraseToAnyPublisher()
+                .async()
+            if result == false {
+                throw MeshManager.NetworkError.bearerIsClosed
+            }
+        }
+    }
 }
 
 extension MeshManager: MeshNetworkDelegate {
