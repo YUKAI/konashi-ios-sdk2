@@ -234,6 +234,10 @@ public class MeshNode: NodeCompatible {
         }
     }
 
+    public func element(with address: nRFMeshProvision.Address) -> nRFMeshProvision.Element? {
+        return node.element(withAddress: address)
+    }
+
     public func element(for element: NodeElement) -> nRFMeshProvision.Element? {
         return node.elements[safe: element.index]
     }

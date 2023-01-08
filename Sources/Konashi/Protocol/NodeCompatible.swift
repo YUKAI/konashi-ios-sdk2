@@ -27,6 +27,7 @@ public protocol NodeCompatible {
     func waitForSendMessage() async throws -> SendMessage
     @discardableResult
     func waitForResponse<T>(for messageType: T) async throws -> ReceivedMessage
+    func element(with address: nRFMeshProvision.Address) -> nRFMeshProvision.Element?
     func element(for element: NodeElement) -> nRFMeshProvision.Element?
     func model(for model: NodeModel) -> nRFMeshProvision.Model?
     func removeFromNetwork() throws

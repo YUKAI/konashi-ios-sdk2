@@ -9,8 +9,6 @@ import Combine
 
 public extension PassthroughSubject where Output == ReceivedMessage {
     func filter(for node: NodeCompatible) -> Publishers.Filter<PassthroughSubject> {
-        return filter { message in
-            message.source == node.unicastAddress
-        }
+        return filter { node.element(with: $0.source) != nil }
     }
 }
