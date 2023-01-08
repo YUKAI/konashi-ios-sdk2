@@ -462,18 +462,13 @@ public final class KonashiPeripheral: Peripheral {
                 publicKey: .noOobPublicKey,
                 authenticationMethod: .noOob
             )
+            try manager.save()
+            try await bearer.close()
             guard let node = MeshNode(manager: manager, uuid: unprovisionedDevice.uuid) else {
                 throw NodeOperationError.invalidNode
             }
             // Set name
             try node.updateName(name)
-            // Congiure GATT Proxy
-            try await node.setGattProxyEnabled(true)
-            // Add an application key
-            try await node.addApplicationKey(applicationKey)
-            // Bind the application key to sensor server
-            try await node.bindApplicationKey(applicationKey, to: .sensorServer)
-
             cancellable.cancel()
             return node
         }
