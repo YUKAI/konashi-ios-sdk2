@@ -5,8 +5,8 @@
 //  Created by Akira Matsuda on 2023/01/08.
 //
 
-import Foundation
 import Combine
+import Foundation
 
 class SharedCancellable {
     static let shared = SharedCancellable()

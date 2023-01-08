@@ -282,7 +282,7 @@ public class MeshNode: NodeCompatible {
                         }
                 }
             }
-            try manager.networkManager.send(config, to: self.node)
+            try manager.networkManager.send(config, to: node)
             _ = try await manager.didSendMessageSubject.eraseToAnyPublisher().async()
             return
         }
