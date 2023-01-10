@@ -79,7 +79,7 @@ public final class KonashiPeripheral: Peripheral {
     /// A subject that sends value that is written to af peripheral.
     public let didWriteValueSubject = PassthroughSubject<(uuid: CBUUID, error: Error?), Never>()
 
-    // swiftlint:disable weak_delegate
+    // swiftlint:disable:next weak_delegate
     private lazy var delegate: KonashiPeripheralDelegate = .init(peripheral: self)
 
     // TODO: Add document
@@ -94,8 +94,6 @@ public final class KonashiPeripheral: Peripheral {
 
     @Published public private(set) var currentProvisioningState: ProvisioningState?
     private let advertisementData: [String: Any]
-
-    // swiftlint:enable weak_delegate
 
     @Published internal var isCharacteristicsDiscovered = false
     @Published internal var isCharacteristicsConfigured = false
