@@ -298,8 +298,8 @@ public final class KonashiPeripheral: Peripheral {
                 }
             }
             else {
-                promise.reject(OperationError.couldNotFindCharacteristic)
-                self.operationErrorSubject.send(OperationError.couldNotFindCharacteristic)
+                promise.reject(PeripheralOperationError.couldNotFindCharacteristic)
+                self.operationErrorSubject.send(PeripheralOperationError.couldNotFindCharacteristic)
             }
         }.catch { [weak self] error in
             promise.reject(error)
@@ -336,8 +336,8 @@ public final class KonashiPeripheral: Peripheral {
                         return
                     }
                     guard let value = updatedCharacteristic.value else {
-                        promise.reject(OperationError.invalidReadValue)
-                        self.operationErrorSubject.send(OperationError.invalidReadValue)
+                        promise.reject(PeripheralOperationError.invalidReadValue)
+                        self.operationErrorSubject.send(PeripheralOperationError.invalidReadValue)
                         return
                     }
                     switch characteristic.parse(data: value) {
@@ -351,8 +351,8 @@ public final class KonashiPeripheral: Peripheral {
                 self.peripheral.readValue(for: targetCharacteristic)
             }
             else {
-                promise.reject(OperationError.couldNotFindCharacteristic)
-                self.operationErrorSubject.send(OperationError.couldNotFindCharacteristic)
+                promise.reject(PeripheralOperationError.couldNotFindCharacteristic)
+                self.operationErrorSubject.send(PeripheralOperationError.couldNotFindCharacteristic)
             }
         }.catch { [weak self] error in
             promise.reject(error)
