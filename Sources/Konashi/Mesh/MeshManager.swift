@@ -56,7 +56,7 @@ public class MeshManager {
             case .failedToSaveNetworkSettings:
                 return "Failed to save network settings to the local storage."
             case .failedToCreateMeshNetwork:
-                return "Failed to save mesh network settings to the local storage."
+                return "Failed to create mesh network to the local storage."
             }
         }
     }
