@@ -48,12 +48,12 @@ public class MeshManager {
     }
 
     public enum StorageError: Error, LocalizedError {
-        case failedToSave
+        case failedToSaveNetworkSettings
         case failedToCreateMeshNetwork
 
         public var errorDescription: String? {
             switch self {
-            case .failedToSave:
+            case .failedToSaveNetworkSettings:
                 return "Failed to save network settings to the local storage."
             case .failedToCreateMeshNetwork:
                 return "Failed to save mesh network settings to the local storage."
@@ -120,8 +120,8 @@ public class MeshManager {
 
     public func save() throws {
         if networkManager.save() == false {
-            didNetworkSaveSubject.send(completion: .failure(StorageError.failedToSave))
-            throw StorageError.failedToSave
+            didNetworkSaveSubject.send(completion: .failure(StorageError.failedToSaveNetworkSettings))
+            throw StorageError.failedToSaveNetworkSettings
         }
         didNetworkSaveSubject.send(())
     }
