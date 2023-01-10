@@ -7,8 +7,8 @@
 
 import Foundation
 
-extension MeshManager {
-    public enum StorageError: Error, LocalizedError {
+public extension MeshManager {
+    enum StorageError: Error, LocalizedError {
         case failedToSaveNetworkSettings
         case failedToCreateMeshNetwork
 

@@ -7,8 +7,8 @@
 
 import Foundation
 
-extension MeshManager {
-    public enum NetworkError: Error, LocalizedError {
+public extension MeshManager {
+    enum NetworkError: Error, LocalizedError {
         case invalidMeshNetwork
         case noNetworkConnection
         case bearerIsClosed

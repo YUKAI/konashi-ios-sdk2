@@ -12,7 +12,7 @@ public enum PeripheralOperationError: LocalizedError {
     case invalidReadValue
     case couldNotReadValue
     case couldNotFindCharacteristic
-    
+
     public var errorDescription: String? {
         switch self {
         case .invalidReadValue:
