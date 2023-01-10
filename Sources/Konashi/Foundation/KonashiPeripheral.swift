@@ -26,24 +26,6 @@ public extension KonashiPeripheral {
 
 /// A remote peripheral device.
 public final class KonashiPeripheral: Peripheral {
-    /// An error that the reason of why a peripheral could not ready to use.
-    public enum PeripheralError: Error, LocalizedError {
-        case couldNotFindCharacteristic
-
-        public var errorDescription: String? {
-            switch self {
-            case .couldNotFindCharacteristic:
-                return "Could not find characteristics."
-            }
-        }
-    }
-
-    /// An error that a peripheral returns during read / write operation.
-    public enum OperationError: LocalizedError {
-        case invalidReadValue
-        case couldNotReadValue
-    }
-
     public static func == (lhs: KonashiPeripheral, rhs: KonashiPeripheral) -> Bool {
         return lhs.hashValue == rhs.hashValue
     }
@@ -316,8 +298,8 @@ public final class KonashiPeripheral: Peripheral {
                 }
             }
             else {
-                promise.reject(PeripheralError.couldNotFindCharacteristic)
-                self.operationErrorSubject.send(PeripheralError.couldNotFindCharacteristic)
+                promise.reject(OperationError.couldNotFindCharacteristic)
+                self.operationErrorSubject.send(OperationError.couldNotFindCharacteristic)
             }
         }.catch { [weak self] error in
             promise.reject(error)
@@ -369,8 +351,8 @@ public final class KonashiPeripheral: Peripheral {
                 self.peripheral.readValue(for: targetCharacteristic)
             }
             else {
-                promise.reject(PeripheralError.couldNotFindCharacteristic)
-                self.operationErrorSubject.send(PeripheralError.couldNotFindCharacteristic)
+                promise.reject(OperationError.couldNotFindCharacteristic)
+                self.operationErrorSubject.send(OperationError.couldNotFindCharacteristic)
             }
         }.catch { [weak self] error in
             promise.reject(error)

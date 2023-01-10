@@ -39,35 +39,3 @@ public protocol NodeCompatible {
     @discardableResult
     func bindApplicationKey(_ applicationKey: ApplicationKey, to model: NodeModel) async throws -> NodeCompatible
 }
-
-public protocol NodeElement {
-    var index: Int { get }
-}
-
-public protocol NodeModel {
-    var element: NodeElement { get }
-    var identifier: UInt32 { get }
-}
-
-public enum NodeOperationError: Error, LocalizedError {
-    case invalidNode
-    case invalidParentElement(modelIdentifier: UInt16)
-    case elementNotFound(_ address: NodeElement)
-    case modelNotFound(_ model: NodeModel)
-    case noCompositionData
-
-    public var errorDescription: String? {
-        switch self {
-        case .invalidNode:
-            return "Node should not be nil."
-        case let .invalidParentElement(modelIdentifier):
-            return "A parent element of the model (identifier: \(modelIdentifier)) should not be nil."
-        case let .elementNotFound(address):
-            return "Failed to find the element (address: \(address))."
-        case let .modelNotFound(model):
-            return "Faild to find the model (identifier: \(model.identifier))."
-        case .noCompositionData:
-            return "Node needs to receive composition data before the operation."
-        }
-    }
-}

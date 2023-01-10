@@ -10,57 +10,6 @@ import Foundation
 import nRFMeshProvision
 
 public class MeshManager {
-    public enum ConfigurationError: Error, LocalizedError {
-        case invalidUnprovisionedDevice
-        case invalidNetworkKey
-        case invalidApplicationKey
-
-        public var errorDescription: String? {
-            switch self {
-            case .invalidUnprovisionedDevice:
-                return "Failed to convert advertisement data."
-            case .invalidNetworkKey:
-                return "Network key shoud not be nil."
-            case .invalidApplicationKey:
-                return "Application key shoud not be nil."
-            }
-        }
-    }
-
-    public enum NetworkError: Error, LocalizedError {
-        case invalidMeshNetwork
-        case noNetworkConnection
-        case bearerIsClosed
-        case timeout
-
-        public var errorDescription: String? {
-            switch self {
-            case .invalidMeshNetwork:
-                return "Mesh network should not be nil."
-            case .noNetworkConnection:
-                return "No network connection."
-            case .bearerIsClosed:
-                return "Network connection is closed."
-            case .timeout:
-                return "Operation timeout."
-            }
-        }
-    }
-
-    public enum StorageError: Error, LocalizedError {
-        case failedToSaveNetworkSettings
-        case failedToCreateMeshNetwork
-
-        public var errorDescription: String? {
-            switch self {
-            case .failedToSaveNetworkSettings:
-                return "Failed to save network settings to the local storage."
-            case .failedToCreateMeshNetwork:
-                return "Failed to create mesh network to the local storage."
-            }
-        }
-    }
-
     public static let shared = MeshManager()
 
     public let didNetworkSaveSubject = PassthroughSubject<Void, StorageError>()
