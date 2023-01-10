@@ -54,15 +54,16 @@ public class MeshManager {
         public var errorDescription: String? {
             switch self {
             case .failedToSave:
-                return "Failed to save keys to local storage."
+                return "Failed to save network settings to the local storage."
             case .failedToCreateMeshNetwork:
-                return "Failed to save mesh network settings to local storage."
+                return "Failed to save mesh network settings to the local storage."
             }
         }
     }
 
     public static let shared = MeshManager()
 
+    public let didNetworkSaveSubject = PassthroughSubject<Void, StorageError>()
     public let didSendMessageSubject = PassthroughSubject<SendMessage, MessageTransmissionError>()
     public let didReceiveMessageSubject = PassthroughSubject<ReceivedMessage, Never>()
     public private(set) var networkKey: NetworkKey?
@@ -119,8 +120,10 @@ public class MeshManager {
 
     public func save() throws {
         if networkManager.save() == false {
+            didNetworkSaveSubject.send(completion: .failure(StorageError.failedToSave))
             throw StorageError.failedToSave
         }
+        didNetworkSaveSubject.send(())
     }
 
     public func addNetworkKey(_ newKeyData: Data) throws {
