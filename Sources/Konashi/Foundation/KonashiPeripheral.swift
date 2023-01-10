@@ -11,14 +11,6 @@ import CoreBluetooth
 import nRFMeshProvision
 import Promises
 
-private class KonashiPeripheralDelegate: NSObject {
-    weak var parentPeripheral: KonashiPeripheral?
-
-    init(peripheral: KonashiPeripheral) {
-        parentPeripheral = peripheral
-    }
-}
-
 public extension KonashiPeripheral {
     /// A string key to retrieve a peripheral instance from a notification userInfo.
     static let instanceKey: String = "KonashiPeripheral.instanceKey"
@@ -72,7 +64,7 @@ public final class KonashiPeripheral: Peripheral {
     @Published public private(set) var currentConnectionStatus: ConnectionStatus = .disconnected
 
     /// A publisher of RSSI value.
-    @Published public fileprivate(set) var rssi: NSNumber?
+    @Published public internal(set) var rssi: NSNumber?
     /// This variable indicates that whether a peripheral is ready to use or not.
     public private(set) lazy var isReady: AnyPublisher<Bool, Never> = Publishers.CombineLatest3(
         $isConnected,
@@ -105,15 +97,15 @@ public final class KonashiPeripheral: Peripheral {
 
     // swiftlint:enable weak_delegate
 
-    @Published fileprivate var isCharacteristicsDiscovered = false
-    @Published fileprivate var isCharacteristicsConfigured = false
+    @Published internal var isCharacteristicsDiscovered = false
+    @Published internal var isCharacteristicsConfigured = false
     @Published fileprivate var isConnected = false
     @Published fileprivate var isConnecting = false
 
-    fileprivate let didUpdateValueSubject = PassthroughSubject<(characteristic: CBCharacteristic, error: Error?), Never>()
-    fileprivate var readyPromise = Promise<Void>.pending()
-    fileprivate var discoveredServices = [CBService]()
-    fileprivate var configuredCharacteristics = [CBCharacteristic]()
+    internal let didUpdateValueSubject = PassthroughSubject<(characteristic: CBCharacteristic, error: Error?), Never>()
+    internal var readyPromise = Promise<Void>.pending()
+    internal var discoveredServices = [CBService]()
+    internal var configuredCharacteristics = [CBCharacteristic]()
     private var readRssiTimer: Timer?
     private let peripheral: CBPeripheral
     private var observation: NSKeyValueObservation?
@@ -449,7 +441,7 @@ public final class KonashiPeripheral: Peripheral {
         peripheral.discoverServices(services.map(\.serviceUUID))
     }
 
-    fileprivate func discoverCharacteristics() {
+    internal func discoverCharacteristics() {
         peripheral.delegate = delegate
         guard let discoveredSerices = peripheral.services else {
             return
@@ -468,7 +460,7 @@ public final class KonashiPeripheral: Peripheral {
         }
     }
 
-    fileprivate func store(characteristic: CBCharacteristic) {
+    internal func store(characteristic: CBCharacteristic) {
         services.find(characteristic: characteristic)?.update(data: characteristic.value)
     }
 
@@ -548,73 +540,4 @@ public final class KonashiPeripheral: Peripheral {
             }
         }
     }
-}
-
-extension KonashiPeripheralDelegate: CBPeripheralDelegate {
-    func peripheral(_ peripheral: CBPeripheral, didDiscoverServices error: Error?) {
-        print(">>> discoverServices done")
-        if let error {
-            parentPeripheral!.readyPromise.reject(error)
-            parentPeripheral!.operationErrorSubject.send(error)
-            return
-        }
-        parentPeripheral!.discoverCharacteristics()
-    }
-
-    func peripheral(_ peripheral: CBPeripheral, didDiscoverCharacteristicsFor service: CBService, error: Error?) {
-        print(">>> discoverCharacteristics done \(service.uuid)")
-        if let error {
-            parentPeripheral!.readyPromise.reject(error)
-            parentPeripheral!.operationErrorSubject.send(error)
-            return
-        }
-        parentPeripheral!.discoveredServices.append(service)
-        if parentPeripheral!.discoveredServices.count == parentPeripheral!.services.count {
-            parentPeripheral!.isCharacteristicsDiscovered = true
-        }
-    }
-
-    public func peripheral(_ peripheral: CBPeripheral, didReadRSSI RSSI: NSNumber, error: Error?) {
-        if let error {
-            parentPeripheral!.operationErrorSubject.send(error)
-        }
-        else {
-            parentPeripheral!.rssi = RSSI
-        }
-    }
-
-    public func peripheral(_ peripheral: CBPeripheral, didWriteValueFor characteristic: CBCharacteristic, error: Error?) {
-        print(">>> write value done")
-        if let error {
-            print(error.localizedDescription)
-            parentPeripheral!.operationErrorSubject.send(error)
-        }
-        parentPeripheral!.didWriteValueSubject.send((characteristic.uuid, error))
-    }
-
-    public func peripheral(_ peripheral: CBPeripheral, didUpdateValueFor characteristic: CBCharacteristic, error: Error?) {
-        print(">>> update value")
-        parentPeripheral!.didUpdateValueSubject.send((characteristic, error))
-        if let error {
-            parentPeripheral!.operationErrorSubject.send(error)
-        }
-        else {
-            parentPeripheral!.store(characteristic: characteristic)
-        }
-    }
-
-    public func peripheral(_ peripheral: CBPeripheral, didUpdateNotificationStateFor characteristic: CBCharacteristic, error: Error?) {
-        if let error {
-            parentPeripheral!.readyPromise.reject(error)
-            parentPeripheral!.operationErrorSubject.send(error)
-            return
-        }
-        parentPeripheral!.configuredCharacteristics.append(characteristic)
-        let numberOfConfigureableCharacteristics = parentPeripheral!.services.flatMap(\.notifiableCharacteristics).count
-        if parentPeripheral!.configuredCharacteristics.count == numberOfConfigureableCharacteristics {
-            parentPeripheral!.isCharacteristicsConfigured = true
-        }
-    }
-
-    public func peripheral(_ peripheral: CBPeripheral, didModifyServices invalidatedServices: [CBService]) {}
 }
