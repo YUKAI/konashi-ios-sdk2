@@ -16,26 +16,27 @@ enum AsyncError: Error {
 extension AnyPublisher {
     func async() async throws -> Output {
         try await withCheckedThrowingContinuation { continuation in
-            let uuid = UUID()
-            var finishedWithoutValue = true
-            SharedCancellable.shared.cancelablle[uuid] = first()
-                .sink { result in
-                    switch result {
-                    case .finished:
-                        if finishedWithoutValue {
-                            continuation.resume(throwing: AsyncError.finishedWithoutValue)
+            Task {
+                let uuid = UUID()
+                var finishedWithoutValue = true
+                await SharedCancellable.shared.store(first()
+                    .sink { result in
+                        switch result {
+                        case .finished:
+                            if finishedWithoutValue {
+                                continuation.resume(throwing: AsyncError.finishedWithoutValue)
+                            }
+                        case let .failure(error):
+                            continuation.resume(throwing: error)
                         }
-                    case let .failure(error):
-                        continuation.resume(throwing: error)
-                    }
-                    SharedCancellable.shared.cancelablle[uuid]?.cancel()
-                    SharedCancellable.shared.cancelablle.removeValue(forKey: uuid)
-                } receiveValue: { value in
-                    finishedWithoutValue = false
-                    continuation.resume(with: .success(value))
-                    SharedCancellable.shared.cancelablle[uuid]?.cancel()
-                    SharedCancellable.shared.cancelablle.removeValue(forKey: uuid)
-                }
+                        
+                        Task { await SharedCancellable.shared.remove(uuid)?.cancel() }
+                    } receiveValue: { value in
+                        finishedWithoutValue = false
+                        continuation.resume(with: .success(value))
+                        Task { await SharedCancellable.shared.remove(uuid)?.cancel() }
+                    }, for: uuid)
+            }
         }
     }
 }
