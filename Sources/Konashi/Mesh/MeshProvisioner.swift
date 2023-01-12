@@ -14,7 +14,7 @@ class MeshProvisioner: Provisionable {
     var state: Published<nRFMeshProvision.ProvisioningState?>.Publisher {
         $internalState
     }
-    
+
     struct Context {
         let algorithm: Algorithm
         let publicKey: PublicKey
@@ -24,7 +24,7 @@ class MeshProvisioner: Provisionable {
     static func == (lhs: MeshProvisioner, rhs: MeshProvisioner) -> Bool {
         return lhs.uuid == rhs.uuid
     }
-    
+
     private var provisioningManager: ProvisioningManager
 
     let uuid = UUID()
@@ -78,11 +78,11 @@ class MeshProvisioner: Provisionable {
             )
             _ = try await state
                 .filter { state in
-                if case .complete = state {
-                    return true
-                }
-                return false
-            }.eraseToAnyPublisher().async()
+                    if case .complete = state {
+                        return true
+                    }
+                    return false
+                }.eraseToAnyPublisher().async()
             return
         }
         catch {
@@ -96,7 +96,7 @@ extension MeshProvisioner: ProvisioningDelegate {
         of unprovisionedDevice: UnprovisionedDevice,
         didChangeTo state: ProvisioningState
     ) {
-        self.internalState = state
+        internalState = state
     }
 
     public func authenticationActionRequired(_ action: AuthAction) {

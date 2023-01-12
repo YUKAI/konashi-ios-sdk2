@@ -7,5 +7,4 @@
 
 import nRFMeshProvision
 
-extension MessageHandle: SendCancellable {
-}
+extension MessageHandle: SendCancellable {}

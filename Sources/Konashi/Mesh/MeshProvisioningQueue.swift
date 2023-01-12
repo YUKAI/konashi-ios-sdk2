@@ -10,9 +10,9 @@ import Foundation
 import nRFMeshProvision
 
 public actor MeshProvisioningQueue {
-    static private var readyToProvisionSubject = PassthroughSubject<any Provisionable, Never>()
+    private static var readyToProvisionSubject = PassthroughSubject<any Provisionable, Never>()
 
-    static private var queue = [any Provisionable]()
+    private static var queue = [any Provisionable]()
 
     public static func waitForProvision(_ provisioner: any Provisionable, attractFor: UInt8 = 5) async throws {
         if queue.isEmpty {

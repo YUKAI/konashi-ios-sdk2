@@ -19,23 +19,26 @@ extension AnyPublisher {
             Task {
                 let uuid = UUID()
                 var finishedWithoutValue = true
-                await SharedCancellable.shared.store(first()
-                    .sink { result in
-                        switch result {
-                        case .finished:
-                            if finishedWithoutValue {
-                                continuation.resume(throwing: AsyncError.finishedWithoutValue)
+                await SharedCancellable.shared.store(
+                    first()
+                        .sink { result in
+                            switch result {
+                            case .finished:
+                                if finishedWithoutValue {
+                                    continuation.resume(throwing: AsyncError.finishedWithoutValue)
+                                }
+                            case let .failure(error):
+                                continuation.resume(throwing: error)
                             }
-                        case let .failure(error):
-                            continuation.resume(throwing: error)
-                        }
-                        
-                        Task { await SharedCancellable.shared.remove(uuid)?.cancel() }
-                    } receiveValue: { value in
-                        finishedWithoutValue = false
-                        continuation.resume(with: .success(value))
-                        Task { await SharedCancellable.shared.remove(uuid)?.cancel() }
-                    }, for: uuid)
+
+                            Task { await SharedCancellable.shared.remove(uuid)?.cancel() }
+                        } receiveValue: { value in
+                            finishedWithoutValue = false
+                            continuation.resume(with: .success(value))
+                            Task { await SharedCancellable.shared.remove(uuid)?.cancel() }
+                        },
+                    for: uuid
+                )
             }
         }
     }
