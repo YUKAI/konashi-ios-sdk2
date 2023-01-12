@@ -22,17 +22,17 @@ public class SendHandler {
     public var destination: Address {
         return handle.destination
     }
-    
+
     public init(node: NodeCompatible, handle: SendCancellable) {
         self.node = node
         self.handle = handle
     }
 
     @discardableResult
-    public func waitForResponse<T>(for messageType: T) async throws -> ReceivedMessage {
+    public func waitForResponse(for messageType: any MeshMessage.Type) async throws -> ReceivedMessage {
         return try await node.waitForResponse(for: messageType)
     }
-    
+
     public func cancel() {
         handle.cancel()
     }
