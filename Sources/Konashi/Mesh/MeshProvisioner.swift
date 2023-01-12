@@ -5,24 +5,41 @@
 //  Created by Akira Matsuda on 2023/01/06.
 //
 
+import Combine
 import Foundation
 import nRFMeshProvision
 
-class MeshProvisioner {
-    private var provisioningManager: ProvisioningManager
-
-    @Published var state: ProvisioningState?
-
-    init(for provisioningManager: ProvisioningManager) {
-        self.provisioningManager = provisioningManager
+class MeshProvisioner: Provisionable {
+    @Published private(set) var internalState: ProvisioningState?
+    var state: Published<nRFMeshProvision.ProvisioningState?>.Publisher {
+        $internalState
+    }
+    
+    struct Context {
+        let algorithm: Algorithm
+        let publicKey: PublicKey
+        let authenticationMethod: AuthenticationMethod
     }
 
-    @discardableResult
-    func identify(attractFor: UInt8 = 5) async throws -> ProvisioningCapabilities {
+    static func == (lhs: MeshProvisioner, rhs: MeshProvisioner) -> Bool {
+        return lhs.uuid == rhs.uuid
+    }
+    
+    private var provisioningManager: ProvisioningManager
+
+    let uuid = UUID()
+    let context: Context
+
+    init(for provisioningManager: ProvisioningManager, context: Context) {
+        self.provisioningManager = provisioningManager
+        self.context = context
+    }
+
+    func identify(attractFor: UInt8 = 5) async throws {
         provisioningManager.delegate = self
         do {
             try provisioningManager.identify(andAttractFor: attractFor)
-            let capabilities = try await $state.filter { state in
+            _ = try await state.filter { state in
                 if case .capabilitiesReceived = state {
                     return true
                 }
@@ -45,26 +62,22 @@ class MeshProvisioner {
             if isDeviceSupported == false {
                 throw ProvisioningError.invalidUnicastAddress
             }
-            return capabilities
         }
         catch {
             throw error
         }
     }
 
-    func provision(
-        usingAlgorithm algorithm: Algorithm,
-        publicKey: PublicKey,
-        authenticationMethod: AuthenticationMethod
-    ) async throws {
+    func provision() async throws {
         provisioningManager.delegate = self
         do {
             try provisioningManager.provision(
-                usingAlgorithm: algorithm,
-                publicKey: publicKey,
-                authenticationMethod: authenticationMethod
+                usingAlgorithm: context.algorithm,
+                publicKey: context.publicKey,
+                authenticationMethod: context.authenticationMethod
             )
-            _ = try await $state.filter { state in
+            _ = try await state
+                .filter { state in
                 if case .complete = state {
                     return true
                 }
@@ -83,7 +96,7 @@ extension MeshProvisioner: ProvisioningDelegate {
         of unprovisionedDevice: UnprovisionedDevice,
         didChangeTo state: ProvisioningState
     ) {
-        self.state = state
+        self.internalState = state
     }
 
     public func authenticationActionRequired(_ action: AuthAction) {

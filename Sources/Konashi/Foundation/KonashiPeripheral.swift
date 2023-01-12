@@ -401,19 +401,21 @@ public final class KonashiPeripheral: Peripheral {
         provisioningManager.networkKey = networkKey
         try await bearer.open()
         do {
-            let provisioner = MeshProvisioner(for: provisioningManager)
-            let cancellable = provisioner.$state.sink { [weak self] newState in
+            let provisioner = MeshProvisioner(
+                for: provisioningManager,
+                context: MeshProvisioner.Context(
+                    algorithm: .fipsP256EllipticCurve,
+                    publicKey: .noOobPublicKey,
+                    authenticationMethod: .noOob
+                )
+            )
+            let cancellable = provisioner.state.sink { [weak self] newState in
                 guard let self else {
                     return
                 }
                 self.currentProvisioningState = newState
             }
-            _ = try await provisioner.identify()
-            try await provisioner.provision(
-                usingAlgorithm: .fipsP256EllipticCurve,
-                publicKey: .noOobPublicKey,
-                authenticationMethod: .noOob
-            )
+            try await MeshProvisioningQueue.waitForProvision(provisioner)
             try manager.save()
             try await bearer.close()
             guard let node = MeshNode(manager: manager, uuid: unprovisionedDevice.uuid) else {
