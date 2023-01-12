@@ -19,7 +19,10 @@ public actor MeshProvisioningQueue {
             queue.append(provisioner)
             _ = try await provisioner.identify(attractFor: attractFor)
             try await provisioner.provision()
-            readyToProvisionSubject.send(queue.removeFirst())
+            queue.removeFirst()
+            if queue.count > 0 {
+                readyToProvisionSubject.send(queue.removeFirst())
+            }
         }
         else {
             queue.append(provisioner)
