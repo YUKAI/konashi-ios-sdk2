@@ -277,7 +277,7 @@ public class MeshNode: NodeCompatible {
     @discardableResult
     public func waitForResponse<T>(for messageType: T) async throws -> ReceivedMessage {
         try await checkOperationAvailability()
-        return try await manager.didReceiveMessageSubject
+        return try await receivedMessageSubject
             .filter { type(of: $0.body) is T }
             .eraseToAnyPublisher()
             .async()
