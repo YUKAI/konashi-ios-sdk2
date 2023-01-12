@@ -254,20 +254,18 @@ public class MeshNode: NodeCompatible {
     }
 
     @discardableResult
-    public func send(message: nRFMeshProvision.MeshMessage, to model: nRFMeshProvision.Model) async throws -> NodeCompatible {
+    public func send(message: nRFMeshProvision.MeshMessage, to model: nRFMeshProvision.Model) async throws -> SendHandler {
         try await checkOperationAvailability()
         if node.isCompositionDataReceived == false {
             throw NodeOperationError.noCompositionData
         }
-        try manager.networkManager.send(message, to: model)
-        return self
+        return SendHandler(node: self, handle: try manager.networkManager.send(message, to: model))
     }
 
     @discardableResult
-    public func send(config: nRFMeshProvision.ConfigMessage) async throws -> NodeCompatible {
+    public func send(config: nRFMeshProvision.ConfigMessage) async throws -> SendHandler {
         try await checkOperationAvailability()
-        try manager.networkManager.send(config, to: node)
-        return self
+        return SendHandler(node: self, handle: try manager.networkManager.send(config, to: node))
     }
 
     @discardableResult

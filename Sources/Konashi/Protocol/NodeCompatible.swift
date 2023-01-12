@@ -20,9 +20,9 @@ public protocol NodeCompatible {
 
     func updateName(_ name: String?) throws
     @discardableResult
-    func send(message: nRFMeshProvision.MeshMessage, to model: nRFMeshProvision.Model) async throws -> NodeCompatible
+    func send(message: nRFMeshProvision.MeshMessage, to model: nRFMeshProvision.Model) async throws -> SendHandler
     @discardableResult
-    func send(config: nRFMeshProvision.ConfigMessage) async throws -> NodeCompatible
+    func send(config: nRFMeshProvision.ConfigMessage) async throws -> SendHandler
     @discardableResult
     func waitForSendMessage() async throws -> SendMessage
     @discardableResult
