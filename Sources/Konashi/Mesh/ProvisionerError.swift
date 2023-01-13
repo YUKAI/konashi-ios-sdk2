@@ -9,7 +9,7 @@ import Foundation
 
 enum ProvisionerError: Error, LocalizedError {
     case connectionError
-    
+
     var errorDescription: String? {
         switch self {
         case .connectionError:

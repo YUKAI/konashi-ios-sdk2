@@ -44,7 +44,7 @@ class MeshProvisioner: Provisionable {
     func open() async throws {
         try await bearer.open()
     }
-    
+
     func identify(attractFor: UInt8 = 5) async throws {
         try checkConnectivity()
         do {
@@ -99,7 +99,7 @@ class MeshProvisioner: Provisionable {
             throw error
         }
     }
-    
+
     private func checkConnectivity() throws {
         if isOpen == false {
             throw ProvisionerError.connectionError
