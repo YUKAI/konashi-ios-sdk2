@@ -1,6 +1,6 @@
 //
 //  Peripheral+Concurrency.swift
-//  KonashiMeshMap
+//  konashi-ios-sdk2
 //
 //  Created by Akira Matsuda on 2022/12/12.
 //
