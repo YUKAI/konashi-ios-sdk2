@@ -422,7 +422,7 @@ public final class KonashiPeripheral: Peripheral {
                 }
                 self.currentProvisioningState = newState
             }
-            try await MeshProvisioningQueue.waitForProvision(provisioner)
+            try await MeshProvisionQueue.waitForProvision(provisioner)
             try manager.save()
             try await bearer.close()
             guard let node = MeshNode(manager: manager, uuid: unprovisionedDevice.uuid) else {
