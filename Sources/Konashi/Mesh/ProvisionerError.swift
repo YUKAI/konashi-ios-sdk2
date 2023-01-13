@@ -13,7 +13,7 @@ enum ProvisionerError: Error, LocalizedError {
     var errorDescription: String? {
         switch self {
         case .connectionError:
-            return "Could not connect to node."
+            return "Failed to connect for provision. Bearer is not open."
         }
     }
 }

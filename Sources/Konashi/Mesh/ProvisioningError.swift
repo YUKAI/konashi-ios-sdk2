@@ -18,11 +18,11 @@ public enum ProvisioningError: Error, LocalizedError {
         case .unknown:
             return "Unknown error."
         case .invalidUnicastAddress:
-            return "The device has invalid unicast address."
+            return "The device has an invalid unicast address."
         case .invalidCapability:
             return "Provisioning capability should not be nil."
         case .unsupportedDevice:
-            return "The device is not able to provision."
+            return "The device is not supported."
         }
     }
 }
