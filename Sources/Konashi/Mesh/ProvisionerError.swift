@@ -1,6 +1,6 @@
 //
 //  ProvisionerError.swift
-//  Konashi
+//  konashi-ios-sdk2
 //
 //  Created by Akira Matsuda on 2023/01/13.
 //

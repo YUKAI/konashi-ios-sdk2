@@ -1,6 +1,6 @@
 //
-//  File.swift
-//
+//  I2C.Config+CharacteristicValue.swift
+//  konashi-ios-sdk2
 //
 //  Created by Akira Matsuda on 2022/02/26.
 //
