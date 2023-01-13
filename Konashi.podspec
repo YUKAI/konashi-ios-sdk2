@@ -42,6 +42,6 @@ Pod::Spec.new do |s|
 
     s.framework  = 'CoreBluetooth'
     s.dependency 'PromisesSwift', '~> 2.1.0'
-    s.dependency 'CombineExt', '~> 1.0.0'
+    s.dependency 'CombineExt', '~> 1.8.0'
     s.dependency 'nRFMeshProvision', '~> 3.2.0'
   end
