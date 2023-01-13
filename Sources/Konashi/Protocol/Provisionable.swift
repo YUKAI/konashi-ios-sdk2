@@ -12,7 +12,9 @@ import nRFMeshProvision
 public protocol Provisionable {
     var uuid: UUID { get }
     var state: Published<ProvisioningState?>.Publisher { get }
+    var isOpen: Bool { get }
 
+    func open() async throws
     func identify(attractFor: UInt8) async throws
     func provision() async throws
 }

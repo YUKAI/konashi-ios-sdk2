@@ -26,17 +26,27 @@ class MeshProvisioner: Provisionable {
     }
 
     private var provisioningManager: ProvisioningManager
+    private var bearer: MeshBearer<PBGattBearer>
 
     let uuid = UUID()
     let context: Context
-
-    init(for provisioningManager: ProvisioningManager, context: Context) {
-        self.provisioningManager = provisioningManager
-        self.context = context
+    var isOpen: Bool {
+        return bearer.originalBearer.isOpen
     }
 
+    init(for provisioningManager: ProvisioningManager, context: Context, bearer: MeshBearer<PBGattBearer>) {
+        self.provisioningManager = provisioningManager
+        self.context = context
+        self.bearer = bearer
+        self.provisioningManager.delegate = self
+    }
+
+    func open() async throws {
+        try await bearer.open()
+    }
+    
     func identify(attractFor: UInt8 = 5) async throws {
-        provisioningManager.delegate = self
+        try checkConnectivity()
         do {
             try provisioningManager.identify(andAttractFor: attractFor)
             _ = try await state.filter { state in
@@ -69,7 +79,7 @@ class MeshProvisioner: Provisionable {
     }
 
     func provision() async throws {
-        provisioningManager.delegate = self
+        try checkConnectivity()
         do {
             try provisioningManager.provision(
                 usingAlgorithm: context.algorithm,
@@ -87,6 +97,12 @@ class MeshProvisioner: Provisionable {
         }
         catch {
             throw error
+        }
+    }
+    
+    private func checkConnectivity() throws {
+        if isOpen == false {
+            throw ProvisionerError.connectionError
         }
     }
 }

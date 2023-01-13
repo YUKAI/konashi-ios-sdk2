@@ -52,6 +52,7 @@ public actor MeshProvisionQueue {
 
     private static func provision(_ provisioner: any Provisionable, attractFor: UInt8) async throws {
         isProvisioning.send(true)
+        try await provisioner.open()
         _ = try await provisioner.identify(attractFor: attractFor)
         try await provisioner.provision()
     }

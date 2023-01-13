@@ -407,14 +407,14 @@ public final class KonashiPeripheral: Peripheral {
             )
             provisioningManager.logger = manager.logger
             provisioningManager.networkKey = networkKey
-            try await bearer.open()
             let provisioner = MeshProvisioner(
                 for: provisioningManager,
                 context: MeshProvisioner.Context(
                     algorithm: .fipsP256EllipticCurve,
                     publicKey: .noOobPublicKey,
                     authenticationMethod: .noOob
-                )
+                ),
+                bearer: bearer
             )
             let cancellable = provisioner.state.sink { [weak self] newState in
                 guard let self else {
