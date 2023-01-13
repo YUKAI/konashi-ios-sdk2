@@ -304,6 +304,10 @@ public class MeshNode: NodeCompatible {
         try await send(config: message)
         return self
     }
+    
+    public func reset() async throws {
+        try await send(config: ConfigNodeReset())
+    }
 
     private func checkOperationAvailability() async throws {
         try await manager.waitUntilConnectionOpen()

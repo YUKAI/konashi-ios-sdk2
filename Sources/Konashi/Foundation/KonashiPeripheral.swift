@@ -374,33 +374,40 @@ public final class KonashiPeripheral: Peripheral {
         if currentConnectionStatus == .disconnected {
             try await connect()
         }
-//        try await asyncWrite(
-//            characteristic: SettingsService.settingsCommand,
-//            command: .bluetooth(
-//                payload: SettingsService.BluetoothSettingPayload(
-//                    bluetoothFunction: .init(
-//                        function: .mesh,
-//                        enabled: true
-//                    )
-//                )
-//            )
-//        )
+
+        // Enable mesh feature
+        try await asyncWrite(
+            characteristic: SettingsService.settingsCommand,
+            command: .bluetooth(
+                payload: SettingsService.BluetoothSettingPayload(
+                    bluetoothFunction: .init(
+                        function: .mesh,
+                        enabled: true
+                    )
+                )
+            )
+        )
         try await asyncWrite(
             characteristic: SettingsService.settingsCommand,
             command: .system(
                 payload: .nvmUseSet(enabled: true)
             )
         )
+        try await disconnect()
+
+        // Workaround: Wait 1 sec to prepare for connection again
+        try await Task.sleep(nanoseconds: 1000 * 1000000)
+
         let bearer = MeshBearer(for: PBGattBearer(target: peripheral))
         bearer.originalBearer.logger = manager.logger
-        let provisioningManager = try manager.provision(
-            unprovisionedDevice: unprovisionedDevice,
-            over: bearer.originalBearer
-        )
-        provisioningManager.logger = manager.logger
-        provisioningManager.networkKey = networkKey
-        try await bearer.open()
         do {
+            let provisioningManager = try manager.provision(
+                unprovisionedDevice: unprovisionedDevice,
+                over: bearer.originalBearer
+            )
+            provisioningManager.logger = manager.logger
+            provisioningManager.networkKey = networkKey
+            try await bearer.open()
             let provisioner = MeshProvisioner(
                 for: provisioningManager,
                 context: MeshProvisioner.Context(
