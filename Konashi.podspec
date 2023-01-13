@@ -9,7 +9,7 @@
 Pod::Spec.new do |s|
     s.name             = 'Konashi'
     s.version          = '0.0.1'
-    s.summary          = 'iOS SDK for konashi, a wireless physical computing toolkit for iPhone, iPod touch and iPad.'
+    s.summary          = 'iOS SDK for konashi, a wireless physical computing toolkit'
     s.swift_versions   = '5.7'
   # This description is used to generate tags and improve search results.
   #   * Think: What does it do? Why did you write it? What is the focus?

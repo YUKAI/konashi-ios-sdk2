@@ -1,6 +1,6 @@
 # konashi-ios-sdk2
 
-iOS SDK for konashi, a wireless physical computing toolkit for iPhone, iPod touch and iPad.
+iOS SDK for konashi, a wireless physical computing toolkit.
 
 [![Swift 5 supported](https://img.shields.io/badge/Swift-5.5-orange.svg)](https://github.com/apple/swift)
 [![Swift Package Manager compatible](https://img.shields.io/badge/Swift_Package_Manager-compatible-orange)](https://swift.org/package-manager/)
