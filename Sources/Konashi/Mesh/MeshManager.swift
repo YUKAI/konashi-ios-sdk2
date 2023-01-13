@@ -117,6 +117,11 @@ public class MeshManager {
         try save()
     }
 
+    public func reset() throws {
+        try createNewMeshNetwork()
+        try save()
+    }
+
     private func createNewMeshNetwork() throws {
         let provisioner = Provisioner(
             name: "Konashi Mesh Manager",
