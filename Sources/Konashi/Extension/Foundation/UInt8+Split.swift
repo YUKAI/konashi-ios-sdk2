@@ -7,6 +7,8 @@
 
 import Foundation
 
+// MARK: - BitArray
+
 struct BitArray {
     let value: [Bool]
 }

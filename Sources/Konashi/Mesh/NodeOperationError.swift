@@ -15,6 +15,8 @@ public enum NodeOperationError: Error, LocalizedError {
     case modelNotFound(_ model: NodeModel)
     case noCompositionData
 
+    // MARK: Public
+
     public var errorDescription: String? {
         switch self {
         case .invalidNode:

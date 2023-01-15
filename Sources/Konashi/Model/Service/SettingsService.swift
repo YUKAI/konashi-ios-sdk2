@@ -8,48 +8,11 @@
 import CoreBluetooth
 import Foundation
 
+// MARK: - SettingsService
+
 /// A BLE service of Konashi settings.
 public struct SettingsService: Service {
-    /// Service UUID of settings service.
-    public static var uuid: UUID {
-        return UUID(uuidString: "064d0100-8251-49d9-b6f3-f7ba35e5d0a1")!
-    }
-
-    /// An array of all characteristics of setting services.
-    public var characteristics: [Characteristic] {
-        return [
-            settingsCommand,
-            systemSettings,
-            bluetoothSettings
-        ]
-    }
-
-    /// An array of characteristics that can notify update.
-    public var notifiableCharacteristics: [Characteristic] {
-        return [
-            systemSettings,
-            bluetoothSettings
-        ]
-    }
-
-    let settingsCommand = WriteableCharacteristic<SettingCommand>(
-        serviceUUID: SettingsService.uuid,
-        uuid: UUID(
-            uuidString: "064D0101-8251-49D9-B6F3-F7BA35E5D0A1"
-        )!
-    )
-    let systemSettings = ReadableCharacteristic<SystemSettings>(
-        serviceUUID: SettingsService.uuid,
-        uuid: UUID(
-            uuidString: "064D0102-8251-49D9-B6F3-F7BA35E5D0A1"
-        )!
-    )
-    let bluetoothSettings = ReadableCharacteristic<BluetoothSettings>(
-        serviceUUID: SettingsService.uuid,
-        uuid: UUID(
-            uuidString: "064D0103-8251-49D9-B6F3-F7BA35E5D0A1"
-        )!
-    )
+    // MARK: Public
 
     /// A payload for system setting.
     public enum SystemSettingPayload: Payload {
@@ -67,6 +30,8 @@ public struct SettingsService: Service {
         case emulateFunctionButtonLongPress
         /// A payload to emulate a function button very long press.
         case emulatefunctionButtonVeryLongPress
+
+        // MARK: Internal
 
         func compose() -> [UInt8] {
             switch self {
@@ -96,8 +61,36 @@ public struct SettingsService: Service {
 
     /// A payload for bluetooth setting.
     public struct BluetoothSettingPayload: Payload {
+        // MARK: Lifecycle
+
+        public init(
+            bluetoothFunction: SettingsService.BluetoothSettingPayload.BluetoothFunction? = nil,
+            mainAdvertiserSecondaryPHY: PHY? = nil,
+            mainAdvertiserPreferredConnectionPHY: PHYsBitmask? = nil,
+            extraAdvertiserPrimaryPHY: PHY? = nil,
+            extraAdvertiserSecondaryPHY: PHY? = nil,
+            extraAdvertiserContents: SettingsService.BluetoothSettingPayload.AdvertiserContents? = nil
+        ) {
+            self.bluetoothFunction = bluetoothFunction
+            self.mainAdvertiserSecondaryPHY = mainAdvertiserSecondaryPHY
+            self.mainAdvertiserPreferredConnectionPHY = mainAdvertiserPreferredConnectionPHY
+            self.extraAdvertiserPrimaryPHY = extraAdvertiserPrimaryPHY
+            self.extraAdvertiserSecondaryPHY = extraAdvertiserSecondaryPHY
+            self.extraAdvertiserContents = extraAdvertiserContents
+        }
+
+        // MARK: Public
+
         /// A setting of input value from GPIO.
         public struct GPIOxInputValue: OptionSet, CaseIterable {
+            // MARK: Lifecycle
+
+            public init(rawValue: UInt8) {
+                self.rawValue = rawValue
+            }
+
+            // MARK: Public
+
             public static var allCases: [GPIOxInputValue] = [
                 .gpio0,
                 .gpio1,
@@ -131,9 +124,7 @@ public struct SettingsService: Service {
             /// A bit representation of GPIOs.
             public let rawValue: UInt8
 
-            public init(rawValue: UInt8) {
-                self.rawValue = rawValue
-            }
+            // MARK: Internal
 
             static func convert(_ values: [Bool]) -> GPIOxInputValue {
                 var mask = GPIOxInputValue()
@@ -146,6 +137,14 @@ public struct SettingsService: Service {
 
         /// A setting of input value from AIO.
         public struct AIOxInputValue: OptionSet, CaseIterable {
+            // MARK: Lifecycle
+
+            public init(rawValue: UInt8) {
+                self.rawValue = rawValue
+            }
+
+            // MARK: Public
+
             public static var allCases: [AIOxInputValue] = [
                 .aio0,
                 .aio1,
@@ -164,9 +163,7 @@ public struct SettingsService: Service {
             /// A bit representation of AIOs.
             public let rawValue: UInt8
 
-            public init(rawValue: UInt8) {
-                self.rawValue = rawValue
-            }
+            // MARK: Internal
 
             static func convert(_ values: [Bool]) -> AIOxInputValue {
                 var mask = AIOxInputValue()
@@ -179,11 +176,7 @@ public struct SettingsService: Service {
 
         /// A representation of advertiser contents.
         public struct AdvertiserContents {
-            public let manufacturerData: Bool
-            public let deviceUUID: Bool
-            public let deviceName: Bool
-            public let gpioxInputValue: GPIOxInputValue
-            public let aioxInputValue: AIOxInputValue
+            // MARK: Lifecycle
 
             public init(
                 manufacturerData: Bool,
@@ -198,10 +191,27 @@ public struct SettingsService: Service {
                 self.gpioxInputValue = gpioxInputValue
                 self.aioxInputValue = aioxInputValue
             }
+
+            // MARK: Public
+
+            public let manufacturerData: Bool
+            public let deviceUUID: Bool
+            public let deviceName: Bool
+            public let gpioxInputValue: GPIOxInputValue
+            public let aioxInputValue: AIOxInputValue
         }
 
         /// A representation of bluetooth function setting.
         public struct BluetoothFunction {
+            // MARK: Lifecycle
+
+            public init(function: SettingsService.BluetoothSettingPayload.BluetoothFunction.Function, enabled: Bool) {
+                self.function = function
+                self.enabled = enabled
+            }
+
+            // MARK: Public
+
             /// Functions of Bluetooth
             public enum Function {
                 case mesh
@@ -212,11 +222,6 @@ public struct SettingsService: Service {
             public let function: Function
             /// Enable or disable a Bluetooth functionality.
             public let enabled: Bool
-
-            public init(function: SettingsService.BluetoothSettingPayload.BluetoothFunction.Function, enabled: Bool) {
-                self.function = function
-                self.enabled = enabled
-            }
         }
 
         /// Enable or disable a Bluetooth functionality.
@@ -233,21 +238,7 @@ public struct SettingsService: Service {
         /// If the resulting advertising data length is longer than 31 bytes, advertising will automatically be in extended mode, otherwise it will be legacy mode.
         public var extraAdvertiserContents: AdvertiserContents?
 
-        public init(
-            bluetoothFunction: SettingsService.BluetoothSettingPayload.BluetoothFunction? = nil,
-            mainAdvertiserSecondaryPHY: PHY? = nil,
-            mainAdvertiserPreferredConnectionPHY: PHYsBitmask? = nil,
-            extraAdvertiserPrimaryPHY: PHY? = nil,
-            extraAdvertiserSecondaryPHY: PHY? = nil,
-            extraAdvertiserContents: SettingsService.BluetoothSettingPayload.AdvertiserContents? = nil
-        ) {
-            self.bluetoothFunction = bluetoothFunction
-            self.mainAdvertiserSecondaryPHY = mainAdvertiserSecondaryPHY
-            self.mainAdvertiserPreferredConnectionPHY = mainAdvertiserPreferredConnectionPHY
-            self.extraAdvertiserPrimaryPHY = extraAdvertiserPrimaryPHY
-            self.extraAdvertiserSecondaryPHY = extraAdvertiserSecondaryPHY
-            self.extraAdvertiserContents = extraAdvertiserContents
-        }
+        // MARK: Internal
 
         func compose() -> [UInt8] {
             var bytes = [UInt8]()
@@ -310,6 +301,8 @@ public struct SettingsService: Service {
         /// A command to change bluetooth setting.
         case bluetooth(payload: BluetoothSettingPayload)
 
+        // MARK: Public
+
         public func compose() -> Data {
             var bytes = [UInt8]()
             switch self {
@@ -328,6 +321,49 @@ public struct SettingsService: Service {
             return Data(bytes)
         }
     }
+
+    /// Service UUID of settings service.
+    public static var uuid: UUID {
+        return UUID(uuidString: "064d0100-8251-49d9-b6f3-f7ba35e5d0a1")!
+    }
+
+    /// An array of all characteristics of setting services.
+    public var characteristics: [Characteristic] {
+        return [
+            settingsCommand,
+            systemSettings,
+            bluetoothSettings
+        ]
+    }
+
+    /// An array of characteristics that can notify update.
+    public var notifiableCharacteristics: [Characteristic] {
+        return [
+            systemSettings,
+            bluetoothSettings
+        ]
+    }
+
+    // MARK: Internal
+
+    let settingsCommand = WriteableCharacteristic<SettingCommand>(
+        serviceUUID: SettingsService.uuid,
+        uuid: UUID(
+            uuidString: "064D0101-8251-49D9-B6F3-F7BA35E5D0A1"
+        )!
+    )
+    let systemSettings = ReadableCharacteristic<SystemSettings>(
+        serviceUUID: SettingsService.uuid,
+        uuid: UUID(
+            uuidString: "064D0102-8251-49D9-B6F3-F7BA35E5D0A1"
+        )!
+    )
+    let bluetoothSettings = ReadableCharacteristic<BluetoothSettings>(
+        serviceUUID: SettingsService.uuid,
+        uuid: UUID(
+            uuidString: "064D0103-8251-49D9-B6F3-F7BA35E5D0A1"
+        )!
+    )
 }
 
 public extension SettingsService {

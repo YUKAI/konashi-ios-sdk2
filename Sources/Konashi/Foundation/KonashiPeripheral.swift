@@ -16,23 +16,24 @@ public extension KonashiPeripheral {
     static let instanceKey: String = "KonashiPeripheral.instanceKey"
 }
 
+// MARK: - KonashiPeripheral
+
 /// A remote peripheral device.
 public final class KonashiPeripheral: Peripheral {
-    public static func == (lhs: KonashiPeripheral, rhs: KonashiPeripheral) -> Bool {
-        return lhs.hashValue == rhs.hashValue
+    // MARK: Lifecycle
+
+    public init(peripheral: CBPeripheral, advertisementData: [String: Any]) {
+        self.peripheral = peripheral
+        self.advertisementData = advertisementData
+        prepareCombine()
+        prepareKVO()
     }
 
-    public static func == (lhs: KonashiPeripheral, rhs: CBPeripheral) -> Bool {
-        return lhs.peripheral == rhs
+    deinit {
+        readRssiTimer?.invalidate()
     }
 
-    public static func == (lhs: CBPeripheral, rhs: KonashiPeripheral) -> Bool {
-        return lhs == rhs.peripheral
-    }
-
-    public func hash(into hasher: inout Hasher) {
-        hasher.combine(peripheral)
-    }
+    // MARK: Public
 
     /// A service of a peripheral's setting.
     public let settingsService = SettingsService()
@@ -40,11 +41,6 @@ public final class KonashiPeripheral: Peripheral {
     public let configService = ConfigService()
     /// A service to control a peripheral.
     public let controlService = ControlService()
-
-    /// A name of a peripheral.
-    public var name: String? {
-        return peripheral.name
-    }
 
     /// A collection of services of a peripheral.
     public private(set) lazy var services: [Service] = {
@@ -54,11 +50,6 @@ public final class KonashiPeripheral: Peripheral {
             controlService
         ]
     }()
-
-    /// A connection status of a peripheral.
-    public var status: Published<ConnectionStatus>.Publisher {
-        return $currentConnectionStatus
-    }
 
     /// A publisher of peripheral state.
     @Published public private(set) var currentConnectionStatus: ConnectionStatus = .disconnected
@@ -79,11 +70,20 @@ public final class KonashiPeripheral: Peripheral {
     /// A subject that sends value that is written to af peripheral.
     public let didWriteValueSubject = PassthroughSubject<(uuid: CBUUID, error: Error?), Never>()
 
-    // swiftlint:disable:next weak_delegate
-    private lazy var delegate: KonashiPeripheralDelegate = .init(peripheral: self)
-
     // TODO: Add document
     public var meshNode: NodeCompatible?
+    @Published public private(set) var currentProvisioningState: ProvisioningState?
+
+    /// A name of a peripheral.
+    public var name: String? {
+        return peripheral.name
+    }
+
+    /// A connection status of a peripheral.
+    public var status: Published<ConnectionStatus>.Publisher {
+        return $currentConnectionStatus
+    }
+
     public var provisioningState: Published<ProvisioningState?>.Publisher {
         return $currentProvisioningState
     }
@@ -92,32 +92,20 @@ public final class KonashiPeripheral: Peripheral {
         return UnprovisionedDevice(advertisementData: advertisementData) != nil
     }
 
-    @Published public private(set) var currentProvisioningState: ProvisioningState?
-    private let advertisementData: [String: Any]
-
-    @Published internal var isCharacteristicsDiscovered = false
-    @Published internal var isCharacteristicsConfigured = false
-    @Published fileprivate var isConnected = false
-    @Published fileprivate var isConnecting = false
-
-    internal let didUpdateValueSubject = PassthroughSubject<(characteristic: CBCharacteristic, error: Error?), Never>()
-    internal var readyPromise = Promise<Void>.pending()
-    internal var discoveredServices = [CBService]()
-    internal var configuredCharacteristics = [CBCharacteristic]()
-    private var readRssiTimer: Timer?
-    private let peripheral: CBPeripheral
-    private var observation: NSKeyValueObservation?
-    private var internalCancellable = Set<AnyCancellable>()
-
-    public init(peripheral: CBPeripheral, advertisementData: [String: Any]) {
-        self.peripheral = peripheral
-        self.advertisementData = advertisementData
-        prepareCombine()
-        prepareKVO()
+    public static func == (lhs: KonashiPeripheral, rhs: KonashiPeripheral) -> Bool {
+        return lhs.hashValue == rhs.hashValue
     }
 
-    deinit {
-        readRssiTimer?.invalidate()
+    public static func == (lhs: KonashiPeripheral, rhs: CBPeripheral) -> Bool {
+        return lhs.peripheral == rhs
+    }
+
+    public static func == (lhs: CBPeripheral, rhs: KonashiPeripheral) -> Bool {
+        return lhs == rhs.peripheral
+    }
+
+    public func hash(into hasher: inout Hasher) {
+        hasher.combine(peripheral)
     }
 
     // MARK: - Connection
@@ -440,13 +428,14 @@ public final class KonashiPeripheral: Peripheral {
         }
     }
 
-    // MARK: - Private
+    // MARK: Internal
 
-    private func discoverServices() {
-        print(">>> discoverServices")
-        peripheral.delegate = delegate
-        peripheral.discoverServices(services.map(\.serviceUUID))
-    }
+    @Published internal var isCharacteristicsDiscovered = false
+    @Published internal var isCharacteristicsConfigured = false
+    internal let didUpdateValueSubject = PassthroughSubject<(characteristic: CBCharacteristic, error: Error?), Never>()
+    internal var readyPromise = Promise<Void>.pending()
+    internal var discoveredServices = [CBService]()
+    internal var configuredCharacteristics = [CBCharacteristic]()
 
     internal func discoverCharacteristics() {
         peripheral.delegate = delegate
@@ -461,14 +450,39 @@ public final class KonashiPeripheral: Peripheral {
         }
     }
 
+    internal func store(characteristic: CBCharacteristic) {
+        services.find(characteristic: characteristic)?.update(data: characteristic.value)
+    }
+
+    // MARK: Fileprivate
+
+    @Published fileprivate var isConnected = false
+    @Published fileprivate var isConnecting = false
+
+    // MARK: Private
+
+    // swiftlint:disable:next weak_delegate
+    private lazy var delegate: KonashiPeripheralDelegate = .init(peripheral: self)
+
+    private let advertisementData: [String: Any]
+
+    private var readRssiTimer: Timer?
+    private let peripheral: CBPeripheral
+    private var observation: NSKeyValueObservation?
+    private var internalCancellable = Set<AnyCancellable>()
+
+    private var kvoCancellable: AnyCancellable?
+
+    private func discoverServices() {
+        print(">>> discoverServices")
+        peripheral.delegate = delegate
+        peripheral.discoverServices(services.map(\.serviceUUID))
+    }
+
     private func configureCharacteristics() {
         for service in services {
             service.applyAttributes(peripheral: peripheral)
         }
-    }
-
-    internal func store(characteristic: CBCharacteristic) {
-        services.find(characteristic: characteristic)?.update(data: characteristic.value)
     }
 
     private func prepareCombine() {
@@ -521,7 +535,6 @@ public final class KonashiPeripheral: Peripheral {
         }.store(in: &internalCancellable)
     }
 
-    private var kvoCancellable: AnyCancellable?
     private func prepareKVO() {
         kvoCancellable?.cancel()
         kvoCancellable = peripheral.publisher(for: \.state).removeDuplicates().sink { [weak self] state in

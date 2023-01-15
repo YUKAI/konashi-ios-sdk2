@@ -23,14 +23,7 @@ public enum SPI {
 
     /// A payload that represents SPI mode.
     public struct Mode: Payload, Hashable {
-        /// SPI mode 0
-        public static let mode0 = Mode(polarity: .low, phase: .low)
-        /// SPI mode 1
-        public static let mode1 = Mode(polarity: .low, phase: .high)
-        /// SPI mode 2
-        public static let mode2 = Mode(polarity: .high, phase: .low)
-        /// SPI mode 3
-        public static let mode3 = Mode(polarity: .high, phase: .high)
+        // MARK: Public
 
         public enum Polarity: UInt8 {
             case low
@@ -42,8 +35,19 @@ public enum SPI {
             case high
         }
 
+        /// SPI mode 0
+        public static let mode0 = Mode(polarity: .low, phase: .low)
+        /// SPI mode 1
+        public static let mode1 = Mode(polarity: .low, phase: .high)
+        /// SPI mode 2
+        public static let mode2 = Mode(polarity: .high, phase: .low)
+        /// SPI mode 3
+        public static let mode3 = Mode(polarity: .high, phase: .high)
+
         public let polarity: Polarity
         public let phase: Phase
+
+        // MARK: Internal
 
         func compose() -> [UInt8] {
             return [(polarity.rawValue << 1) | (phase.rawValue)]
@@ -55,9 +59,13 @@ public enum SPI {
         case enable(bitrate: UInt32, endian: Endian, mode: Mode)
         case disable
 
+        // MARK: Public
+
         public static var byteSize: UInt {
             return 5
         }
+
+        // MARK: Internal
 
         static func parse(_ data: [UInt8], info: [String: Any]? = nil) -> Result<SPI.Config, Error> {
             if data.count != byteSize {
@@ -119,7 +127,11 @@ public enum SPI {
 
     /// A payload for sending data through SPI.
     public struct TransferControlPayload: Payload {
+        // MARK: Public
+
         public let data: [UInt8]
+
+        // MARK: Internal
 
         func compose() -> [UInt8] {
             if data.count >= 127 {

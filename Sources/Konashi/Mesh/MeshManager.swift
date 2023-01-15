@@ -9,25 +9,10 @@ import Combine
 import Foundation
 import nRFMeshProvision
 
+// MARK: - MeshManager
+
 public class MeshManager {
-    public static let shared = MeshManager()
-
-    public let didNetworkSaveSubject = PassthroughSubject<Void, StorageError>()
-    public let didSendMessageSubject = PassthroughSubject<SendMessage, MessageTransmissionError>()
-    public let didReceiveMessageSubject = PassthroughSubject<ReceivedMessage, Never>()
-    public private(set) var networkKey: NetworkKey?
-    public private(set) var applicationKey: ApplicationKey?
-    public var numberOfNodes: Int {
-        return networkManager.meshNetwork?.nodes.count ?? 0
-    }
-
-    public var allNodes: [Node] {
-        // TODO: MeshNodeに変更する
-        return networkManager.meshNetwork?.nodes ?? []
-    }
-
-    internal let networkManager: MeshNetworkManager
-    private(set) var connection: MeshNetworkConnection?
+    // MARK: Lifecycle
 
     public init() {
         networkManager = MeshNetworkManager()
@@ -52,15 +37,29 @@ public class MeshManager {
         }
     }
 
+    // MARK: Public
+
+    public static let shared = MeshManager()
+
+    public let didNetworkSaveSubject = PassthroughSubject<Void, StorageError>()
+    public let didSendMessageSubject = PassthroughSubject<SendMessage, MessageTransmissionError>()
+    public let didReceiveMessageSubject = PassthroughSubject<ReceivedMessage, Never>()
+    public private(set) var networkKey: NetworkKey?
+    public private(set) var applicationKey: ApplicationKey?
+
+    public var numberOfNodes: Int {
+        return networkManager.meshNetwork?.nodes.count ?? 0
+    }
+
+    public var allNodes: [Node] {
+        // TODO: MeshNodeに変更する
+        return networkManager.meshNetwork?.nodes ?? []
+    }
+
     public func provision(unprovisionedDevice: UnprovisionedDevice, over bearer: ProvisioningBearer) throws -> ProvisioningManager {
         return try networkManager.provision(unprovisionedDevice: unprovisionedDevice, over: bearer)
     }
 
-    internal func node(for uuid: UUID) -> Node? {
-        return networkManager.meshNetwork?.node(withUuid: uuid)
-    }
-
-    private(set) var logger: LoggerDelegate?
     public func setLogger(_ logger: LoggerDelegate) {
         self.logger = logger
         networkManager.logger = logger
@@ -122,6 +121,36 @@ public class MeshManager {
         try save()
     }
 
+    // MARK: Internal
+
+    internal let networkManager: MeshNetworkManager
+    private(set) var connection: MeshNetworkConnection?
+
+    private(set) var logger: LoggerDelegate?
+
+    internal func node(for uuid: UUID) -> Node? {
+        return networkManager.meshNetwork?.node(withUuid: uuid)
+    }
+
+    func waitUntilConnectionOpen(timeoutInterval: TimeInterval = 10) async throws {
+        guard let connection else {
+            throw MeshManager.NetworkError.noNetworkConnection
+        }
+        if connection.isOpen == false {
+            let result = try await connection.$isOpen
+                .removeDuplicates()
+                .timeout(.seconds(timeoutInterval), scheduler: DispatchQueue.global())
+                .filter { $0 }
+                .eraseToAnyPublisher()
+                .async()
+            if result == false {
+                throw MeshManager.NetworkError.bearerIsClosed
+            }
+        }
+    }
+
+    // MARK: Private
+
     private func createNewMeshNetwork() throws {
         let provisioner = Provisioner(
             name: "Konashi Mesh Manager",
@@ -156,24 +185,9 @@ public class MeshManager {
         networkManager.transmitter = connection
         connection?.open()
     }
-
-    func waitUntilConnectionOpen(timeoutInterval: TimeInterval = 10) async throws {
-        guard let connection else {
-            throw MeshManager.NetworkError.noNetworkConnection
-        }
-        if connection.isOpen == false {
-            let result = try await connection.$isOpen
-                .removeDuplicates()
-                .timeout(.seconds(timeoutInterval), scheduler: DispatchQueue.global())
-                .filter { $0 }
-                .eraseToAnyPublisher()
-                .async()
-            if result == false {
-                throw MeshManager.NetworkError.bearerIsClosed
-            }
-        }
-    }
 }
+
+// MARK: MeshNetworkDelegate
 
 extension MeshManager: MeshNetworkDelegate {
     public func meshNetworkManager(

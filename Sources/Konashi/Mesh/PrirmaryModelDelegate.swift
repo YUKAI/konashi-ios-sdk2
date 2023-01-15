@@ -8,12 +8,10 @@
 import Foundation
 import nRFMeshProvision
 
-class PrirmaryModelDelegate: ModelDelegate {
-    let messageTypes: [UInt32: MeshMessage.Type]
-    let isSubscriptionSupported: Bool = true
+// MARK: - PrirmaryModelDelegate
 
-    // TODO: Implement Sensor Client publications.
-    let publicationMessageComposer: MessageComposer? = nil
+class PrirmaryModelDelegate: ModelDelegate {
+    // MARK: Lifecycle
 
     init() {
         let types: [SensorMessage.Type] = [
@@ -27,6 +25,14 @@ class PrirmaryModelDelegate: ModelDelegate {
         ]
         messageTypes = types.toMap()
     }
+
+    // MARK: Internal
+
+    let messageTypes: [UInt32: MeshMessage.Type]
+    let isSubscriptionSupported: Bool = true
+
+    // TODO: Implement Sensor Client publications.
+    let publicationMessageComposer: MessageComposer? = nil
 
     func model(
         _ model: Model,

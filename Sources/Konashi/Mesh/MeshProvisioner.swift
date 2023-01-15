@@ -9,11 +9,19 @@ import Combine
 import Foundation
 import nRFMeshProvision
 
+// MARK: - MeshProvisioner
+
 class MeshProvisioner: Provisionable {
-    @Published private(set) var internalState: ProvisioningState?
-    var state: Published<nRFMeshProvision.ProvisioningState?>.Publisher {
-        $internalState
+    // MARK: Lifecycle
+
+    init(for provisioningManager: ProvisioningManager, context: Context, bearer: MeshBearer<PBGattBearer>) {
+        self.provisioningManager = provisioningManager
+        self.context = context
+        self.bearer = bearer
+        self.provisioningManager.delegate = self
     }
+
+    // MARK: Internal
 
     struct Context {
         let algorithm: Algorithm
@@ -21,24 +29,20 @@ class MeshProvisioner: Provisionable {
         let authenticationMethod: AuthenticationMethod
     }
 
-    static func == (lhs: MeshProvisioner, rhs: MeshProvisioner) -> Bool {
-        return lhs.uuid == rhs.uuid
-    }
-
-    private var provisioningManager: ProvisioningManager
-    private var bearer: MeshBearer<PBGattBearer>
-
+    @Published private(set) var internalState: ProvisioningState?
     let uuid = UUID()
     let context: Context
+
+    var state: Published<nRFMeshProvision.ProvisioningState?>.Publisher {
+        $internalState
+    }
+
     var isOpen: Bool {
         return bearer.originalBearer.isOpen
     }
 
-    init(for provisioningManager: ProvisioningManager, context: Context, bearer: MeshBearer<PBGattBearer>) {
-        self.provisioningManager = provisioningManager
-        self.context = context
-        self.bearer = bearer
-        self.provisioningManager.delegate = self
+    static func == (lhs: MeshProvisioner, rhs: MeshProvisioner) -> Bool {
+        return lhs.uuid == rhs.uuid
     }
 
     func open() async throws {
@@ -100,12 +104,19 @@ class MeshProvisioner: Provisionable {
         }
     }
 
+    // MARK: Private
+
+    private var provisioningManager: ProvisioningManager
+    private var bearer: MeshBearer<PBGattBearer>
+
     private func checkConnectivity() throws {
         if isOpen == false {
             throw ProvisionerError.connectionError
         }
     }
 }
+
+// MARK: ProvisioningDelegate
 
 extension MeshProvisioner: ProvisioningDelegate {
     public func provisioningState(

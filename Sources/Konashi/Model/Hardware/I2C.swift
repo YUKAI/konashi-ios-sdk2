@@ -59,12 +59,16 @@ public enum I2C {
     }
 
     public enum Config: ParsablePayload, Hashable {
+        case enable(mode: Mode)
+        case disable
+
+        // MARK: Public
+
         public static var byteSize: UInt {
             return 1
         }
 
-        case enable(mode: Mode)
-        case disable
+        // MARK: Internal
 
         static func parse(_ data: [UInt8], info: [String: Any]? = nil) -> Result<I2C.Config, Error> {
             if data.count != byteSize {
@@ -94,10 +98,14 @@ public enum I2C {
     }
 
     public struct TransferControlPayload: Payload {
+        // MARK: Public
+
         public let operation: Operation
         public let readLength: UInt8
         public let address: UInt8
         public let writeData: [UInt8]
+
+        // MARK: Internal
 
         func compose() -> [UInt8] {
             var data: [UInt8] {

@@ -8,8 +8,16 @@
 import nRFMeshProvision
 
 public class SendHandler {
+    // MARK: Lifecycle
+
+    public init(node: NodeCompatible, handle: SendCancellable) {
+        self.node = node
+        self.handle = handle
+    }
+
+    // MARK: Public
+
     public let node: NodeCompatible
-    let handle: SendCancellable
 
     public var opCode: UInt32 {
         return handle.opCode
@@ -23,11 +31,6 @@ public class SendHandler {
         return handle.destination
     }
 
-    public init(node: NodeCompatible, handle: SendCancellable) {
-        self.node = node
-        self.handle = handle
-    }
-
     @discardableResult
     public func waitForResponse(for messageType: any MeshMessage.Type) async throws -> ReceivedMessage {
         return try await node.waitForResponse(for: messageType)
@@ -36,4 +39,8 @@ public class SendHandler {
     public func cancel() {
         handle.cancel()
     }
+
+    // MARK: Internal
+
+    let handle: SendCancellable
 }

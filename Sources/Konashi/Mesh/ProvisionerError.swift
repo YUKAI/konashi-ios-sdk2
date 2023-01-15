@@ -10,6 +10,8 @@ import Foundation
 enum ProvisionerError: Error, LocalizedError {
     case connectionError
 
+    // MARK: Internal
+
     var errorDescription: String? {
         switch self {
         case .connectionError:

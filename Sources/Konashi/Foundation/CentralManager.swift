@@ -10,67 +10,12 @@ import CoreBluetooth
 import nRFMeshProvision
 import Promises
 
+// MARK: - CentralManager
+
 /// A utility class of managiment procetudes such as discover, connect and disconnect peripherals.
 /// This class is a wrapper of CBCentralManager.
 public final class CentralManager: NSObject {
-    public enum ScanError: Error, LocalizedError {
-        /// The Konashi device was not found within the timeout time.
-        case peripheralNotFound
-
-        public var errorDescription: String? {
-            switch self {
-            case .peripheralNotFound:
-                return "Counld not find any peripherals."
-            }
-        }
-    }
-
-    public enum ScanTarget {
-        case all
-        case meshNode
-    }
-
-    /// A shared instance of CentralManager.
-    public static let shared = CentralManager()
-
-    /// Represents the current state of a CBManager.
-    public var state: CBManagerState {
-        return manager.state
-    }
-
-    // TODO: Add document
-    public var discoversUniquePeripherals = true
-
-    /// A subject that sends any operation errors.
-    public let operationErrorSubject = PassthroughSubject<Error, Never>()
-    /// A subject that sends discovered peripheral and advertisement datas.
-    public let didDiscoverSubject = PassthroughSubject<(peripheral: any Peripheral, advertisementData: [String: Any], rssi: NSNumber), Never>()
-    /// A subject that sends a peripheral that is connected.
-    public let didConnectSubject = PassthroughSubject<CBPeripheral, Never>()
-    /// A subject that sends a peripheral when a peripheral is disconnected.
-    public let didDisconnectSubject = PassthroughSubject<(CBPeripheral, Error?), Never>()
-    /// A subject that sends a peripheral when failed to connect.
-    public let didFailedToConnectSubject = PassthroughSubject<(CBPeripheral, Error?), Never>()
-
-    /// This value indicates that a centeral manager is scanning peripherals.
-    @Published public private(set) var isScanning = false
-    /// This value indicates that a centeral manager is connecting a peripheral.
-    @Published public private(set) var isConnecting = false
-
-    private var statePromise = Promise<Void>.pending()
-    private var cancellable = Set<AnyCancellable>()
-    private lazy var manager = CBCentralManager(delegate: self, queue: nil)
-
-    fileprivate var numberOfConnectingPeripherals = 0 {
-        didSet {
-            if numberOfConnectingPeripherals == 0 {
-                isConnecting = false
-            }
-            else {
-                isConnecting = true
-            }
-        }
-    }
+    // MARK: Lifecycle
 
     override public init() {
         super.init()
@@ -92,6 +37,54 @@ public final class CentralManager: NSObject {
             }
             self.numberOfConnectingPeripherals -= 1
         }.store(in: &cancellable)
+    }
+
+    // MARK: Public
+
+    public enum ScanError: Error, LocalizedError {
+        /// The Konashi device was not found within the timeout time.
+        case peripheralNotFound
+
+        // MARK: Public
+
+        public var errorDescription: String? {
+            switch self {
+            case .peripheralNotFound:
+                return "Counld not find any peripherals."
+            }
+        }
+    }
+
+    public enum ScanTarget {
+        case all
+        case meshNode
+    }
+
+    /// A shared instance of CentralManager.
+    public static let shared = CentralManager()
+
+    // TODO: Add document
+    public var discoversUniquePeripherals = true
+
+    /// A subject that sends any operation errors.
+    public let operationErrorSubject = PassthroughSubject<Error, Never>()
+    /// A subject that sends discovered peripheral and advertisement datas.
+    public let didDiscoverSubject = PassthroughSubject<(peripheral: any Peripheral, advertisementData: [String: Any], rssi: NSNumber), Never>()
+    /// A subject that sends a peripheral that is connected.
+    public let didConnectSubject = PassthroughSubject<CBPeripheral, Never>()
+    /// A subject that sends a peripheral when a peripheral is disconnected.
+    public let didDisconnectSubject = PassthroughSubject<(CBPeripheral, Error?), Never>()
+    /// A subject that sends a peripheral when failed to connect.
+    public let didFailedToConnectSubject = PassthroughSubject<(CBPeripheral, Error?), Never>()
+
+    /// This value indicates that a centeral manager is scanning peripherals.
+    @Published public private(set) var isScanning = false
+    /// This value indicates that a centeral manager is connecting a peripheral.
+    @Published public private(set) var isConnecting = false
+
+    /// Represents the current state of a CBManager.
+    public var state: CBManagerState {
+        return manager.state
     }
 
     /// Attempt to scan available peripherals.
@@ -174,6 +167,8 @@ public final class CentralManager: NSObject {
         return promise
     }
 
+    // MARK: Internal
+
     /// Connect to peripheral.
     /// - Parameter peripheral: A peripheral to connect.
     func connect(_ peripheral: CBPeripheral) {
@@ -186,7 +181,28 @@ public final class CentralManager: NSObject {
     func disconnect(_ peripheral: CBPeripheral) {
         manager.cancelPeripheralConnection(peripheral)
     }
+
+    // MARK: Fileprivate
+
+    fileprivate var numberOfConnectingPeripherals = 0 {
+        didSet {
+            if numberOfConnectingPeripherals == 0 {
+                isConnecting = false
+            }
+            else {
+                isConnecting = true
+            }
+        }
+    }
+
+    // MARK: Private
+
+    private var statePromise = Promise<Void>.pending()
+    private var cancellable = Set<AnyCancellable>()
+    private lazy var manager = CBCentralManager(delegate: self, queue: nil)
 }
+
+// MARK: CBCentralManagerDelegate
 
 extension CentralManager: CBCentralManagerDelegate {
     public func centralManagerDidUpdateState(_ central: CBCentralManager) {

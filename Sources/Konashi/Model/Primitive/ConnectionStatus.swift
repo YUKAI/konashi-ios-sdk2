@@ -9,6 +9,14 @@ import Foundation
 
 /// A confition of a peripheral.
 public enum ConnectionStatus: Hashable {
+    case error(Error)
+    case disconnected
+    case connecting
+    case connected
+    case readyToUse
+
+    // MARK: Public
+
     public static func == (lhs: ConnectionStatus, rhs: ConnectionStatus) -> Bool {
         return lhs.hashValue == rhs.hashValue
     }
@@ -27,10 +35,4 @@ public enum ConnectionStatus: Hashable {
             hasher.combine("readyToUse")
         }
     }
-
-    case error(Error)
-    case disconnected
-    case connecting
-    case connected
-    case readyToUse
 }

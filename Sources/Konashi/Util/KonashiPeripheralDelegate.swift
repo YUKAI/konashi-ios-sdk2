@@ -8,13 +8,21 @@
 import CoreBluetooth
 import Foundation
 
+// MARK: - KonashiPeripheralDelegate
+
 class KonashiPeripheralDelegate: NSObject {
-    weak var parentPeripheral: KonashiPeripheral?
+    // MARK: Lifecycle
 
     init(peripheral: KonashiPeripheral) {
         parentPeripheral = peripheral
     }
+
+    // MARK: Internal
+
+    weak var parentPeripheral: KonashiPeripheral?
 }
+
+// MARK: CBPeripheralDelegate
 
 extension KonashiPeripheralDelegate: CBPeripheralDelegate {
     func peripheral(_ peripheral: CBPeripheral, didDiscoverServices error: Error?) {

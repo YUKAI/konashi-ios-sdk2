@@ -13,6 +13,8 @@ public extension MeshManager {
         case invalidNetworkKey
         case invalidApplicationKey
 
+        // MARK: Public
+
         public var errorDescription: String? {
             switch self {
             case .invalidUnprovisionedDevice:

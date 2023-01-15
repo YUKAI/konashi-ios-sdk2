@@ -12,6 +12,8 @@ public extension MeshManager {
         case failedToSaveNetworkSettings
         case failedToCreateMeshNetwork
 
+        // MARK: Public
+
         public var errorDescription: String? {
             switch self {
             case .failedToSaveNetworkSettings:

@@ -14,6 +14,8 @@ public extension MeshManager {
         case bearerIsClosed
         case timeout
 
+        // MARK: Public
+
         public var errorDescription: String? {
             switch self {
             case .invalidMeshNetwork:

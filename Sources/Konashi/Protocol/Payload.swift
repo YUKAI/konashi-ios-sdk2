@@ -7,10 +7,14 @@
 
 import Foundation
 
+// MARK: - Payload
+
 /// An interface for command payload.
 protocol Payload {
     func compose() -> [UInt8]
 }
+
+// MARK: - ParsablePayload
 
 /// An interface for command payload that can be structured from byte data.
 protocol ParsablePayload: Payload {
@@ -18,6 +22,8 @@ protocol ParsablePayload: Payload {
 
     static func parse(_ data: [UInt8], info: [String: Any]?) -> Result<Self, Error>
 }
+
+// MARK: - PayloadParseError
 
 /// An errors that is raised when received data can not be parsed into payload.
 public enum PayloadParseError: LocalizedError {

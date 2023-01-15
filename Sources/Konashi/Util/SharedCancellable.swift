@@ -9,8 +9,9 @@ import Combine
 import Foundation
 
 actor SharedCancellable {
+    // MARK: Internal
+
     static let shared = SharedCancellable()
-    private var cancellable = [UUID: AnyCancellable]()
 
     func store(_ cancellable: AnyCancellable, for uuid: UUID) {
         self.cancellable[uuid] = cancellable
@@ -19,4 +20,8 @@ actor SharedCancellable {
     func remove(_ uuid: UUID) -> AnyCancellable? {
         return cancellable.removeValue(forKey: uuid)
     }
+
+    // MARK: Private
+
+    private var cancellable = [UUID: AnyCancellable]()
 }

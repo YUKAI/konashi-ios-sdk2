@@ -13,6 +13,8 @@ public enum ProvisioningError: Error, LocalizedError {
     case invalidCapability
     case unsupportedDevice
 
+    // MARK: Public
+
     public var errorDescription: String? {
         switch self {
         case .unknown:

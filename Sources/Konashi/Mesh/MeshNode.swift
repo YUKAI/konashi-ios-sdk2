@@ -9,12 +9,30 @@ import Combine
 import Foundation
 import nRFMeshProvision
 
-public class MeshNode: NodeCompatible {
-    public enum Element: Int, NodeElement {
-        public var index: Int {
-            return rawValue
-        }
+// MARK: - MeshNode
 
+public class MeshNode: NodeCompatible {
+    // MARK: Lifecycle
+
+    public init?(manager: MeshManager, uuid: UUID) {
+        guard let node = manager.node(for: uuid) else {
+            return nil
+        }
+        self.manager = manager
+        self.node = node
+        self.manager.didReceiveMessageSubject
+            .filter(for: self)
+            .sink { [weak self] message in
+                guard let self else {
+                    return
+                }
+                self.receivedMessageSubject.send(message)
+            }.store(in: &cancellable)
+    }
+
+    // MARK: Public
+
+    public enum Element: Int, NodeElement {
         case configuration // Element 1
         case control0 // Element 2
         case control1 // Element 3
@@ -30,6 +48,8 @@ public class MeshNode: NodeCompatible {
         case sensor // Element 13
         case ledHue // Element 14
         case ledSaturation // Element 15
+
+        // MARK: Public
 
         public enum Model: NodeModel {
             // Element 1
@@ -90,6 +110,9 @@ public class MeshNode: NodeCompatible {
 
             // Element 13
             case sensorServer
+
+            // MARK: Public
+
             // TODO: TBA
 
             // Element 14
@@ -122,17 +145,17 @@ public class MeshNode: NodeCompatible {
                      .gpio6InputClient,
                      .gpio7InputClient:
                     return 0x1001
-                case .hardwarePWM0Server,
+                case .analog0OutputServer,
+                     .analog1OutputServer,
+                     .analog2OutputServer,
+                     .hardwarePWM0Server,
                      .hardwarePWM1Server,
                      .hardwarePWM2Server,
                      .hardwarePWM3Server,
                      .softwarePWM0Server,
                      .softwarePWM1Server,
                      .softwarePWM2Server,
-                     .softwarePWM3Server,
-                     .analog0OutputServer,
-                     .analog1OutputServer,
-                     .analog2OutputServer:
+                     .softwarePWM3Server:
                     return 0x1002
                 case .analog0InputClient,
                      .analog1InputClient,
@@ -174,7 +197,15 @@ public class MeshNode: NodeCompatible {
                 }
             }
         }
+
+        public var index: Int {
+            return rawValue
+        }
     }
+
+    public var receivedMessageSubject = PassthroughSubject<ReceivedMessage, Never>()
+
+    public private(set) var node: Node
 
     public var unicastAddress: Address? {
         return node.unicastAddress
@@ -198,28 +229,6 @@ public class MeshNode: NodeCompatible {
 
     public var elements: [nRFMeshProvision.Element] {
         return node.elements
-    }
-
-    public var receivedMessageSubject = PassthroughSubject<ReceivedMessage, Never>()
-
-    private var cancellable = Set<AnyCancellable>()
-    public private(set) var node: Node
-    private(set) var manager: MeshManager
-
-    public init?(manager: MeshManager, uuid: UUID) {
-        guard let node = manager.node(for: uuid) else {
-            return nil
-        }
-        self.manager = manager
-        self.node = node
-        self.manager.didReceiveMessageSubject
-            .filter(for: self)
-            .sink { [weak self] message in
-                guard let self else {
-                    return
-                }
-                self.receivedMessageSubject.send(message)
-            }.store(in: &cancellable)
     }
 
     public func updateName(_ name: String?) throws {
@@ -308,6 +317,14 @@ public class MeshNode: NodeCompatible {
     public func reset() async throws {
         try await send(config: ConfigNodeReset())
     }
+
+    // MARK: Internal
+
+    private(set) var manager: MeshManager
+
+    // MARK: Private
+
+    private var cancellable = Set<AnyCancellable>()
 
     private func checkOperationAvailability() async throws {
         try await manager.waitUntilConnectionOpen()

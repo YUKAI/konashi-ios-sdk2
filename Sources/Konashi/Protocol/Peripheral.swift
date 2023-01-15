@@ -17,6 +17,8 @@ extension Peripheral {
     }
 }
 
+// MARK: - Peripheral
+
 public protocol Peripheral: Hashable {
     /// A name of a peripheral.
     var name: String? { get }

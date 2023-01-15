@@ -8,8 +8,72 @@
 import CoreBluetooth
 import Foundation
 
+// MARK: - ConfigService
+
 /// A BLE service to configure Konashi hardware.
 public struct ConfigService: Service {
+    // MARK: Public
+
+    /// Command to configure a hardware element.
+    public enum ConfigCommand: Command {
+        case gpio([GPIO.PinConfig])
+        case softwarePWM([PWM.Software.PinConfig])
+        case hardwarePWM(config: PWM.Hardware.ConfigPayload)
+        case analog(config: Analog.ConfigPayload)
+        case i2c(config: I2C.Config)
+        case uart(config: UART.Config)
+        case spi(config: SPI.Config)
+
+        // MARK: Public
+
+        /// Convert instance to byte array.
+        public func compose() -> Data {
+            var bytes = [UInt8]()
+            bytes.append(commandIdentifier())
+            var payload: [UInt8] {
+                switch self {
+                case let .gpio(config):
+                    return config.compose()
+                case let .softwarePWM(config):
+                    return config.compose()
+                case let .hardwarePWM(config):
+                    return config.compose()
+                case let .analog(config):
+                    return config.compose()
+                case let .i2c(config):
+                    return config.compose()
+                case let .uart(config):
+                    return config.compose()
+                case let .spi(config):
+                    return config.compose()
+                }
+            }
+            bytes.append(contentsOf: payload)
+            return Data(bytes)
+        }
+
+        // MARK: Internal
+
+        func commandIdentifier() -> UInt8 {
+            switch self {
+            case .gpio:
+                return 0x01
+            case .softwarePWM:
+                return 0x02
+            case .hardwarePWM:
+                return 0x03
+            case .analog:
+                return 0x04
+            case .i2c:
+                return 0x05
+            case .uart:
+                return 0x06
+            case .spi:
+                return 0x07
+            }
+        }
+    }
+
     /// Service UUID of config service.
     public static var uuid: UUID {
         return UUID(uuidString: "064d0200-8251-49d9-b6f3-f7ba35e5d0a1")!
@@ -41,6 +105,8 @@ public struct ConfigService: Service {
             spiConfig
         ]
     }
+
+    // MARK: Internal
 
     let configCommand = WriteableCharacteristic<ConfigCommand>(
         serviceUUID: ConfigService.uuid,
@@ -90,62 +156,6 @@ public struct ConfigService: Service {
             uuidString: "064D0208-8251-49D9-B6F3-F7BA35E5D0A1"
         )!
     )
-
-    /// Command to configure a hardware element.
-    public enum ConfigCommand: Command {
-        case gpio([GPIO.PinConfig])
-        case softwarePWM([PWM.Software.PinConfig])
-        case hardwarePWM(config: PWM.Hardware.ConfigPayload)
-        case analog(config: Analog.ConfigPayload)
-        case i2c(config: I2C.Config)
-        case uart(config: UART.Config)
-        case spi(config: SPI.Config)
-
-        func commandIdentifier() -> UInt8 {
-            switch self {
-            case .gpio:
-                return 0x01
-            case .softwarePWM:
-                return 0x02
-            case .hardwarePWM:
-                return 0x03
-            case .analog:
-                return 0x04
-            case .i2c:
-                return 0x05
-            case .uart:
-                return 0x06
-            case .spi:
-                return 0x07
-            }
-        }
-
-        /// Convert instance to byte array.
-        public func compose() -> Data {
-            var bytes = [UInt8]()
-            bytes.append(commandIdentifier())
-            var payload: [UInt8] {
-                switch self {
-                case let .gpio(config):
-                    return config.compose()
-                case let .softwarePWM(config):
-                    return config.compose()
-                case let .hardwarePWM(config):
-                    return config.compose()
-                case let .analog(config):
-                    return config.compose()
-                case let .i2c(config):
-                    return config.compose()
-                case let .uart(config):
-                    return config.compose()
-                case let .spi(config):
-                    return config.compose()
-                }
-            }
-            bytes.append(contentsOf: payload)
-            return Data(bytes)
-        }
-    }
 }
 
 public extension ConfigService {

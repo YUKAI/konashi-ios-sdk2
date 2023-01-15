@@ -20,6 +20,12 @@ public enum Analog {
     }
 
     public enum Pin: UInt8, CaseIterable, CustomStringConvertible {
+        case pin0
+        case pin1
+        case pin2
+
+        // MARK: Public
+
         public var description: String {
             switch self {
             case .pin0:
@@ -30,10 +36,6 @@ public enum Analog {
                 return "AIO2"
             }
         }
-
-        case pin0
-        case pin1
-        case pin2
     }
 
     public enum ADCVoltageReference: UInt8, CaseIterable {
@@ -93,6 +95,15 @@ public enum Analog {
     }
 
     public struct PinConfig: ParsablePayload, Hashable {
+        // MARK: Public
+
+        public let pin: Analog.Pin
+        public let isEnabled: Bool
+        public let notifyOnInputChange: Bool
+        public let direction: Direction
+
+        // MARK: Internal
+
         enum InfoKey: String {
             case pin
         }
@@ -100,11 +111,6 @@ public enum Analog {
         static var byteSize: UInt {
             return 1
         }
-
-        public let pin: Analog.Pin
-        public let isEnabled: Bool
-        public let notifyOnInputChange: Bool
-        public let direction: Direction
 
         static func parse(_ data: [UInt8], info: [String: Any]? = nil) -> Result<Analog.PinConfig, Error> {
             if data.count != byteSize {
@@ -140,11 +146,15 @@ public enum Analog {
     }
 
     public struct ConfigPayload: Payload {
+        // MARK: Public
+
         public var pinConfig: [PinConfig]?
         public var adcUpdatePeriod: ADCUpdatePeriodConfig?
         public var adcVoltageReferenceConfig: ADCVoltageReferenceConfig?
         public var vdacVoltageReferenceConfig: VDACVoltageReferenceConfig?
         public var idacCurrentRangeConfig: IDACCurrentRangeConfig?
+
+        // MARK: Internal
 
         func compose() -> [UInt8] {
             var bytes = [UInt8]()
@@ -169,7 +179,11 @@ public enum Analog {
     }
 
     public struct ADCUpdatePeriodConfig: Payload {
+        // MARK: Public
+
         public let updatePeriodStep: UInt8
+
+        // MARK: Internal
 
         func compose() -> [UInt8] {
             return [0b11110000, updatePeriodStep]
@@ -177,7 +191,11 @@ public enum Analog {
     }
 
     public struct ADCVoltageReferenceConfig: Payload {
+        // MARK: Public
+
         public let reference: ADCVoltageReference
+
+        // MARK: Internal
 
         func compose() -> [UInt8] {
             return [0b11100000 | reference.rawValue]
@@ -185,7 +203,11 @@ public enum Analog {
     }
 
     public struct VDACVoltageReferenceConfig: Payload {
+        // MARK: Public
+
         public let reference: VDACVoltageReference
+
+        // MARK: Internal
 
         func compose() -> [UInt8] {
             return [0b11010000 | reference.rawValue]
@@ -193,7 +215,11 @@ public enum Analog {
     }
 
     public struct IDACCurrentRangeConfig: Payload {
+        // MARK: Public
+
         public let step: IDACCurrentStepSize
+
+        // MARK: Internal
 
         func compose() -> [UInt8] {
             return [0b11000000 | step.rawValue]
@@ -201,9 +227,13 @@ public enum Analog {
     }
 
     public struct ControlPayload: Payload {
+        // MARK: Public
+
         public let pin: Pin
         public let stepValue: UInt16
         public let transitionDurationMillisec: UInt32
+
+        // MARK: Internal
 
         func compose() -> [UInt8] {
             let firstByte: UInt8 = pin.rawValue

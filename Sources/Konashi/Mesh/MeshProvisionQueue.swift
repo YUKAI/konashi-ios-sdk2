@@ -9,8 +9,7 @@ import Combine
 import Foundation
 
 public actor MeshProvisionQueue {
-    private static var readyToProvisionSubject = PassthroughSubject<any Provisionable, Never>()
-    private static var queue = [any Provisionable]()
+    // MARK: Public
 
     public static var isProvisioning = CurrentValueSubject<Bool, Never>(false)
 
@@ -50,6 +49,11 @@ public actor MeshProvisionQueue {
         }
     }
 
+    // MARK: Private
+
+    private static var readyToProvisionSubject = PassthroughSubject<any Provisionable, Never>()
+    private static var queue = [any Provisionable]()
+
     private static func provision(_ provisioner: any Provisionable, attractFor: UInt8) async throws {
         isProvisioning.send(true)
         try await provisioner.open()
@@ -58,7 +62,7 @@ public actor MeshProvisionQueue {
     }
 
     private static func checkNextProvisioner() {
-        if queue.count > 0 {
+        if !queue.isEmpty {
             isProvisioning.send(true)
             readyToProvisionSubject.send(queue.removeFirst())
         }

@@ -10,6 +10,8 @@ import CoreBluetooth
 import Foundation
 import nRFMeshProvision
 
+// MARK: - MeshNetworkConnection
+
 /// The Network Connection object maintains connections to Bluetooth
 /// mesh proxies. It scans in the background and connects to nodes that
 /// advertise with Network ID or Node Identity beacon.
@@ -21,16 +23,30 @@ import nRFMeshProvision
 /// receive outgoing messages. However, the `dataDelegate` will be
 /// notified about messages received from any of the connected proxies.
 class MeshNetworkConnection: NSObject, Bearer {
-    private let connectionModeKey = "konashi-ios-sdk2_connectionMode"
+    // MARK: Lifecycle
+
+    init(to meshNetwork: MeshNetwork) {
+        centralManager = CBCentralManager()
+        self.meshNetwork = meshNetwork
+        super.init()
+        centralManager.delegate = self
+
+        // By default, the connection mode is automatic.
+        UserDefaults.standard.register(defaults: [connectionModeKey: true])
+    }
+
+    // MARK: Public
+
+    public var supportedPduTypes: PduTypes {
+        return [.networkPdu, .meshBeacon, .proxyConfiguration]
+    }
+
+    // MARK: Internal
 
     /// Maximum number of connections that `NetworkConnection` can
     /// handle.
     static let maxConnections = 1
-    /// The Bluetooth Central Manager instance that will scan and
-    /// connect to proxies.
-    private let centralManager: CBCentralManager
-    /// The Mesh Network for this connection.
-    private let meshNetwork: MeshNetwork
+
     /// The list of connected GATT Proxies.
     private(set) var proxies: [GattBearer] = []
     /// A flag set to `true` when any of the underlying bearers is open.
@@ -38,6 +54,7 @@ class MeshNetworkConnection: NSObject, Bearer {
 
     weak var delegate: BearerDelegate?
     weak var dataDelegate: BearerDataDelegate?
+
     weak var logger: LoggerDelegate? {
         didSet {
             proxies.forEach {
@@ -45,15 +62,6 @@ class MeshNetworkConnection: NSObject, Bearer {
             }
         }
     }
-
-    public var supportedPduTypes: PduTypes {
-        return [.networkPdu, .meshBeacon, .proxyConfiguration]
-    }
-
-    /// A flag indicating whether the network connection is open.
-    /// When open, it will scan for mesh nodes in range and connect to
-    /// them if found.
-    private var isStarted = false
 
     /// Returns `true` if at least one Proxy is connected, `false` otherwise.
     var isConnected: Bool {
@@ -77,16 +85,6 @@ class MeshNetworkConnection: NSObject, Bearer {
                 centralManager.scanForPeripherals(withServices: [MeshProxyService.uuid], options: nil)
             }
         }
-    }
-
-    init(to meshNetwork: MeshNetwork) {
-        centralManager = CBCentralManager()
-        self.meshNetwork = meshNetwork
-        super.init()
-        centralManager.delegate = self
-
-        // By default, the connection mode is automatic.
-        UserDefaults.standard.register(defaults: [connectionModeKey: true])
     }
 
     func open() {
@@ -140,7 +138,23 @@ class MeshNetworkConnection: NSObject, Bearer {
             bearerDidOpen(self)
         }
     }
+
+    // MARK: Private
+
+    private let connectionModeKey = "konashi-ios-sdk2_connectionMode"
+
+    /// The Bluetooth Central Manager instance that will scan and
+    /// connect to proxies.
+    private let centralManager: CBCentralManager
+    /// The Mesh Network for this connection.
+    private let meshNetwork: MeshNetwork
+    /// A flag indicating whether the network connection is open.
+    /// When open, it will scan for mesh nodes in range and connect to
+    /// them if found.
+    private var isStarted = false
 }
+
+// MARK: CBCentralManagerDelegate
 
 extension MeshNetworkConnection: CBCentralManagerDelegate {
     func centralManagerDidUpdateState(_ central: CBCentralManager) {
@@ -195,6 +209,8 @@ extension MeshNetworkConnection: CBCentralManagerDelegate {
         bearer.open()
     }
 }
+
+// MARK: GattBearerDelegate, BearerDataDelegate
 
 extension MeshNetworkConnection: GattBearerDelegate, BearerDataDelegate {
     func bearerDidOpen(_ bearer: Bearer) {

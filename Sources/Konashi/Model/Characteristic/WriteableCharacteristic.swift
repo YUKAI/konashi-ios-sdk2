@@ -9,13 +9,17 @@ import Foundation
 
 /// A characteristic that can be written a value.
 public class WriteableCharacteristic<Value: Command>: Characteristic {
-    public let serviceUUID: UUID
-    public let uuid: UUID
+    // MARK: Lifecycle
 
     init(serviceUUID: UUID, uuid: UUID) {
         self.serviceUUID = serviceUUID
         self.uuid = uuid
     }
+
+    // MARK: Public
+
+    public let serviceUUID: UUID
+    public let uuid: UUID
 
     public func update(data: Data?) {}
 }
