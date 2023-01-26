@@ -282,7 +282,7 @@ public class MeshNode: NodeCompatible {
     @discardableResult
     public func waitForSendMessage() async throws -> SendMessage {
         try await checkOperationAvailability()
-        return try await manager.didSendMessageSubject.eraseToAnyPublisher().async()
+        return try await manager.didSendMessageSubject.eraseToAnyPublisher().konashi_makeAsync()
     }
 
     @discardableResult
@@ -291,7 +291,7 @@ public class MeshNode: NodeCompatible {
         return try await receivedMessageSubject
             .filter { type(of: $0.body) is T }
             .eraseToAnyPublisher()
-            .async()
+            .konashi_makeAsync()
     }
 
     @discardableResult

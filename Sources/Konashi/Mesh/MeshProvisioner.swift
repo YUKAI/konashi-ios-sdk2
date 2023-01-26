@@ -63,7 +63,7 @@ class MeshProvisioner: Provisionable {
                     return capabilities
                 }
                 return nil
-            }.eraseToAnyPublisher().async()
+            }.eraseToAnyPublisher().konashi_makeAsync()
             guard let isUnicastAddressValid = provisioningManager.isUnicastAddressValid else {
                 throw ProvisioningError.unknown
             }
@@ -96,7 +96,7 @@ class MeshProvisioner: Provisionable {
                         return true
                     }
                     return false
-                }.eraseToAnyPublisher().async()
+                }.eraseToAnyPublisher().konashi_makeAsync()
             return
         }
         catch {

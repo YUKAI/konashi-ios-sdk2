@@ -16,7 +16,7 @@ enum AsyncError: Error {
 }
 
 extension AnyPublisher {
-    func async() async throws -> Output {
+    func konashi_makeAsync() async throws -> Output {
         try await withCheckedThrowingContinuation { continuation in
             Task {
                 let uuid = UUID()

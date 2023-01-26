@@ -35,7 +35,7 @@ public actor MeshProvisionQueue {
                         let readyProvisioner = try await readyToProvisionSubject
                             .filter { $0.uuid == provisioner.uuid }
                             .eraseToAnyPublisher()
-                            .async()
+                            .konashi_makeAsync()
                         try await provision(readyProvisioner, attractFor: attractFor)
                         checkNextProvisioner()
                         continuation.resume(returning: ())

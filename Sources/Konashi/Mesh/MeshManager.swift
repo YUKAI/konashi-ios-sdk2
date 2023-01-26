@@ -142,7 +142,7 @@ public class MeshManager {
                 .timeout(.seconds(timeoutInterval), scheduler: DispatchQueue.global())
                 .filter { $0 }
                 .eraseToAnyPublisher()
-                .async()
+                .konashi_makeAsync()
             if result == false {
                 throw MeshManager.NetworkError.bearerIsClosed
             }
