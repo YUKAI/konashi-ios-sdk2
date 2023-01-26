@@ -255,11 +255,13 @@ public class MeshNode: NodeCompatible {
         return node.elements[safe: model.element.index]?.model(withModelId: model.identifier)
     }
 
-    public func removeFromNetwork() throws {
+    public func removeFromNetwork() async throws {
         guard let network = manager.networkManager.meshNetwork else {
             throw MeshManager.NetworkError.invalidMeshNetwork
         }
+        try await reset().waitForResponse(for: ConfigNodeResetStatus.self)
         network.remove(node: node)
+        try manager.save()
     }
 
     @discardableResult
@@ -314,8 +316,8 @@ public class MeshNode: NodeCompatible {
         return self
     }
 
-    public func reset() async throws {
-        try await send(config: ConfigNodeReset())
+    public func reset() async throws -> SendHandler {
+        return try await send(config: ConfigNodeReset())
     }
 
     // MARK: Internal

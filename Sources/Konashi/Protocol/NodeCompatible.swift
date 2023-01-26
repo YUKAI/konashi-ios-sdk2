@@ -30,8 +30,8 @@ public protocol NodeCompatible {
     func element(with address: nRFMeshProvision.Address) -> nRFMeshProvision.Element?
     func element(for element: NodeElement) -> nRFMeshProvision.Element?
     func model(for model: NodeModel) -> nRFMeshProvision.Model?
-    func removeFromNetwork() throws
-    func reset() async throws
+    func removeFromNetwork() async throws
+    func reset() async throws -> SendHandler
 
     @discardableResult
     func setGattProxyEnabled(_ enabled: Bool) async throws -> NodeCompatible
