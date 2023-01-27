@@ -346,7 +346,7 @@ public final class KonashiPeripheral: Peripheral {
     }
 
     // MARK: - Mesh
-    
+
     public func setMeshEnabled(_ enabled: Bool) async throws {
         if isConnected == false {
             try await connect()
@@ -447,6 +447,27 @@ public final class KonashiPeripheral: Peripheral {
         services.find(characteristic: characteristic)?.update(data: characteristic.value)
     }
 
+    func didDiscoverService() {
+        guard let foundServices = peripheral.services else {
+            return
+        }
+        for service in foundServices {
+            if service.characteristics == nil {
+                discoverCharacteristics(for: service)
+            }
+            else {
+                didDiscoverCharacteristics(for: service)
+            }
+        }
+    }
+
+    func didDiscoverCharacteristics(for service: CBService) {
+        discoveredServices.append(service)
+        if discoveredServices.count == services.count {
+            isCharacteristicsDiscovered = true
+        }
+    }
+
     // MARK: Fileprivate
 
     @Published fileprivate var isConnected = false
@@ -465,7 +486,7 @@ public final class KonashiPeripheral: Peripheral {
     private var internalCancellable = Set<AnyCancellable>()
 
     private var kvoCancellable: AnyCancellable?
-    
+
     private func discoverServices() {
         print(">>> discoverServices")
         peripheral.delegate = delegate
@@ -560,27 +581,6 @@ public final class KonashiPeripheral: Peripheral {
             @unknown default:
                 break
             }
-        }
-    }
-
-    func didDiscoverService() {
-        guard let foundServices = peripheral.services else {
-            return
-        }
-        for service in foundServices {
-            if service.characteristics == nil {
-                discoverCharacteristics(for: service)
-            }
-            else {
-                didDiscoverCharacteristics(for: service)
-            }
-        }
-    }
-
-    func didDiscoverCharacteristics(for service: CBService) {
-        discoveredServices.append(service)
-        if discoveredServices.count == services.count {
-            isCharacteristicsDiscovered = true
         }
     }
 }
