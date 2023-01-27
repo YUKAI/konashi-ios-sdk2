@@ -12,12 +12,16 @@ import Promises
 
 // MARK: - CentralManager
 
+// TODO: actorにしたい
 /// A utility class of managiment procetudes such as discover, connect and disconnect peripherals.
 /// This class is a wrapper of CBCentralManager.
-public final class CentralManager: NSObject {
+public final class CentralManager: NSObject, Loggable {
     // MARK: Lifecycle
 
-    override public init() {
+    public static let sharedLogOutput = LogOutput()
+    public let logOutput = LogOutput()
+
+    override private init() {
         super.init()
         didConnectSubject.sink { [weak self] _ in
             guard let self else {
@@ -85,6 +89,8 @@ public final class CentralManager: NSObject {
     /// Attempt to scan available peripherals.
     /// - Returns: A promise object for this method.
     public func scan() -> Promise<Void> {
+        log(.info("Start scan"))
+
         if manager.state == .poweredOn {
             statePromise.fulfill(())
         }
@@ -117,6 +123,8 @@ public final class CentralManager: NSObject {
     ///   - timeoutInterval: The duration of timeout.
     /// - Returns: A promise object for this method.
     public func find(name: String, timeoutInterval: TimeInterval = 5) -> Promise<any Peripheral> {
+        log(.info("Start find \(name): timeout \(timeoutInterval)"))
+
         var cancellable = Set<AnyCancellable>()
         return Promise<any Peripheral> { [weak self] resolve, reject in
             guard let self else {
@@ -148,6 +156,8 @@ public final class CentralManager: NSObject {
     /// - Returns: A promise object for this method.
     @discardableResult
     public func stopScan() -> Promise<Void> {
+        log(.info("Stop scan"))
+
         let promise = Promise<Void>.pending()
         isScanning = false
         manager.stopScan()
@@ -160,6 +170,8 @@ public final class CentralManager: NSObject {
     /// Connect to peripheral.
     /// - Parameter peripheral: A peripheral to connect.
     func connect(_ peripheral: CBPeripheral) {
+        log(.info("Connect to \(peripheral.name ?? "Unknown"): \(peripheral.identifier)"))
+
         numberOfConnectingPeripherals += 1
         manager.connect(peripheral, options: nil)
     }
@@ -167,6 +179,8 @@ public final class CentralManager: NSObject {
     /// Disconnect peripheral.
     /// - Parameter peripheral: A peripheral to disconnect.
     func disconnect(_ peripheral: CBPeripheral) {
+        log(.info("Disconnect to \(peripheral.name ?? "Unknown"): \(peripheral.identifier)"))
+
         manager.cancelPeripheralConnection(peripheral)
     }
 
@@ -194,6 +208,8 @@ public final class CentralManager: NSObject {
 
 extension CentralManager: CBCentralManagerDelegate {
     public func centralManagerDidUpdateState(_ central: CBCentralManager) {
+        log(.info("Did update central manager state: \(central.state.rawValue)"))
+
         if central.state == .poweredOn {
             statePromise.fulfill(())
         }
@@ -208,6 +224,8 @@ extension CentralManager: CBCentralManagerDelegate {
         advertisementData: [String: Any],
         rssi RSSI: NSNumber
     ) {
+        log(.info("Did discover peripheral: \(peripheral.name ?? "Unknown"),\n advertisement data: \(advertisementData),\n rssi: \(RSSI)"))
+
         didDiscoverSubject.send(
             (
                 peripheral: KonashiPeripheral(
@@ -221,10 +239,12 @@ extension CentralManager: CBCentralManagerDelegate {
     }
 
     public func centralManager(_ central: CBCentralManager, didConnect peripheral: CBPeripheral) {
+        log(.info("Did connect: \(peripheral.name ?? "Unknown")"))
         didConnectSubject.send(peripheral)
     }
 
     public func centralManager(_ central: CBCentralManager, didDisconnectPeripheral peripheral: CBPeripheral, error: Error?) {
+        log(.info("Did disconnect: \(peripheral.name ?? "Unknown"), error: \(error?.localizedDescription ?? "nil")"))
         if let error {
             operationErrorSubject.send(error)
         }
@@ -234,6 +254,7 @@ extension CentralManager: CBCentralManagerDelegate {
     }
 
     public func centralManager(_ central: CBCentralManager, didFailToConnect peripheral: CBPeripheral, error: Error?) {
+        log(.info("Did fail to connect: \(peripheral.name ?? "Unknown"), error: \(error?.localizedDescription ?? "nil")"))
         if let error {
             operationErrorSubject.send(error)
         }

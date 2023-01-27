@@ -5,6 +5,7 @@
 //  Created by Akira Matsuda on 2021/08/03.
 //
 
+import Foundation
 import Combine
 import CombineExt
 import CoreBluetooth
@@ -20,8 +21,15 @@ public extension KonashiPeripheral {
 
 /// A remote peripheral device.
 public final class KonashiPeripheral: Peripheral {
-    // MARK: Lifecycle
+    var debugName: String {
+        return "\(name ?? "Unknown"): \(peripheral.identifier)"
+    }
 
+    static public let sharedLogOutput = LogOutput()
+    public let logOutput = LogOutput()
+
+    // MARK: Lifecycle
+    
     public init(peripheral: CBPeripheral, advertisementData: [String: Any]) {
         self.peripheral = peripheral
         self.advertisementData = advertisementData
@@ -30,6 +38,7 @@ public final class KonashiPeripheral: Peripheral {
     }
 
     deinit {
+//        log(.trace("Deinit: \(debugName)"))
         readRssiTimer?.invalidate()
     }
 
@@ -52,7 +61,11 @@ public final class KonashiPeripheral: Peripheral {
     }()
 
     /// A publisher of peripheral state.
-    @Published public private(set) var currentConnectionStatus: ConnectionStatus = .disconnected
+    @Published public private(set) var currentConnectionStatus: ConnectionStatus = .disconnected {
+        didSet {
+//            log(.trace("Change connection state: \(debugName), state: \(currentConnectionStatus)"))
+        }
+    }
 
     /// A publisher of RSSI value.
     @Published public internal(set) var rssi: NSNumber?
@@ -71,8 +84,22 @@ public final class KonashiPeripheral: Peripheral {
     public let didWriteValueSubject = PassthroughSubject<(uuid: CBUUID, error: Error?), Never>()
 
     // TODO: Add document
-    public var meshNode: NodeCompatible?
-    @Published public private(set) var currentProvisioningState: ProvisioningState?
+    public var meshNode: NodeCompatible? {
+        didSet {
+            guard meshNode != nil else {
+                return
+            }
+            log(.trace("Node assigned: \(debugName)"))
+        }
+    }
+    @Published public private(set) var currentProvisioningState: ProvisioningState? {
+        didSet {
+            guard let currentProvisioningState else {
+                return
+            }
+            log(.trace("Change provisioning state: \(debugName), state: \(currentProvisioningState)"))
+        }
+    }
 
     /// A name of a peripheral.
     public var name: String? {
@@ -113,6 +140,11 @@ public final class KonashiPeripheral: Peripheral {
     /// Connects to a peripheral.
     @discardableResult
     public func connect() -> Promise<any Peripheral> {
+        log(.trace("Connecting: \(debugName)"))
+        if currentConnectionStatus == .connected {
+            log(.debug("Peripheral is already connected: \(debugName)"))
+            return Promise<any Peripheral>(self)
+        }
         var cancellable = Set<AnyCancellable>()
         isCharacteristicsDiscovered = false
         isCharacteristicsConfigured = false
@@ -168,6 +200,12 @@ public final class KonashiPeripheral: Peripheral {
     /// Disconnects from a peripheral.
     @discardableResult
     public func disconnect() -> Promise<Void> {
+        log(.trace("Disconnect: \(debugName)"))
+        if self.currentConnectionStatus == .disconnected {
+            log(.debug("Peripheral is already disconnected: \(debugName)"))
+            return Promise<Void>(())
+        }
+
         var cancellable = Set<AnyCancellable>()
         return Promise<Void> { [weak self] resolve, reject in
             guard let self else {
@@ -216,6 +254,7 @@ public final class KonashiPeripheral: Peripheral {
     ///   - repeats: Specify true to read RSSI repeatedly.
     ///   - interval: An interval of read RSSI value.
     public func readRSSI(repeats: Bool = false, interval: TimeInterval = 1) {
+        log(.trace("Read RSSI \(debugName)"))
         peripheral.delegate = delegate
         if repeats {
             stopReadRSSI()
@@ -247,9 +286,9 @@ public final class KonashiPeripheral: Peripheral {
     public func write<WriteCommand: Command>(
         characteristic: WriteableCharacteristic<WriteCommand>,
         command: WriteCommand,
-        type: CBCharacteristicWriteType = .withResponse
+        type writeType: CBCharacteristicWriteType = .withResponse
     ) -> Promise<any Peripheral> {
-        print(">>> write \(characteristic) \n \(command) \n \([UInt8](command.compose()).toHexString())")
+        log(.trace("Write value: \(debugName), characteristic: \(characteristic), command: \(command) \n \([UInt8](command.compose()).toHexString())"))
         var cancellable = Set<AnyCancellable>()
         let promise = Promise<any Peripheral>.pending()
         readyPromise.then { [weak self] _ in
@@ -257,7 +296,7 @@ public final class KonashiPeripheral: Peripheral {
                 return
             }
             if let characteristic = self.peripheral.services?.find(characteristic: characteristic) {
-                if type == .withResponse {
+                if writeType == .withResponse {
                     self.didWriteValueSubject.sink { uuid, error in
                         if uuid == characteristic.uuid {
                             if let error {
@@ -270,8 +309,8 @@ public final class KonashiPeripheral: Peripheral {
                         }
                     }.store(in: &cancellable)
                 }
-                self.peripheral.writeValue(command.compose(), for: characteristic, type: type)
-                if type == .withoutResponse {
+                self.peripheral.writeValue(command.compose(), for: characteristic, type: writeType)
+                if writeType == .withoutResponse {
                     promise.fulfill(self)
                 }
             }
@@ -297,6 +336,7 @@ public final class KonashiPeripheral: Peripheral {
     /// - Returns: A promise object of read value.
     @discardableResult
     public func read<Value: CharacteristicValue>(characteristic: ReadableCharacteristic<Value>) -> Promise<Value> {
+        log(.trace("Read value: \(debugName), characteristic: \(characteristic)"))
         var cancellable = Set<AnyCancellable>()
         let promise = Promise<Value>.pending()
         readyPromise.then { [weak self] _ in
@@ -348,8 +388,9 @@ public final class KonashiPeripheral: Peripheral {
     // MARK: - Mesh
 
     public func setMeshEnabled(_ enabled: Bool) async throws {
+        log(.trace("Set mesh: \(debugName), \(enabled)"))
         if isConnected == false {
-            try await connect()
+            throw PeripheralOperationError.noConnection
         }
         try await asyncWrite(
             characteristic: SettingsService.settingsCommand,
@@ -372,6 +413,7 @@ public final class KonashiPeripheral: Peripheral {
 
     @discardableResult
     public func provision(for manager: MeshManager) async throws -> NodeCompatible {
+        log(.trace("Start provision: \(debugName)"))
         if manager.connection == nil {
             throw MeshManager.NetworkError.noNetworkConnection
         }
@@ -408,7 +450,9 @@ public final class KonashiPeripheral: Peripheral {
                 }
                 self.currentProvisioningState = newState
             }
+            log(.trace("Wait for provision: \(debugName)"))
             try await MeshProvisionQueue.waitForProvision(provisioner)
+            log(.trace("Provisioned: \(debugName)"))
             try manager.save()
             try await bearer.close()
             guard let node = MeshNode(manager: manager, uuid: unprovisionedDevice.uuid) else {
@@ -438,7 +482,7 @@ public final class KonashiPeripheral: Peripheral {
     internal func discoverCharacteristics(for service: CBService) {
         peripheral.delegate = delegate
         if let foundService = services.find(service: service) {
-            print(">>> discoverCharacteristics \(foundService.uuid)")
+            log(.trace("Discover characteristics: \(debugName), service: \(service.uuid)"))
             peripheral.discoverCharacteristics(foundService.characteristics.map(\.characteristicUUID), for: service)
         }
     }
@@ -475,8 +519,18 @@ public final class KonashiPeripheral: Peripheral {
 
     // MARK: Private
 
+    private var logCancellable = Set<AnyCancellable>()
     // swiftlint:disable:next weak_delegate
-    private lazy var delegate: KonashiPeripheralDelegate = .init(peripheral: self)
+    private lazy var delegate: KonashiPeripheralDelegate = {
+        let delegate = KonashiPeripheralDelegate(peripheral: self)
+        delegate.logOutput.sink { [weak self] message in
+            guard let self else {
+                return
+            }
+            self.log(message.message)
+        }.store(in: &self.logCancellable)
+        return delegate
+    }()
 
     private let advertisementData: [String: Any]
 
@@ -488,7 +542,7 @@ public final class KonashiPeripheral: Peripheral {
     private var kvoCancellable: AnyCancellable?
 
     private func discoverServices() {
-        print(">>> discoverServices")
+        log(.trace("Discover services: \(debugName)"))
         peripheral.delegate = delegate
         discoveredServices.append(contentsOf: peripheral.services ?? [])
         if discoveredServices.count < services.count {
@@ -503,6 +557,7 @@ public final class KonashiPeripheral: Peripheral {
     }
 
     private func configureCharacteristics() {
+        log(.trace("Configure characteristics: \(name ?? "Unknown")"))
         for service in services {
             service.applyAttributes(peripheral: peripheral)
         }
@@ -542,6 +597,7 @@ public final class KonashiPeripheral: Peripheral {
             }
             if discovered {
                 self.configureCharacteristics()
+                self.log(.trace("Characteristics discovered: \(self.debugName)"))
             }
         }.store(in: &internalCancellable)
         isReady.removeDuplicates().sink { [weak self] ready in
@@ -560,27 +616,31 @@ public final class KonashiPeripheral: Peripheral {
 
     private func prepareKVO() {
         kvoCancellable?.cancel()
-        kvoCancellable = peripheral.publisher(for: \.state).removeDuplicates().sink { [weak self] state in
-            guard let self else {
-                return
+        kvoCancellable = peripheral.publisher(for: \.state)
+            .removeDuplicates()
+            .receive(on: DispatchQueue.main)
+            .sink { [weak self] state in
+                guard let self else {
+                    return
+                }
+                self.log(.debug("Update state: \(self.debugName), state: \(state.konashi_description)"))
+
+                switch state {
+                case .connected:
+                    self.isConnected = true
+                    self.isConnecting = false
+                case .connecting:
+                    self.isConnected = false
+                    self.isConnecting = true
+                case .disconnected:
+                    self.isConnected = false
+                    self.isConnecting = false
+                case .disconnecting:
+                    self.isConnected = false
+                    self.isConnecting = true
+                @unknown default:
+                    break
+                }
             }
-            print("new state \(state.rawValue)")
-            switch state {
-            case .connected:
-                self.isConnected = true
-                self.isConnecting = false
-            case .connecting:
-                self.isConnected = false
-                self.isConnecting = true
-            case .disconnected:
-                self.isConnected = false
-                self.isConnecting = false
-            case .disconnecting:
-                self.isConnected = false
-                self.isConnecting = true
-            @unknown default:
-                break
-            }
-        }
     }
 }

@@ -41,7 +41,6 @@ public class ReadableCharacteristic<Value: CharacteristicValue>: Characteristic 
 
 public extension ReadableCharacteristic {
     func parse(data: Data) -> Result<Value, Error> {
-        print(">>> read \(uuid) \n \(Value.parse(data: data)) \n \([UInt8](data).toHexString())")
         return Value.parse(data: data)
     }
 }

@@ -10,8 +10,11 @@ import Foundation
 
 // MARK: - KonashiPeripheralDelegate
 
-class KonashiPeripheralDelegate: NSObject {
+class KonashiPeripheralDelegate: NSObject, Loggable {
     // MARK: Lifecycle
+    
+    static let sharedLogOutput = LogOutput()
+    let logOutput = LogOutput()
 
     init(peripheral: KonashiPeripheral) {
         parentPeripheral = peripheral
@@ -19,73 +22,81 @@ class KonashiPeripheralDelegate: NSObject {
 
     // MARK: Internal
 
-    weak var parentPeripheral: KonashiPeripheral?
+    weak var parentPeripheral: KonashiPeripheral!
 }
 
 // MARK: CBPeripheralDelegate
 
 extension KonashiPeripheralDelegate: CBPeripheralDelegate {
     func peripheral(_ peripheral: CBPeripheral, didDiscoverServices error: Error?) {
-        print(">>> discoverServices done")
         if let error {
-            parentPeripheral!.readyPromise.reject(error)
-            parentPeripheral!.operationErrorSubject.send(error)
+            log(.error("Failed to discover services: \(peripheral.konashi_debugName), error: \(error.localizedDescription)"))
+            parentPeripheral.readyPromise.reject(error)
+            parentPeripheral.operationErrorSubject.send(error)
             return
         }
-        parentPeripheral?.didDiscoverService()
+        log(.trace("Did discover services: \(peripheral.konashi_debugName)"))
+        parentPeripheral.didDiscoverService()
     }
 
     func peripheral(_ peripheral: CBPeripheral, didDiscoverCharacteristicsFor service: CBService, error: Error?) {
-        print(">>> discoverCharacteristics done \(service.uuid)")
         if let error {
-            parentPeripheral!.readyPromise.reject(error)
-            parentPeripheral!.operationErrorSubject.send(error)
+            log(.error("Failed to discover characteristic: \(peripheral.konashi_debugName), service: \(service.uuid), error: \(error.localizedDescription)"))
+            parentPeripheral.readyPromise.reject(error)
+            parentPeripheral.operationErrorSubject.send(error)
             return
         }
-        parentPeripheral?.didDiscoverCharacteristics(for: service)
+        log(.trace("Did discover characteristics: \(peripheral.konashi_debugName), service: \(service.uuid)"))
+        parentPeripheral.didDiscoverCharacteristics(for: service)
     }
 
     public func peripheral(_ peripheral: CBPeripheral, didReadRSSI RSSI: NSNumber, error: Error?) {
         if let error {
-            parentPeripheral!.operationErrorSubject.send(error)
+            log(.error("Failed to read RSSI: \(peripheral.konashi_debugName), error: \(error.localizedDescription)"))
+            parentPeripheral.operationErrorSubject.send(error)
+            return
         }
-        else {
-            parentPeripheral!.rssi = RSSI
-        }
+        log(.trace("Did read RSSI: \(peripheral.konashi_debugName), RSSI: \(RSSI)"))
+        parentPeripheral.rssi = RSSI
     }
 
     public func peripheral(_ peripheral: CBPeripheral, didWriteValueFor characteristic: CBCharacteristic, error: Error?) {
-        print(">>> write value done")
         if let error {
-            print(error.localizedDescription)
-            parentPeripheral!.operationErrorSubject.send(error)
+            log(.error("Failed to write value for characteristic: \(peripheral.konashi_debugName), characteristic: \(characteristic.uuid), error: \(error.localizedDescription)"))
+            parentPeripheral.operationErrorSubject.send(error)
         }
-        parentPeripheral!.didWriteValueSubject.send((characteristic.uuid, error))
+        log(.trace("Did write value: \(peripheral.konashi_debugName)"))
+        parentPeripheral.didWriteValueSubject.send((characteristic.uuid, error))
     }
 
     public func peripheral(_ peripheral: CBPeripheral, didUpdateValueFor characteristic: CBCharacteristic, error: Error?) {
-        print(">>> update value")
-        parentPeripheral!.didUpdateValueSubject.send((characteristic, error))
+        parentPeripheral.didUpdateValueSubject.send((characteristic, error))
         if let error {
-            parentPeripheral!.operationErrorSubject.send(error)
+            log(.error("Failed to update value for characteristic: \(peripheral.konashi_debugName), characteristic: \(characteristic.uuid), error: \(error.localizedDescription)"))
+            parentPeripheral.operationErrorSubject.send(error)
+            return
         }
-        else {
-            parentPeripheral!.store(characteristic: characteristic)
-        }
+        log(.trace("Did update value for characteristic: \(peripheral.konashi_debugName), characteristic: \(characteristic.uuid)"))
+        parentPeripheral.store(characteristic: characteristic)
     }
 
     public func peripheral(_ peripheral: CBPeripheral, didUpdateNotificationStateFor characteristic: CBCharacteristic, error: Error?) {
         if let error {
-            parentPeripheral!.readyPromise.reject(error)
-            parentPeripheral!.operationErrorSubject.send(error)
+            log(.error("Failed to update notification state: \(peripheral.konashi_debugName), characteristic: \(characteristic.uuid), error: \(error.localizedDescription)"))
+            parentPeripheral.readyPromise.reject(error)
+            parentPeripheral.operationErrorSubject.send(error)
             return
         }
-        parentPeripheral!.configuredCharacteristics.append(characteristic)
-        let numberOfConfigureableCharacteristics = parentPeripheral!.services.flatMap(\.notifiableCharacteristics).count
-        if parentPeripheral!.configuredCharacteristics.count == numberOfConfigureableCharacteristics {
-            parentPeripheral!.isCharacteristicsConfigured = true
+        log(.trace("Did update notification state: \(peripheral.konashi_debugName), characteristic: \(characteristic.uuid)"))
+        parentPeripheral.configuredCharacteristics.append(characteristic)
+        let numberOfConfigureableCharacteristics = parentPeripheral.services.flatMap(\.notifiableCharacteristics).count
+        if parentPeripheral.configuredCharacteristics.count == numberOfConfigureableCharacteristics {
+            log(.trace("Characteristics configured: \(peripheral.konashi_debugName)"))
+            parentPeripheral.isCharacteristicsConfigured = true
         }
     }
 
-    public func peripheral(_ peripheral: CBPeripheral, didModifyServices invalidatedServices: [CBService]) {}
+    public func peripheral(_ peripheral: CBPeripheral, didModifyServices invalidatedServices: [CBService]) {
+        log(.trace("Did modify services: \(peripheral.konashi_debugName), invalidated services: \(invalidatedServices)"))
+    }
 }

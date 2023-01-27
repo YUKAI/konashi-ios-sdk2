@@ -19,7 +19,7 @@ extension Peripheral {
 
 // MARK: - Peripheral
 
-public protocol Peripheral: Hashable {
+public protocol Peripheral: Hashable, Loggable {
     /// A name of a peripheral.
     var name: String? { get }
 
@@ -53,7 +53,7 @@ public protocol Peripheral: Hashable {
     ///   - command: The command to write.
     ///   - type: The type of write to execute. For a list of the possible types of writes to a characteristic’s value, see CBCharacteristicWriteType.
     @discardableResult
-    func write<WriteCommand: Command>(characteristic: WriteableCharacteristic<WriteCommand>, command: WriteCommand, type: CBCharacteristicWriteType) -> Promise<any Peripheral>
+    func write<WriteCommand: Command>(characteristic: WriteableCharacteristic<WriteCommand>, command: WriteCommand, type writeType: CBCharacteristicWriteType) -> Promise<any Peripheral>
 
     /// Retrieves the value of a specified characteristic.
     /// - Parameter characteristic: The characteristic whose value you want to read.
