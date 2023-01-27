@@ -346,6 +346,29 @@ public final class KonashiPeripheral: Peripheral {
     }
 
     // MARK: - Mesh
+    
+    public func setMeshEnabled(_ enabled: Bool) async throws {
+        if isConnected == false {
+            try await connect()
+        }
+        try await asyncWrite(
+            characteristic: SettingsService.settingsCommand,
+            command: .bluetooth(
+                payload: SettingsService.BluetoothSettingPayload(
+                    bluetoothFunction: .init(
+                        function: .mesh,
+                        enabled: enabled
+                    )
+                )
+            )
+        )
+        try await asyncWrite(
+            characteristic: SettingsService.settingsCommand,
+            command: .system(
+                payload: .nvmUseSet(enabled: enabled)
+            )
+        )
+    }
 
     @discardableResult
     public func provision(for manager: MeshManager) async throws -> NodeCompatible {
@@ -412,16 +435,11 @@ public final class KonashiPeripheral: Peripheral {
     internal var discoveredServices = [CBService]()
     internal var configuredCharacteristics = [CBCharacteristic]()
 
-    internal func discoverCharacteristics() {
+    internal func discoverCharacteristics(for service: CBService) {
         peripheral.delegate = delegate
-        guard let discoveredSerices = peripheral.services else {
-            return
-        }
-        for service in discoveredSerices {
-            if let foundService = services.find(service: service) {
-                print(">>> discoverCharacteristics \(foundService.uuid)")
-                peripheral.discoverCharacteristics(foundService.characteristics.map(\.characteristicUUID), for: service)
-            }
+        if let foundService = services.find(service: service) {
+            print(">>> discoverCharacteristics \(foundService.uuid)")
+            peripheral.discoverCharacteristics(foundService.characteristics.map(\.characteristicUUID), for: service)
         }
     }
 
@@ -447,11 +465,20 @@ public final class KonashiPeripheral: Peripheral {
     private var internalCancellable = Set<AnyCancellable>()
 
     private var kvoCancellable: AnyCancellable?
-
+    
     private func discoverServices() {
         print(">>> discoverServices")
         peripheral.delegate = delegate
-        peripheral.discoverServices(services.map(\.serviceUUID))
+        discoveredServices.append(contentsOf: peripheral.services ?? [])
+        if discoveredServices.count < services.count {
+            // Discover services
+            peripheral.discoverServices(services.map(\.serviceUUID))
+        }
+        else {
+            for service in discoveredServices {
+                discoverCharacteristics(for: service)
+            }
+        }
     }
 
     private func configureCharacteristics() {
@@ -533,6 +560,27 @@ public final class KonashiPeripheral: Peripheral {
             @unknown default:
                 break
             }
+        }
+    }
+
+    func didDiscoverService() {
+        guard let foundServices = peripheral.services else {
+            return
+        }
+        for service in foundServices {
+            if service.characteristics == nil {
+                discoverCharacteristics(for: service)
+            }
+            else {
+                didDiscoverCharacteristics(for: service)
+            }
+        }
+    }
+
+    func didDiscoverCharacteristics(for service: CBService) {
+        discoveredServices.append(service)
+        if discoveredServices.count == services.count {
+            isCharacteristicsDiscovered = true
         }
     }
 }

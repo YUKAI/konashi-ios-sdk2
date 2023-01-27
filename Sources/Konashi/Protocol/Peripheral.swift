@@ -62,6 +62,8 @@ public protocol Peripheral: Hashable {
     func read<Value: CharacteristicValue>(characteristic: ReadableCharacteristic<Value>) -> Promise<Value>
 
     // TODO: Add document
+    func setMeshEnabled(_ enabled: Bool) async throws
+
     @discardableResult
     func provision(for manager: MeshManager) async throws -> NodeCompatible
 }

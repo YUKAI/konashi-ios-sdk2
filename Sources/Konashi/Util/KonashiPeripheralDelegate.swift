@@ -32,7 +32,7 @@ extension KonashiPeripheralDelegate: CBPeripheralDelegate {
             parentPeripheral!.operationErrorSubject.send(error)
             return
         }
-        parentPeripheral!.discoverCharacteristics()
+        parentPeripheral?.didDiscoverService()
     }
 
     func peripheral(_ peripheral: CBPeripheral, didDiscoverCharacteristicsFor service: CBService, error: Error?) {
@@ -42,10 +42,7 @@ extension KonashiPeripheralDelegate: CBPeripheralDelegate {
             parentPeripheral!.operationErrorSubject.send(error)
             return
         }
-        parentPeripheral!.discoveredServices.append(service)
-        if parentPeripheral!.discoveredServices.count == parentPeripheral!.services.count {
-            parentPeripheral!.isCharacteristicsDiscovered = true
-        }
+        parentPeripheral?.didDiscoverCharacteristics(for: service)
     }
 
     public func peripheral(_ peripheral: CBPeripheral, didReadRSSI RSSI: NSNumber, error: Error?) {
