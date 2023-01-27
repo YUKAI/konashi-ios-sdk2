@@ -9,9 +9,9 @@ import CoreBluetooth
 
 public extension CentralManager {
     /// Attempt to scan available peripherals.
-    func scan(for target: ScanTarget = .all) async {
+    func scan() async {
         return await withCheckedContinuation { continuation in
-            scan(for: target).then {
+            scan().then {
                 continuation.resume(returning: ())
             }
         }

@@ -55,11 +55,6 @@ public final class CentralManager: NSObject {
         }
     }
 
-    public enum ScanTarget {
-        case all
-        case meshNode
-    }
-
     /// A shared instance of CentralManager.
     public static let shared = CentralManager()
 
@@ -89,7 +84,7 @@ public final class CentralManager: NSObject {
 
     /// Attempt to scan available peripherals.
     /// - Returns: A promise object for this method.
-    public func scan(for target: ScanTarget = .all) -> Promise<Void> {
+    public func scan() -> Promise<Void> {
         if manager.state == .poweredOn {
             statePromise.fulfill(())
         }
@@ -101,19 +96,12 @@ public final class CentralManager: NSObject {
                 guard let self else {
                     return
                 }
-                var services: [CBUUID] {
-                    if target == .meshNode {
-                        return [
-                            MeshProvisioningService.uuid
-                        ]
-                    }
-                    return [
-                        SettingsService.serviceUUID
-                    ]
-                }
                 self.isScanning = true
                 self.manager.scanForPeripherals(
-                    withServices: services,
+                    withServices: [
+                        SettingsService.serviceUUID,
+                        MeshProvisioningService.uuid
+                    ],
                     options: [
                         CBCentralManagerScanOptionAllowDuplicatesKey: !self.discoversUniquePeripherals
                     ]
