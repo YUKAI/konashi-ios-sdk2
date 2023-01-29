@@ -17,6 +17,15 @@ public enum ConnectionState: Hashable {
 
     // MARK: Public
 
+    public var isConnectable: Bool {
+        switch self {
+        case .disconnected, .error:
+            return true
+        default:
+            return false
+        }
+    }
+
     public static func == (lhs: ConnectionState, rhs: ConnectionState) -> Bool {
         return lhs.hashValue == rhs.hashValue
     }
@@ -33,15 +42,6 @@ public enum ConnectionState: Hashable {
             hasher.combine("connecting")
         case .connected:
             hasher.combine("connected")
-        }
-    }
-
-    public var isConnectable: Bool {
-        switch self {
-        case .disconnected, .error:
-            return true
-        default:
-            return false
         }
     }
 }

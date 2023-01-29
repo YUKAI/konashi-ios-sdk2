@@ -209,6 +209,10 @@ public class MeshNode: NodeCompatible, Loggable {
     public let logOutput = LogOutput()
 
     public var receivedMessageSubject = PassthroughSubject<ReceivedMessage, Never>()
+    public private(set) var node: Node
+
+    public private(set) weak var peripheral: (any Peripheral)?
+
     public var isConfigured: Bool {
         get {
             return node.isConfigComplete
@@ -220,10 +224,6 @@ public class MeshNode: NodeCompatible, Loggable {
             }
         }
     }
-
-    public private(set) var node: Node
-
-    public private(set) weak var peripheral: (any Peripheral)?
 
     public var unicastAddress: Address? {
         return node.unicastAddress

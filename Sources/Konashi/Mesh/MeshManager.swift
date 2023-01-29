@@ -10,6 +10,7 @@ import Foundation
 import nRFMeshProvision
 
 // MARK: - MeshManager
+
 public actor MeshManager: Loggable {
     // MARK: Lifecycle
 
@@ -47,9 +48,9 @@ public actor MeshManager: Loggable {
 
     public let logOutput = LogOutput()
 
-    nonisolated public let didNetworkSaveSubject = PassthroughSubject<Void, StorageError>()
-    nonisolated public let didSendMessageSubject = PassthroughSubject<Result<SendMessage, MessageTransmissionError>, Never>()
-    nonisolated public let didReceiveMessageSubject = PassthroughSubject<ReceivedMessage, Never>()
+    public nonisolated let didNetworkSaveSubject = PassthroughSubject<Void, StorageError>()
+    public nonisolated let didSendMessageSubject = PassthroughSubject<Result<SendMessage, MessageTransmissionError>, Never>()
+    public nonisolated let didReceiveMessageSubject = PassthroughSubject<ReceivedMessage, Never>()
     public private(set) var networkKey: NetworkKey?
     public private(set) var applicationKey: ApplicationKey?
 
@@ -64,11 +65,11 @@ public actor MeshManager: Loggable {
         return networkManager.acknowledgmentMessageTimeout
     }
 
-    nonisolated public var numberOfNodes: Int {
+    public nonisolated var numberOfNodes: Int {
         return networkManager.meshNetwork?.nodes.count ?? 0
     }
 
-    nonisolated public var allNodes: [Node] {
+    public nonisolated var allNodes: [Node] {
         // TODO: MeshNodeに変更する
         return networkManager.meshNetwork?.nodes ?? []
     }
@@ -245,7 +246,7 @@ public actor MeshManager: Loggable {
 // MARK: MeshNetworkDelegate
 
 extension MeshManager: MeshNetworkDelegate {
-    nonisolated public func meshNetworkManager(
+    public nonisolated func meshNetworkManager(
         _ manager: MeshNetworkManager,
         didReceiveMessage message: MeshMessage,
         sentFrom source: Address,
@@ -255,7 +256,7 @@ extension MeshManager: MeshNetworkDelegate {
         didReceiveMessageSubject.send(ReceivedMessage(body: message, source: source, destination: destination))
     }
 
-    nonisolated public func meshNetworkManager(
+    public nonisolated func meshNetworkManager(
         _ manager: MeshNetworkManager,
         didSendMessage message: MeshMessage,
         from localElement: Element,
@@ -265,7 +266,7 @@ extension MeshManager: MeshNetworkDelegate {
         didSendMessageSubject.send(.success(SendMessage(body: message, from: localElement, destination: destination)))
     }
 
-    nonisolated public func meshNetworkManager(
+    public nonisolated func meshNetworkManager(
         _ manager: MeshNetworkManager,
         failedToSendMessage message: MeshMessage,
         from localElement: Element,
