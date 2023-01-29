@@ -11,7 +11,10 @@ import nRFMeshProvision
 
 // MARK: - MeshManager
 
-public class MeshManager {
+public class MeshManager: Loggable {
+    static public let sharedLogOutput = LogOutput()
+    public let logOutput = LogOutput()
+
     // MARK: Lifecycle
 
     public init() {
@@ -30,9 +33,11 @@ public class MeshManager {
 
         // If load failed, create a new MeshNetwork.
         if let loaded = try? networkManager.load(), loaded == true {
+            log(.trace("Load mesh network settings"))
             meshNetworkDidChange()
         }
         else {
+            log(.info("There are no mesh networks, the mesh manager creates new network."))
             try? createNewMeshNetwork()
         }
     }
@@ -57,6 +62,7 @@ public class MeshManager {
     }
 
     public func provision(unprovisionedDevice: UnprovisionedDevice, over bearer: ProvisioningBearer) throws -> ProvisioningManager {
+        log(.trace("Provision: \(unprovisionedDevice.name ?? "Unknown"), uuid: \(unprovisionedDevice.uuid)"))
         return try networkManager.provision(unprovisionedDevice: unprovisionedDevice, over: bearer)
     }
 
@@ -68,57 +74,78 @@ public class MeshManager {
 
     public func save() throws {
         if networkManager.save() == false {
+            log(.critical("Failed to save network settings"))
             didNetworkSaveSubject.send(completion: .failure(StorageError.failedToSaveNetworkSettings))
             throw StorageError.failedToSaveNetworkSettings
         }
+        log(.debug("Did save mesh network settings"))
         didNetworkSaveSubject.send(())
     }
 
     public func addNetworkKey(_ newKeyData: Data) throws {
-        guard let network = networkManager.meshNetwork else {
-            throw NetworkError.invalidMeshNetwork
-        }
-        let oldKey = networkKey
-        if let oldKey {
-            if oldKey.key != newKeyData {
-                try network.remove(networkKey: oldKey, force: true)
+        log(.trace("Add network key: \(newKeyData.toHexString())"))
+        do {
+            guard let network = networkManager.meshNetwork else {
+                throw NetworkError.invalidMeshNetwork
             }
+            let oldKey = networkKey
+            if let oldKey {
+                if oldKey.key != newKeyData {
+                    try network.remove(networkKey: oldKey, force: true)
+                }
+            }
+            let newNetworkKey = try network.add(
+                networkKey: newKeyData,
+                withIndex: oldKey?.index,
+                name: "Konashi Mesh Network Key"
+            )
+            networkKey = newNetworkKey
+            try save()
+        } catch {
+            log(.error("Failed to add a network key: \(newKeyData.toHexString()), error: \(error.localizedDescription)"))
+            throw error
         }
-        let newNetworkKey = try network.add(
-            networkKey: newKeyData,
-            withIndex: oldKey?.index,
-            name: "Konashi Mesh Network Key"
-        )
-        networkKey = newNetworkKey
-        try save()
     }
 
     public func addApplicationKey(_ newKeyData: Data) throws {
-        guard let network = networkManager.meshNetwork else {
-            throw NetworkError.invalidMeshNetwork
-        }
-        let oldKey = applicationKey
-        if let oldKey {
-            if oldKey.key != newKeyData {
-                try network.remove(applicationKey: oldKey, force: true)
+        log(.trace("Add application key: \(newKeyData.toHexString())"))
+        do {
+            guard let network = networkManager.meshNetwork else {
+                throw NetworkError.invalidMeshNetwork
             }
+            let oldKey = applicationKey
+            if let oldKey {
+                if oldKey.key != newKeyData {
+                    try network.remove(applicationKey: oldKey, force: true)
+                }
+            }
+            let newApplicationKey = try network.add(
+                applicationKey: newKeyData,
+                withIndex: oldKey?.index,
+                name: "Konashi Mesh Application Key"
+            )
+            applicationKey = newApplicationKey
+            if let index = oldKey?.index,
+               let networkKey = network.networkKeys[index] {
+                try newApplicationKey.bind(to: networkKey)
+            }
+            try save()
+        } catch {
+            log(.error("Failed to add an application key: \(newKeyData.toHexString()), error: \(error.localizedDescription)"))
+            throw error
         }
-        let newApplicationKey = try network.add(
-            applicationKey: newKeyData,
-            withIndex: oldKey?.index,
-            name: "Konashi Mesh Application Key"
-        )
-        applicationKey = newApplicationKey
-        if let index = oldKey?.index,
-           let networkKey = network.networkKeys[index] {
-            try newApplicationKey.bind(to: networkKey)
-        }
-        try save()
     }
 
     public func reset() throws {
-        try createNewMeshNetwork()
-        try save()
+        do {
+            try createNewMeshNetwork()
+            try save()
+            log(.trace("Did reset mesh manager"))
+        }
+        catch {
+            log(.trace("Failed to reset mesh manager: \(error.localizedDescription)"))
+            throw error
+        }
     }
 
     // MARK: Internal
@@ -160,15 +187,19 @@ public class MeshManager {
         )
         _ = networkManager.createNewMeshNetwork(withName: "Konashi Mesh Network", by: provisioner)
         if networkManager.save() == false {
+            log(.critical("Failed to save mesh network"))
             throw StorageError.failedToCreateMeshNetwork
         }
         meshNetworkDidChange()
+        log(.trace("Create mesh network"))
     }
 
     /// Sets up the local Elements and reinitializes the `NetworkConnection`
     /// so that it starts scanning for devices advertising the new Network ID.
     private func meshNetworkDidChange() {
+        log(.trace("Mesh network did change"))
         guard let network = networkManager.meshNetwork else {
+            log(.critical("There is no mesh network"))
             return
         }
         networkKey = network.networkKeys.first
@@ -196,6 +227,7 @@ extension MeshManager: MeshNetworkDelegate {
         sentFrom source: Address,
         to destination: Address
     ) {
+        log(.debug("Did receive message from: 0x\(source.byteArray().toHexString()), opCode: 0x\(message.opCode.byteArray().toHexString()), to: 0x\(destination.byteArray().toHexString())"))
         didReceiveMessageSubject.send(ReceivedMessage(body: message, source: source, destination: destination))
     }
 
@@ -205,6 +237,7 @@ extension MeshManager: MeshNetworkDelegate {
         from localElement: Element,
         to destination: Address
     ) {
+        log(.debug("Did send message to: 0x\(destination.byteArray().toHexString()), opCode: 0x\(message.opCode.byteArray().toHexString())"))
         didSendMessageSubject.send(.success(SendMessage(body: message, from: localElement, destination: destination)))
     }
 
@@ -215,6 +248,7 @@ extension MeshManager: MeshNetworkDelegate {
         to destination: Address,
         error: Error
     ) {
+        log(.error("Failed to send message to: 0x\(destination.byteArray().toHexString()), opCode: 0x\(message.opCode.byteArray().toHexString()), error: \(error.localizedDescription)"))
         didSendMessageSubject.send(
             .failure(
                 MessageTransmissionError(

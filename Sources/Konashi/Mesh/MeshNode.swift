@@ -11,15 +11,22 @@ import nRFMeshProvision
 
 // MARK: - MeshNode
 
-public class MeshNode: NodeCompatible {
+public class MeshNode: NodeCompatible, Loggable {
+    private var debugName: String {
+        return "\(name ?? "Unknown"): \(node.uuid), peripheral: \(peripheral?.completeName ?? "nil")"
+    }
+    static public let sharedLogOutput = LogOutput()
+    public let logOutput = LogOutput()
+
     // MARK: Lifecycle
 
-    public init?(manager: MeshManager, uuid: UUID) {
+    public init?(manager: MeshManager, uuid: UUID, peripheral: (any Peripheral)? = nil) {
         guard let node = manager.node(for: uuid) else {
             return nil
         }
         self.manager = manager
         self.node = node
+        self.peripheral = peripheral
         self.manager.didReceiveMessageSubject
             .filter(for: self)
             .sink { [weak self] message in
@@ -258,54 +265,78 @@ public class MeshNode: NodeCompatible {
     }
 
     public func removeFromNetwork() async throws {
-        guard let network = manager.networkManager.meshNetwork else {
-            throw MeshManager.NetworkError.invalidMeshNetwork
+        do {
+            guard let network = manager.networkManager.meshNetwork else {
+                throw MeshManager.NetworkError.invalidMeshNetwork
+            }
+            log(.trace("Remove from network: \(debugName), network: \(network.meshName)"))
+            try await reset()
+                .waitForSendMessage()
+                .onSuccess()
+                .waitForResponse(for: ConfigNodeResetStatus.self)
+            log(.trace("Reset message was sent to \(debugName)"))
+            network.remove(node: node)
+            try manager.save()
+            try await peripheral?.disconnect()
+        } catch {
+            log(.error("Failed to remove from network: \(debugName)"))
+            throw error
         }
-        try await reset()
-            .waitForSendMessage()
-            .onSuccess()
-            .waitForResponse(for: ConfigNodeResetStatus.self)
-        network.remove(node: node)
-        try manager.save()
     }
 
     @discardableResult
     public func send(message: nRFMeshProvision.MeshMessage, to model: nRFMeshProvision.Model) async throws -> SendHandler {
-        try await checkOperationAvailability()
-        if node.isCompositionDataReceived == false {
-            throw NodeOperationError.noCompositionData
+        log(.trace("Send mesh message from \(debugName), to model: \(model), message: 0x\(message.opCode.byteArray().toHexString())"))
+        do {
+            try await checkOperationAvailability()
+            if node.isCompositionDataReceived == false {
+                throw NodeOperationError.noCompositionData
+            }
+            return SendHandler(node: self, handle: try manager.networkManager.send(message, to: model))
+        } catch {
+            log(.error("Failed to send config message to \(debugName), message: 0x\(message.opCode.byteArray().toHexString()), error: \(error.localizedDescription)"))
+            throw error
         }
-        return SendHandler(node: self, handle: try manager.networkManager.send(message, to: model))
     }
 
     @discardableResult
     public func send(config: nRFMeshProvision.ConfigMessage) async throws -> SendHandler {
-        try await checkOperationAvailability()
-        return SendHandler(node: self, handle: try manager.networkManager.send(config, to: node))
+        log(.trace("Send config message to \(debugName), message: 0x\(config.opCode.byteArray().toHexString())"))
+        do {
+            try await checkOperationAvailability()
+            return SendHandler(node: self, handle: try manager.networkManager.send(config, to: node))
+        } catch {
+            log(.error("Failed to send config message to \(debugName), message: 0x\(config.opCode.byteArray().toHexString()), error: \(error.localizedDescription)"))
+            throw error
+        }
     }
 
     @discardableResult
     public func waitForSendMessage(_ handler: SendHandler) async throws -> Result<SendCompletionHandler, MessageTransmissionError> {
-        try await checkOperationAvailability()
-        return try await manager.didSendMessageSubject.filter { result in
-            switch result {
-            case let .success(message):
-                return handler.isEqualTo(message)
-            case let .failure(error):
-                return handler.isEqualTo(error.message)
-            }
-        }.map { result in
-            switch result {
-            case let .success(message):
-                return .success(SendCompletionHandler(node: self, message: message))
-            case let .failure(error):
-                return .failure(error)
-            }
-        }.eraseToAnyPublisher().konashi_makeAsync()
+        log(.trace("Wait for send message from \(debugName), to: 0x\(handler.destination.byteArray().toHexString()), message: \(handler.opCode)"))
+        do {
+            try await checkOperationAvailability()
+            return try await manager.didSendMessageSubject.filter { result in
+                switch result {
+                case let .success(message):
+                    return handler.isEqualTo(message)
+                case let .failure(error):
+                    return handler.isEqualTo(error.message)
+                }
+            }.map { result in
+                switch result {
+                case let .success(message):
+                    return .success(SendCompletionHandler(node: self, message: message))
+                case let .failure(error):
+                    return .failure(error)
+                }
+            }.eraseToAnyPublisher().konashi_makeAsync()
+        }
     }
 
     @discardableResult
     public func waitForResponse<T>(for messageType: T) async throws -> ReceivedMessage {
+        log(.trace("Wait for response of \(String(describing: type(of: messageType)))"))
         try await checkOperationAvailability()
         return try await receivedMessageSubject
             .filter { type(of: $0.body) is T }
@@ -315,26 +346,50 @@ public class MeshNode: NodeCompatible {
 
     @discardableResult
     public func setGattProxyEnabled(_ enabled: Bool) async throws -> SendHandler {
-        return try await send(config: ConfigGATTProxySet(enable: enabled))
+        do {
+            log(.trace("Set GATT proxy enabled to \(enabled), node: \(debugName)"))
+            return try await send(config: ConfigGATTProxySet(enable: enabled))
+        } catch {
+            log(.error("Failed to enable GATT proxy to \(enabled), node: \(debugName)"))
+            throw error
+        }
     }
 
     @discardableResult
     public func addApplicationKey(_ applicationKey: ApplicationKey) async throws -> SendHandler {
-        return try await send(config: ConfigAppKeyAdd(applicationKey: applicationKey))
+        do {
+            log(.trace("Add application key to \(debugName), key name: \(applicationKey.name)"))
+            return try await send(config: ConfigAppKeyAdd(applicationKey: applicationKey))
+        } catch {
+            log(.error("Failed to add application key to: \(debugName), key name: \(applicationKey.name)"))
+            throw error
+        }
     }
 
     @discardableResult
     public func bindApplicationKey(_ applicationKey: ApplicationKey, to model: NodeModel) async throws -> SendHandler {
-        let meshModel = try node.findElement(of: model.element).findModel(of: model)
-        guard let message = ConfigModelAppBind(applicationKey: applicationKey, to: meshModel) else {
-            throw NodeOperationError.invalidParentElement(modelIdentifier: meshModel.modelIdentifier)
+        do {
+            log(.trace("Bind application key to model: \(model), key name: \(applicationKey.name)"))
+            let meshModel = try node.findElement(of: model.element).findModel(of: model)
+            guard let message = ConfigModelAppBind(applicationKey: applicationKey, to: meshModel) else {
+                throw NodeOperationError.invalidParentElement(modelIdentifier: meshModel.modelIdentifier)
+            }
+            return try await send(config: message)
+        } catch {
+            log(.error("Failed to bind application key to model: \(model), key name: \(applicationKey.name)"))
+            throw error
         }
-        return try await send(config: message)
     }
 
     @discardableResult
     public func reset() async throws -> SendHandler {
-        return try await send(config: ConfigNodeReset())
+        do {
+            log(.trace("Reset node: \(debugName)"))
+            return try await send(config: ConfigNodeReset())
+        } catch {
+            log(.error("Failed to reset node: \(debugName)"))
+            throw error
+        }
     }
 
     // MARK: Internal
