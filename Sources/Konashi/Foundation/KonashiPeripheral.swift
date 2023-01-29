@@ -330,7 +330,10 @@ public final class KonashiPeripheral: Peripheral {
             }
             if let characteristic = self.peripheral.services?.find(characteristic: characteristic) {
                 if writeType == .withResponse {
-                    self.didWriteValueSubject.sink { uuid, error in
+                    self.didWriteValueSubject.sink { [weak self] uuid, error in
+                        guard let self else {
+                            return
+                        }
                         if uuid == characteristic.uuid {
                             if let error {
                                 promise.reject(error)
@@ -378,7 +381,10 @@ public final class KonashiPeripheral: Peripheral {
                 return
             }
             if let targetCharacteristic = self.peripheral.services?.find(characteristic: characteristic) {
-                self.didUpdateValueSubject.sink { updatedCharacteristic, error in
+                self.didUpdateValueSubject.sink { [weak self] updatedCharacteristic, error in
+                    guard let self else {
+                        return
+                    }
                     if updatedCharacteristic != targetCharacteristic {
                         return
                     }
