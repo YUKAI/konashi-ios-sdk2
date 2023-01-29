@@ -544,7 +544,7 @@ public final class KonashiPeripheral: Peripheral {
 
     @Published internal var characteristicsState: CharacteristicsConfigurationState = .invalidated {
         didSet {
-            log(.debug("Update characteristics state: \(debugName), state: \(characteristicsState)"))
+            log(.trace("Update characteristics state: \(debugName), state: \(characteristicsState)"))
         }
     }
     internal let didUpdateValueSubject = PassthroughSubject<(characteristic: CBCharacteristic, error: Error?), Never>()
@@ -580,7 +580,7 @@ public final class KonashiPeripheral: Peripheral {
     func didDiscoverCharacteristics(for service: CBService) {
         discoveredServices.append(service)
         if discoveredServices.count == services.count {
-            log(.trace("Characteristics discovered: \(debugName)"))
+            log(.debug("Characteristics discovered: \(debugName)"))
             characteristicsState = .discovered
         }
     }
@@ -622,7 +622,7 @@ public final class KonashiPeripheral: Peripheral {
     }
 
     private func configureCharacteristics() {
-        log(.trace("Characteristics discovered: \(self.debugName)"))
+        log(.trace("Configure characteristics: \(self.debugName)"))
         for service in services {
             service.applyAttributes(peripheral: peripheral)
         }

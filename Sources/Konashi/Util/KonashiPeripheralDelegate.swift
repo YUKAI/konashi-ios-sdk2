@@ -91,7 +91,7 @@ extension KonashiPeripheralDelegate: CBPeripheralDelegate {
         parentPeripheral.configuredCharacteristics.append(characteristic)
         let numberOfConfigureableCharacteristics = parentPeripheral.services.flatMap(\.notifiableCharacteristics).count
         if parentPeripheral.configuredCharacteristics.count == numberOfConfigureableCharacteristics {
-            log(.trace("Characteristics configured: \(peripheral.konashi_debugName)"))
+            log(.debug("Characteristics configured: \(peripheral.konashi_debugName)"))
             parentPeripheral.characteristicsState = .configured
         }
     }

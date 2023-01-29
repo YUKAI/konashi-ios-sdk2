@@ -301,8 +301,8 @@ public class MeshNode: NodeCompatible, Loggable {
 
     @discardableResult
     public func send(config: nRFMeshProvision.ConfigMessage) async throws -> SendHandler {
-        log(.trace("Send config message to \(debugName), message: 0x\(config.opCode.byteArray().toHexString())"))
         do {
+            log(.trace("Send config message to \(debugName), message: 0x\(config.opCode.byteArray().toHexString())"))
             try await checkOperationAvailability()
             return SendHandler(node: self, handle: try manager.networkManager.send(config, to: node))
         } catch {
@@ -313,8 +313,8 @@ public class MeshNode: NodeCompatible, Loggable {
 
     @discardableResult
     public func waitForSendMessage(_ handler: SendHandler) async throws -> Result<SendCompletionHandler, MessageTransmissionError> {
-        log(.trace("Wait for send message from \(debugName), to: 0x\(handler.destination.byteArray().toHexString()), message: \(handler.opCode)"))
         do {
+            log(.trace("Wait for send message from \(debugName), to: 0x\(handler.destination.byteArray().toHexString()), message: \(handler.opCode)"))
             try await checkOperationAvailability()
             return try await manager.didSendMessageSubject.filter { result in
                 switch result {
@@ -336,12 +336,18 @@ public class MeshNode: NodeCompatible, Loggable {
 
     @discardableResult
     public func waitForResponse<T>(for messageType: T) async throws -> ReceivedMessage {
-        log(.trace("Wait for response of \(String(describing: type(of: messageType)))"))
-        try await checkOperationAvailability()
-        return try await receivedMessageSubject
-            .filter { type(of: $0.body) is T }
-            .eraseToAnyPublisher()
-            .konashi_makeAsync()
+        do {
+            log(.trace("Wait for response of \(String(describing: type(of: messageType)))"))
+            try await checkOperationAvailability()
+            return try await receivedMessageSubject
+                .filter { type(of: $0.body) is T }
+                .timeout(.seconds(manager.acknowledgmentMessageTimeout + 1), scheduler: DispatchQueue.global())
+                .eraseToAnyPublisher()
+                .konashi_makeAsync()
+        } catch {
+            log(.error("Failed to wait for response of \(String(describing: type(of: messageType))): \(error.localizedDescription)"))
+            throw error
+        }
     }
 
     @discardableResult

@@ -161,24 +161,33 @@ public class MeshManager: Loggable {
 
     func waitUntilConnectionOpen(timeoutInterval: TimeInterval = 10) async throws {
         guard let connection else {
+            log(.error("Failed to wait until connection open. No network connection."))
             throw MeshManager.NetworkError.noNetworkConnection
         }
-        if connection.isOpen == false {
-            let result = try await connection.$isOpen
-                .removeDuplicates()
-                .timeout(.seconds(timeoutInterval), scheduler: DispatchQueue.global())
-                .filter { $0 }
-                .eraseToAnyPublisher()
-                .konashi_makeAsync()
-            if result == false {
-                throw MeshManager.NetworkError.bearerIsClosed
+        do {
+            log(.trace("Wait until connection open"))
+            if connection.isOpen == false {
+                let result = try await connection.$isOpen
+                    .removeDuplicates()
+                    .timeout(.seconds(timeoutInterval), scheduler: DispatchQueue.global())
+                    .filter { $0 }
+                    .eraseToAnyPublisher()
+                    .konashi_makeAsync()
+                if result == false {
+                    log(.error("Failed to wait until connection open. Bearer is closed."))
+                    throw MeshManager.NetworkError.bearerIsClosed
+                }
             }
+        } catch {
+            log(.error("Failed to wait until connection open: \(error.localizedDescription)"))
+            throw error
         }
     }
 
     // MARK: Private
 
     private func createNewMeshNetwork() throws {
+        log(.trace("Create new mesh network"))
         let provisioner = Provisioner(
             name: "Konashi Mesh Manager",
             allocatedUnicastRange: [AddressRange(0x0001 ... 0x199A)],
@@ -191,7 +200,6 @@ public class MeshManager: Loggable {
             throw StorageError.failedToCreateMeshNetwork
         }
         meshNetworkDidChange()
-        log(.trace("Create mesh network"))
     }
 
     /// Sets up the local Elements and reinitializes the `NetworkConnection`
