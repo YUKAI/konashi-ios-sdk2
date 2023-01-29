@@ -291,12 +291,15 @@ extension CentralManager: CBCentralManagerDelegate {
     }
 
     public func centralManager(_ central: CBCentralManager, didDisconnectPeripheral peripheral: CBPeripheral, error: Error?) {
-        log(.trace("Did disconnect: \(peripheral.konashi_debugName), error: \(error?.localizedDescription ?? "nil")"))
         if let error {
             if let existingPeripheral = foundPeripherals.first(where: { $0.identifier == peripheral.identifier }) {
                 existingPeripheral.operationErrorSubject.send(error)
             }
             operationErrorSubject.send(error)
+            log(.error("Failed to disconnect: \(peripheral.konashi_debugName), error: \(error.localizedDescription)"))
+        }
+        else {
+            log(.trace("Did disconnect: \(peripheral.konashi_debugName)"))
         }
         didDisconnectSubject.send(
             (peripheral, error)
