@@ -12,7 +12,7 @@ import Foundation
 
 // https://medium.com/geekculture/from-combine-to-async-await-c08bf1d15b77
 enum AsyncError: Error {
-    case finishedWithoutValue
+    case timeout
 }
 
 extension AnyPublisher {
@@ -27,7 +27,7 @@ extension AnyPublisher {
                             switch result {
                             case .finished:
                                 if finishedWithoutValue {
-                                    continuation.resume(throwing: AsyncError.finishedWithoutValue)
+                                    continuation.resume(throwing: AsyncError.timeout)
                                 }
                             case let .failure(error):
                                 continuation.resume(throwing: error)
