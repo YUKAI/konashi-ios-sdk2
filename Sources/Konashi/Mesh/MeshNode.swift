@@ -11,7 +11,7 @@ import nRFMeshProvision
 
 // MARK: - MeshNode
 
-public class MeshNode: NodeCompatible, Loggable {
+public final class MeshNode: NodeCompatible, Loggable {
     // MARK: Lifecycle
 
     public init?(manager: MeshManager, uuid: UUID, peripheral: (any Peripheral)? = nil) {

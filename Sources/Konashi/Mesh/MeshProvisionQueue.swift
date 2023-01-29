@@ -8,7 +8,7 @@
 import Combine
 import Foundation
 
-public actor MeshProvisionQueue {
+public final actor MeshProvisionQueue {
     // MARK: Public
 
     public static var isProvisioning = CurrentValueSubject<Bool, Never>(false)

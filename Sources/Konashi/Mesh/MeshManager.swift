@@ -11,7 +11,7 @@ import nRFMeshProvision
 
 // MARK: - MeshManager
 
-public actor MeshManager: Loggable {
+public final actor MeshManager: Loggable {
     // MARK: Lifecycle
 
     public init() {

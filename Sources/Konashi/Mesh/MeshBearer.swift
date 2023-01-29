@@ -9,7 +9,7 @@ import nRFMeshProvision
 
 // MARK: - MeshBearer
 
-class MeshBearer<T: Bearer> {
+final class MeshBearer<T: Bearer> {
     // MARK: Lifecycle
 
     init(for bearer: T) {

@@ -22,7 +22,7 @@ import nRFMeshProvision
 /// to one of the devices is lost. Only the first device will
 /// receive outgoing messages. However, the `dataDelegate` will be
 /// notified about messages received from any of the connected proxies.
-class MeshNetworkConnection: NSObject, Bearer {
+final class MeshNetworkConnection: NSObject, Bearer {
     // MARK: Lifecycle
 
     init(to meshNetwork: MeshNetwork) {

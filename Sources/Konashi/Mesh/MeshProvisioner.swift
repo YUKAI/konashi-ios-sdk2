@@ -11,7 +11,7 @@ import nRFMeshProvision
 
 // MARK: - MeshProvisioner
 
-class MeshProvisioner: Provisionable {
+final class MeshProvisioner: Provisionable {
     // MARK: Lifecycle
 
     init(for provisioningManager: ProvisioningManager, context: Context, bearer: MeshBearer<PBGattBearer>) {

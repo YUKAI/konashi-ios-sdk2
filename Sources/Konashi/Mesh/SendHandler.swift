@@ -9,7 +9,7 @@ import nRFMeshProvision
 
 // MARK: - SendHandler
 
-public class SendHandler {
+public struct SendHandler {
     // MARK: Lifecycle
 
     public init(node: NodeCompatible, handle: SendCancellable) {

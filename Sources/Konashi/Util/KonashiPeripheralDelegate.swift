@@ -10,7 +10,7 @@ import Foundation
 
 // MARK: - KonashiPeripheralDelegate
 
-class KonashiPeripheralDelegate: NSObject, Loggable {
+final class KonashiPeripheralDelegate: NSObject, Loggable {
     // MARK: Lifecycle
 
     init(peripheral: KonashiPeripheral) {

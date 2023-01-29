@@ -10,7 +10,7 @@ import nRFMeshProvision
 
 // MARK: - PrirmaryModelDelegate
 
-class PrirmaryModelDelegate: ModelDelegate {
+final class PrirmaryModelDelegate: ModelDelegate {
     // MARK: Lifecycle
 
     init() {
