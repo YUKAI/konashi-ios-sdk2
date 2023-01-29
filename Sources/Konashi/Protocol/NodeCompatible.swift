@@ -23,10 +23,11 @@ public protocol NodeCompatible {
     var unicastAddress: Address? { get }
     var deviceKey: Data? { get }
     var name: String? { get }
-    var uuid: UUID? { get }
+    var uuid: UUID { get }
     var isProvisioner: Bool { get }
     var elements: [nRFMeshProvision.Element] { get }
     var receivedMessageSubject: PassthroughSubject<ReceivedMessage, Never> { get }
+    var isConfigured: Bool { get set }
 
     func updateName(_ name: String?) throws
     @discardableResult

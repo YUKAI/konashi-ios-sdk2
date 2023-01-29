@@ -209,6 +209,15 @@ public class MeshNode: NodeCompatible, Loggable {
     public let logOutput = LogOutput()
 
     public var receivedMessageSubject = PassthroughSubject<ReceivedMessage, Never>()
+    public var isConfigured: Bool {
+        get {
+            return node.isConfigComplete
+        }
+        set {
+            node.isConfigComplete = newValue
+            try? manager.save()
+        }
+    }
 
     public private(set) var node: Node
 
@@ -226,7 +235,7 @@ public class MeshNode: NodeCompatible, Loggable {
         return node.name
     }
 
-    public var uuid: UUID? {
+    public var uuid: UUID {
         return node.uuid
     }
 
