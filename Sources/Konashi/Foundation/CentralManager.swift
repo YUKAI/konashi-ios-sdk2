@@ -89,7 +89,7 @@ public final class CentralManager: NSObject, Loggable {
     /// Attempt to scan available peripherals.
     /// - Returns: A promise object for this method.
     public func scan() -> Promise<Void> {
-        log(.info("Start scan"))
+        log(.trace("Start scan"))
 
         if manager.state == .poweredOn {
             statePromise.fulfill(())
@@ -117,14 +117,19 @@ public final class CentralManager: NSObject, Loggable {
         }
     }
 
+    public enum ScanTarget {
+        case all
+        case meshNode
+    }
+
     /// Attempt to find a peripheral.
     /// - Parameters:
     ///   - name: Peripheral name to find.
     ///   - timeoutInterval: The duration of timeout.
+    ///   - target: Filter mesh node or not
     /// - Returns: A promise object for this method.
-    public func find(name: String, timeoutInterval: TimeInterval = 5) -> Promise<any Peripheral> {
-        log(.info("Start find \(name): timeout \(timeoutInterval)"))
-
+    public func find(name: String, timeoutInterval: TimeInterval = 5, target: ScanTarget = .all) -> Promise<any Peripheral> {
+        log(.trace("Start find \(name), timeout: \(timeoutInterval)"))
         var cancellable = Set<AnyCancellable>()
         return Promise<any Peripheral> { [weak self] resolve, reject in
             guard let self else {
@@ -136,15 +141,25 @@ public final class CentralManager: NSObject, Loggable {
                     return
                 }
                 if didFound == false {
+                    self.log(.error("Failed to find \(name)"))
                     reject(ScanError.peripheralNotFound)
                 }
-                self.stopScan()
+            }.catch { [weak self] error in
+                guard let self else {
+                    return
+                }
+                self.log(.error("Failed to find \(name)"))
             }
-            self.didDiscoverSubject.sink { peripheral, _, _ in
+            self.didDiscoverSubject.filter { peripheral, _, _ in
+                if target == .meshNode {
+                    return peripheral.isProvisionable
+                }
+                return true
+            }.sink { peripheral, _, _ in
                 if peripheral.name == name {
                     didFound = true
+                    self.log(.debug("Peripheral found \(name)"))
                     resolve(peripheral)
-                    self.stopScan()
                 }
             }.store(in: &cancellable)
         }.always {
@@ -156,8 +171,7 @@ public final class CentralManager: NSObject, Loggable {
     /// - Returns: A promise object for this method.
     @discardableResult
     public func stopScan() -> Promise<Void> {
-        log(.info("Stop scan"))
-
+        log(.trace("Stop scan"))
         let promise = Promise<Void>.pending()
         isScanning = false
         manager.stopScan()
@@ -170,8 +184,7 @@ public final class CentralManager: NSObject, Loggable {
     /// Connect to peripheral.
     /// - Parameter peripheral: A peripheral to connect.
     func connect(_ peripheral: CBPeripheral) {
-        log(.info("Connect to \(peripheral.name ?? "Unknown"): \(peripheral.identifier)"))
-
+        log(.trace("Connect to \(peripheral.konashi_debugName): \(peripheral.identifier)"))
         numberOfConnectingPeripherals += 1
         manager.connect(peripheral, options: nil)
     }
@@ -179,7 +192,7 @@ public final class CentralManager: NSObject, Loggable {
     /// Disconnect peripheral.
     /// - Parameter peripheral: A peripheral to disconnect.
     func disconnect(_ peripheral: CBPeripheral) {
-        log(.info("Disconnect to \(peripheral.name ?? "Unknown"): \(peripheral.identifier)"))
+        log(.trace("Disconnect to \(peripheral.konashi_debugName): \(peripheral.identifier)"))
 
         manager.cancelPeripheralConnection(peripheral)
     }
@@ -208,7 +221,7 @@ public final class CentralManager: NSObject, Loggable {
 
 extension CentralManager: CBCentralManagerDelegate {
     public func centralManagerDidUpdateState(_ central: CBCentralManager) {
-        log(.info("Did update central manager state: \(central.state.rawValue)"))
+        log(.trace("Did update central manager state: \(central.state.konashi_description)"))
 
         if central.state == .poweredOn {
             statePromise.fulfill(())
@@ -224,7 +237,7 @@ extension CentralManager: CBCentralManagerDelegate {
         advertisementData: [String: Any],
         rssi RSSI: NSNumber
     ) {
-        log(.info("Did discover peripheral: \(peripheral.name ?? "Unknown"),\n advertisement data: \(advertisementData),\n rssi: \(RSSI)"))
+//        log(.trace("Did discover peripheral: \(peripheral.konashi_debugName), mesh: \(UnprovisionedDevice(advertisementData: advertisementData) != nil ? true : false), rssi: \(RSSI), advertising data: \(advertisementData)"))
 
         didDiscoverSubject.send(
             (
@@ -239,12 +252,12 @@ extension CentralManager: CBCentralManagerDelegate {
     }
 
     public func centralManager(_ central: CBCentralManager, didConnect peripheral: CBPeripheral) {
-        log(.info("Did connect: \(peripheral.name ?? "Unknown")"))
+        log(.trace("Did connect: \(peripheral.konashi_debugName)"))
         didConnectSubject.send(peripheral)
     }
 
     public func centralManager(_ central: CBCentralManager, didDisconnectPeripheral peripheral: CBPeripheral, error: Error?) {
-        log(.info("Did disconnect: \(peripheral.name ?? "Unknown"), error: \(error?.localizedDescription ?? "nil")"))
+        log(.trace("Did disconnect: \(peripheral.konashi_debugName), error: \(error?.localizedDescription ?? "nil")"))
         if let error {
             operationErrorSubject.send(error)
         }
@@ -254,7 +267,7 @@ extension CentralManager: CBCentralManagerDelegate {
     }
 
     public func centralManager(_ central: CBCentralManager, didFailToConnect peripheral: CBPeripheral, error: Error?) {
-        log(.info("Did fail to connect: \(peripheral.name ?? "Unknown"), error: \(error?.localizedDescription ?? "nil")"))
+        log(.trace("Did fail to connect: \(peripheral.konashi_debugName), error: \(error?.localizedDescription ?? "nil")"))
         if let error {
             operationErrorSubject.send(error)
         }
