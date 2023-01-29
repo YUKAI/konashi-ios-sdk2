@@ -38,7 +38,6 @@ public final class KonashiPeripheral: Peripheral {
     }
 
     deinit {
-//        log(.trace("Deinit: \(debugName)"))
         readRssiTimer?.invalidate()
     }
 
@@ -61,12 +60,7 @@ public final class KonashiPeripheral: Peripheral {
     }()
 
     /// A publisher of peripheral state.
-    @Published public private(set) var currentConnectionStatus: ConnectionStatus = .disconnected {
-        didSet {
-//            log(.trace("Change connection state: \(debugName), state: \(currentConnectionStatus)"))
-        }
-    }
-
+    @Published public private(set) var currentConnectionStatus: ConnectionStatus = .disconnected
     /// A publisher of RSSI value.
     @Published public internal(set) var rssi: NSNumber?
     /// This variable indicates that whether a peripheral is ready to use or not.
@@ -288,7 +282,7 @@ public final class KonashiPeripheral: Peripheral {
         command: WriteCommand,
         type writeType: CBCharacteristicWriteType = .withResponse
     ) -> Promise<any Peripheral> {
-        log(.trace("Write value: \(debugName), characteristic: \(characteristic), command: \(command) \n \([UInt8](command.compose()).toHexString())"))
+        log(.trace("Write value: \(debugName), characteristic: \(characteristic), command: \(command) \([UInt8](command.compose()).toHexString())"))
         var cancellable = Set<AnyCancellable>()
         let promise = Promise<any Peripheral>.pending()
         readyPromise.then { [weak self] _ in
@@ -323,6 +317,7 @@ public final class KonashiPeripheral: Peripheral {
             guard let self else {
                 return
             }
+            self.log(.error(error.localizedDescription))
             self.operationErrorSubject.send(error)
         }
         promise.always {
@@ -377,6 +372,7 @@ public final class KonashiPeripheral: Peripheral {
             guard let self else {
                 return
             }
+            self.log(.error(error.localizedDescription))
             self.operationErrorSubject.send(error)
         }
         promise.always {
@@ -389,83 +385,93 @@ public final class KonashiPeripheral: Peripheral {
 
     public func setMeshEnabled(_ enabled: Bool) async throws {
         log(.trace("Set mesh: \(debugName), \(enabled)"))
-        if isConnected == false {
-            throw PeripheralOperationError.noConnection
-        }
-        try await asyncWrite(
-            characteristic: SettingsService.settingsCommand,
-            command: .bluetooth(
-                payload: SettingsService.BluetoothSettingPayload(
-                    bluetoothFunction: .init(
-                        function: .mesh,
-                        enabled: enabled
+        do {
+            if isConnected == false {
+                throw PeripheralOperationError.noConnection
+            }
+            try await asyncWrite(
+                characteristic: SettingsService.settingsCommand,
+                command: .system(
+                    payload: .nvmUseSet(enabled: enabled)
+                )
+            )
+            try await asyncWrite(
+                characteristic: SettingsService.settingsCommand,
+                command: .bluetooth(
+                    payload: SettingsService.BluetoothSettingPayload(
+                        bluetoothFunction: .init(
+                            function: .mesh,
+                            enabled: enabled
+                        )
                     )
                 )
             )
-        )
-        try await asyncWrite(
-            characteristic: SettingsService.settingsCommand,
-            command: .system(
-                payload: .nvmUseSet(enabled: enabled)
-            )
-        )
+        } catch {
+            log(.error(error.localizedDescription))
+            throw error
+        }
     }
 
     @discardableResult
     public func provision(for manager: MeshManager) async throws -> NodeCompatible {
         log(.trace("Start provision: \(debugName)"))
-        if manager.connection == nil {
-            throw MeshManager.NetworkError.noNetworkConnection
-        }
-        guard let unprovisionedDevice = UnprovisionedDevice(advertisementData: advertisementData) else {
-            throw MeshManager.ConfigurationError.invalidUnprovisionedDevice
-        }
-        guard let networkKey = manager.networkKey else {
-            throw MeshManager.ConfigurationError.invalidNetworkKey
-        }
-        if currentConnectionStatus == .disconnected {
-            try await connect()
-        }
-        let bearer = MeshBearer(for: PBGattBearer(target: peripheral))
-        bearer.originalBearer.logger = manager.logger
         do {
-            let provisioningManager = try manager.provision(
-                unprovisionedDevice: unprovisionedDevice,
-                over: bearer.originalBearer
-            )
-            provisioningManager.logger = manager.logger
-            provisioningManager.networkKey = networkKey
-            let provisioner = MeshProvisioner(
-                for: provisioningManager,
-                context: MeshProvisioner.Context(
-                    algorithm: .fipsP256EllipticCurve,
-                    publicKey: .noOobPublicKey,
-                    authenticationMethod: .noOob
-                ),
-                bearer: bearer
-            )
-            let cancellable = provisioner.state.sink { [weak self] newState in
-                guard let self else {
-                    return
+            if manager.connection == nil {
+                throw MeshManager.NetworkError.noNetworkConnection
+            }
+            guard let unprovisionedDevice = UnprovisionedDevice(advertisementData: advertisementData) else {
+                throw MeshManager.ConfigurationError.invalidUnprovisionedDevice
+            }
+            guard let networkKey = manager.networkKey else {
+                throw MeshManager.ConfigurationError.invalidNetworkKey
+            }
+            if currentConnectionStatus == .disconnected {
+                try await connect()
+            }
+            let bearer = MeshBearer(for: PBGattBearer(target: peripheral))
+            bearer.originalBearer.logger = manager.logger
+            do {
+                let provisioningManager = try manager.provision(
+                    unprovisionedDevice: unprovisionedDevice,
+                    over: bearer.originalBearer
+                )
+                provisioningManager.logger = manager.logger
+                provisioningManager.networkKey = networkKey
+                let provisioner = MeshProvisioner(
+                    for: provisioningManager,
+                    context: MeshProvisioner.Context(
+                        algorithm: .fipsP256EllipticCurve,
+                        publicKey: .noOobPublicKey,
+                        authenticationMethod: .noOob
+                    ),
+                    bearer: bearer
+                )
+                let cancellable = provisioner.state.sink { [weak self] newState in
+                    guard let self else {
+                        return
+                    }
+                    self.currentProvisioningState = newState
                 }
-                self.currentProvisioningState = newState
+                log(.trace("Wait for provision: \(debugName)"))
+                try await MeshProvisionQueue.waitForProvision(provisioner)
+                log(.trace("Provisioned: \(debugName)"))
+                try manager.save()
+                try await bearer.close()
+                guard let node = MeshNode(manager: manager, uuid: unprovisionedDevice.uuid) else {
+                    throw NodeOperationError.invalidNode
+                }
+                meshNode = node
+                log(.trace("Update node name: \(debugName)"))
+                try node.updateName(name)
+                cancellable.cancel()
+                return node
             }
-            log(.trace("Wait for provision: \(debugName)"))
-            try await MeshProvisionQueue.waitForProvision(provisioner)
-            log(.trace("Provisioned: \(debugName)"))
-            try manager.save()
-            try await bearer.close()
-            guard let node = MeshNode(manager: manager, uuid: unprovisionedDevice.uuid) else {
-                throw NodeOperationError.invalidNode
+            catch {
+                try await bearer.close()
+                throw error
             }
-            meshNode = node
-            // Set name
-            try node.updateName(name)
-            cancellable.cancel()
-            return node
-        }
-        catch {
-            try await bearer.close()
+        } catch {
+            log(.error(error.localizedDescription))
             throw error
         }
     }
@@ -508,6 +514,7 @@ public final class KonashiPeripheral: Peripheral {
     func didDiscoverCharacteristics(for service: CBService) {
         discoveredServices.append(service)
         if discoveredServices.count == services.count {
+            log(.trace("Characteristics discovered: \(debugName)"))
             isCharacteristicsDiscovered = true
         }
     }
@@ -605,6 +612,7 @@ public final class KonashiPeripheral: Peripheral {
                 return
             }
             if ready {
+                self.log(.trace("Ready: \(self.debugName)"))
                 self.currentConnectionStatus = .readyToUse
                 self.readyPromise.fulfill(())
             }
