@@ -62,13 +62,15 @@ public final class CentralManager: NSObject, Loggable {
     /// A subject that sends any operation errors.
     public let operationErrorSubject = PassthroughSubject<Error, Never>()
     /// A subject that sends discovered peripheral and advertisement datas.
-    public let didDiscoverSubject = PassthroughSubject<(peripheral: any Peripheral, advertisementData: [String: Any], rssi: NSNumber), Never>()
+    public let didDiscoverSubject = PassthroughSubject<any Peripheral, Never>()
     /// A subject that sends a peripheral that is connected.
     public let didConnectSubject = PassthroughSubject<CBPeripheral, Never>()
     /// A subject that sends a peripheral when a peripheral is disconnected.
     public let didDisconnectSubject = PassthroughSubject<(CBPeripheral, Error?), Never>()
     /// A subject that sends a peripheral when failed to connect.
     public let didFailedToConnectSubject = PassthroughSubject<(CBPeripheral, Error?), Never>()
+
+    private var foundPeripherals = [any Peripheral]()
 
     /// This value indicates that a centeral manager is scanning peripherals.
     @Published public private(set) var isScanning = false
@@ -130,6 +132,26 @@ public final class CentralManager: NSObject, Loggable {
                 return
             }
             var didFound = false
+            if let foundPeripheral = self.foundPeripherals.first(where: {
+                $0.name == name
+            }) {
+                self.log(.debug("Peripheral already found \(name)"))
+                didFound = true
+                resolve(foundPeripheral)
+                return
+            }
+            self.didDiscoverSubject.filter { peripheral in
+                if target == .meshNode {
+                    return peripheral.isProvisionable
+                }
+                return true
+            }.sink { peripheral in
+                if peripheral.name == name {
+                    didFound = true
+                    self.log(.debug("Peripheral found \(name)"))
+                    resolve(peripheral)
+                }
+            }.store(in: &cancellable)
             self.scan().delay(timeoutInterval).then { [weak self] _ in
                 guard let self else {
                     return
@@ -144,18 +166,6 @@ public final class CentralManager: NSObject, Loggable {
                 }
                 self.log(.error("Failed to find \(name)"))
             }
-            self.didDiscoverSubject.filter { peripheral, _, _ in
-                if target == .meshNode {
-                    return peripheral.isProvisionable
-                }
-                return true
-            }.sink { peripheral, _, _ in
-                if peripheral.name == name {
-                    didFound = true
-                    self.log(.debug("Peripheral found \(name)"))
-                    resolve(peripheral)
-                }
-            }.store(in: &cancellable)
         }.always {
             cancellable.removeAll()
         }
@@ -171,6 +181,24 @@ public final class CentralManager: NSObject, Loggable {
         manager.stopScan()
         promise.fulfill(())
         return promise
+    }
+
+    @discardableResult
+    public func removeFoundPeripheal(for identifier: UUID) -> Bool {
+        if foundPeripherals.contains(where: {
+            $0.identifier == identifier
+        }) {
+            foundPeripherals.removeAll {
+                $0.identifier == identifier
+            }
+            return true
+        }
+        return false
+    }
+
+    public func clearFoundPeripherals() {
+        log(.trace("Clear found peripherals"))
+        foundPeripherals.removeAll()
     }
 
     // MARK: Internal
@@ -189,6 +217,11 @@ public final class CentralManager: NSObject, Loggable {
         log(.trace("Disconnect to \(peripheral.konashi_debugName): \(peripheral.identifier)"))
 
         manager.cancelPeripheralConnection(peripheral)
+    }
+
+    func clearFoundPeripheralsIfNeeded() {
+        log(.trace("Clear outdated peripherals"))
+        foundPeripherals.removeAll(where: \.isOutdated)
     }
 
     // MARK: Fileprivate
@@ -231,18 +264,24 @@ extension CentralManager: CBCentralManagerDelegate {
         advertisementData: [String: Any],
         rssi RSSI: NSNumber
     ) {
-//        log(.trace("Did discover peripheral: \(peripheral.konashi_debugName), mesh: \(UnprovisionedDevice(advertisementData: advertisementData) != nil ? true : false), rssi: \(RSSI), advertising data: \(advertisementData)"))
-
-        didDiscoverSubject.send(
-            (
-                peripheral: KonashiPeripheral(
+        let result: any Peripheral = {
+            guard let existingPeripheral = foundPeripherals.first(where: { $0.identifier == peripheral.identifier }) else {
+                log(.trace("Did discover peripheral: \(peripheral.konashi_debugName), mesh: \(UnprovisionedDevice(advertisementData: advertisementData) != nil ? true : false), rssi: \(RSSI), advertising data: \(advertisementData)"))
+                return KonashiPeripheral(
                     peripheral: peripheral,
-                    advertisementData: advertisementData
-                ),
-                advertisementData: advertisementData,
-                rssi: RSSI
-            )
-        )
+                    advertisementData: advertisementData,
+                    rssi: RSSI
+                )
+            }
+
+            existingPeripheral.setRSSI(RSSI)
+            existingPeripheral.setAdvertisementData(advertisementData)
+            return existingPeripheral
+        }()
+        foundPeripherals.append(result)
+        didDiscoverSubject.send(result)
+        // TODO: clear found peripherals
+        // clearFoundPeripheralsIfNeeded()
     }
 
     public func centralManager(_ central: CBCentralManager, didConnect peripheral: CBPeripheral) {
@@ -253,16 +292,23 @@ extension CentralManager: CBCentralManagerDelegate {
     public func centralManager(_ central: CBCentralManager, didDisconnectPeripheral peripheral: CBPeripheral, error: Error?) {
         log(.trace("Did disconnect: \(peripheral.konashi_debugName), error: \(error?.localizedDescription ?? "nil")"))
         if let error {
+            if let existingPeripheral = foundPeripherals.first(where: { $0.identifier == peripheral.identifier }) {
+                existingPeripheral.operationErrorSubject.send(error)
+            }
             operationErrorSubject.send(error)
         }
         didDisconnectSubject.send(
             (peripheral, error)
         )
+        foundPeripherals.removeAll { $0.identifier == peripheral.identifier }
     }
 
     public func centralManager(_ central: CBCentralManager, didFailToConnect peripheral: CBPeripheral, error: Error?) {
         log(.trace("Did fail to connect: \(peripheral.konashi_debugName), error: \(error?.localizedDescription ?? "nil")"))
         if let error {
+            if let existingPeripheral = foundPeripherals.first(where: { $0.identifier == peripheral.identifier }) {
+                existingPeripheral.operationErrorSubject.send(error)
+            }
             operationErrorSubject.send(error)
         }
         didFailedToConnectSubject.send(
