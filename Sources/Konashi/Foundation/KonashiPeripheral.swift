@@ -656,6 +656,7 @@ public final class KonashiPeripheral: Peripheral {
     }
 
     private func reset() {
+        log(.debug("Reset \(debugName)"))
         currentProvisioningState = nil
         currentConnectionState = .disconnected
         characteristicsState = .invalidated
