@@ -12,9 +12,9 @@ public extension Peripheral {
 
     /// Connects to a peripheral.
     @discardableResult
-    func connect() async throws -> any Peripheral {
+    func connect(timeoutInterval: TimeInterval = 15) async throws -> any Peripheral {
         return try await withCheckedThrowingContinuation { continuation in
-            connect().then {
+            connect().timeout(timeoutInterval).then {
                 continuation.resume(returning: $0)
             }.catch { error in
                 continuation.resume(throwing: error)
@@ -23,9 +23,9 @@ public extension Peripheral {
     }
 
     /// Disconnects from a peripheral.
-    func disconnect() async throws {
+    func disconnect(timeoutInterval: TimeInterval = 15) async throws {
         try await withCheckedThrowingContinuation { continuation in
-            disconnect().then {
+            disconnect().timeout(timeoutInterval).then {
                 continuation.resume(returning: $0)
             }.catch { error in
                 continuation.resume(throwing: error)
