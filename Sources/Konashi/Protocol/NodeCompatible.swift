@@ -9,6 +9,11 @@ import Combine
 import Foundation
 import nRFMeshProvision
 
+public enum RemoveMethod {
+    case force
+    case strict
+}
+
 public protocol NodeCompatible {
     var peripheral: (any Peripheral)? { get }
     var unicastAddress: Address? { get }
@@ -31,7 +36,7 @@ public protocol NodeCompatible {
     func element(with address: nRFMeshProvision.Address) -> nRFMeshProvision.Element?
     func element(for element: NodeElement) -> nRFMeshProvision.Element?
     func model(for model: NodeModel) -> nRFMeshProvision.Model?
-    func removeFromNetwork() async throws
+    func removeFromNetwork(_ method: RemoveMethod) async throws
     @discardableResult
     func reset() async throws -> SendHandler
 

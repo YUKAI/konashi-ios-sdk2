@@ -264,30 +264,38 @@ public class MeshNode: NodeCompatible, Loggable {
         return node.elements[safe: model.element.index]?.model(withModelId: model.identifier)
     }
 
-    public func removeFromNetwork() async throws {
+    public func removeFromNetwork(_ method: RemoveMethod) async throws {
         do {
             guard let network = manager.networkManager.meshNetwork else {
                 throw MeshManager.NetworkError.invalidMeshNetwork
             }
-            log(.trace("Remove from network: \(debugName), network: \(network.meshName)"))
-            try await reset()
+            if manager.connection != nil {
+                log(.trace("Remove node: \(debugName), from network: \(network.meshName)"))
+                try await reset()
                 .waitForSendMessage()
                 .onSuccess()
                 .waitForResponse(for: ConfigNodeResetStatus.self)
-            log(.trace("Reset message was sent to \(debugName)"))
+                log(.trace("Reset message was sent to \(debugName)"))
+            }
+            else if method == .strict {
+                throw MeshManager.NetworkError.noNetworkConnection
+            }
+            else {
+                log(.trace("No network connection. Continue to remove node: \(debugName), from network: \(network.meshName)"))
+            }
             network.remove(node: node)
             try manager.save()
             try await peripheral?.disconnect()
         } catch {
-            log(.error("Failed to remove from network: \(debugName)"))
+            log(.error("Failed to remove node: \(debugName), from network: \(debugName)"))
             throw error
         }
     }
 
     @discardableResult
     public func send(message: nRFMeshProvision.MeshMessage, to model: nRFMeshProvision.Model) async throws -> SendHandler {
-        log(.trace("Send mesh message from \(debugName), to model: \(model), message: 0x\(message.opCode.byteArray().toHexString())"))
         do {
+            log(.trace("Send mesh message from \(debugName), to model: \(model), message: 0x\(message.opCode.byteArray().toHexString())"))
             try await checkOperationAvailability()
             if node.isCompositionDataReceived == false {
                 throw NodeOperationError.noCompositionData
