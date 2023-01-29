@@ -12,15 +12,16 @@ import Foundation
 
 class KonashiPeripheralDelegate: NSObject, Loggable {
     // MARK: Lifecycle
-    
-    static let sharedLogOutput = LogOutput()
-    let logOutput = LogOutput()
 
     init(peripheral: KonashiPeripheral) {
         parentPeripheral = peripheral
     }
 
     // MARK: Internal
+
+    static let sharedLogOutput = LogOutput()
+
+    let logOutput = LogOutput()
 
     weak var parentPeripheral: KonashiPeripheral!
 }

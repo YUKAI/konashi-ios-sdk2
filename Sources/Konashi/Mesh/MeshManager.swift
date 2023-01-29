@@ -12,9 +12,6 @@ import nRFMeshProvision
 // MARK: - MeshManager
 
 public class MeshManager: Loggable {
-    static public let sharedLogOutput = LogOutput()
-    public let logOutput = LogOutput()
-
     // MARK: Lifecycle
 
     public init() {
@@ -44,7 +41,10 @@ public class MeshManager: Loggable {
 
     // MARK: Public
 
+    public static let sharedLogOutput = LogOutput()
     public static let shared = MeshManager()
+
+    public let logOutput = LogOutput()
 
     public let didNetworkSaveSubject = PassthroughSubject<Void, StorageError>()
     public let didSendMessageSubject = PassthroughSubject<Result<SendMessage, MessageTransmissionError>, Never>()
@@ -105,7 +105,8 @@ public class MeshManager: Loggable {
             )
             networkKey = newNetworkKey
             try save()
-        } catch {
+        }
+        catch {
             log(.error("Failed to add a network key: \(newKeyData.toHexString()), error: \(error.localizedDescription)"))
             throw error
         }
@@ -134,7 +135,8 @@ public class MeshManager: Loggable {
                 try newApplicationKey.bind(to: networkKey)
             }
             try save()
-        } catch {
+        }
+        catch {
             log(.error("Failed to add an application key: \(newKeyData.toHexString()), error: \(error.localizedDescription)"))
             throw error
         }
@@ -182,7 +184,8 @@ public class MeshManager: Loggable {
                     throw MeshManager.NetworkError.bearerIsClosed
                 }
             }
-        } catch {
+        }
+        catch {
             log(.error("Failed to wait until connection open: \(error.localizedDescription)"))
             throw error
         }

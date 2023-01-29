@@ -7,6 +7,8 @@
 
 import nRFMeshProvision
 
+// MARK: - SendHandler
+
 public class SendHandler {
     // MARK: Lifecycle
 
@@ -30,7 +32,7 @@ public class SendHandler {
     public var destination: Address {
         return handle.destination
     }
-    
+
     @discardableResult
     public func waitForSendMessage() async throws -> Result<SendCompletionHandler, MessageTransmissionError> {
         return try await node.waitForSendMessage(self)

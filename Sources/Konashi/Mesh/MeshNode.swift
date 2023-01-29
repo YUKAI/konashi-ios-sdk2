@@ -12,12 +12,6 @@ import nRFMeshProvision
 // MARK: - MeshNode
 
 public class MeshNode: NodeCompatible, Loggable {
-    private var debugName: String {
-        return "\(name ?? "Unknown"): \(node.uuid), peripheral: \(peripheral?.completeName ?? "nil")"
-    }
-    static public let sharedLogOutput = LogOutput()
-    public let logOutput = LogOutput()
-
     // MARK: Lifecycle
 
     public init?(manager: MeshManager, uuid: UUID, peripheral: (any Peripheral)? = nil) {
@@ -210,10 +204,14 @@ public class MeshNode: NodeCompatible, Loggable {
         }
     }
 
+    public static let sharedLogOutput = LogOutput()
+
+    public let logOutput = LogOutput()
+
     public var receivedMessageSubject = PassthroughSubject<ReceivedMessage, Never>()
 
     public private(set) var node: Node
-    
+
     public private(set) weak var peripheral: (any Peripheral)?
 
     public var unicastAddress: Address? {
@@ -272,9 +270,9 @@ public class MeshNode: NodeCompatible, Loggable {
             if manager.connection != nil {
                 log(.trace("Remove node: \(debugName), from network: \(network.meshName)"))
                 try await reset()
-                .waitForSendMessage()
-                .onSuccess()
-                .waitForResponse(for: ConfigNodeResetStatus.self)
+                    .waitForSendMessage()
+                    .onSuccess()
+                    .waitForResponse(for: ConfigNodeResetStatus.self)
                 log(.trace("Reset message was sent to \(debugName)"))
             }
             else if method == .strict {
@@ -286,7 +284,8 @@ public class MeshNode: NodeCompatible, Loggable {
             network.remove(node: node)
             try manager.save()
             try await peripheral?.disconnect()
-        } catch {
+        }
+        catch {
             log(.error("Failed to remove node: \(debugName), from network: \(debugName)"))
             throw error
         }
@@ -301,7 +300,8 @@ public class MeshNode: NodeCompatible, Loggable {
                 throw NodeOperationError.noCompositionData
             }
             return SendHandler(node: self, handle: try manager.networkManager.send(message, to: model))
-        } catch {
+        }
+        catch {
             log(.error("Failed to send config message to \(debugName), message: 0x\(message.opCode.byteArray().toHexString()), error: \(error.localizedDescription)"))
             throw error
         }
@@ -313,7 +313,8 @@ public class MeshNode: NodeCompatible, Loggable {
             log(.trace("Send config message to \(debugName), message: 0x\(config.opCode.byteArray().toHexString())"))
             try await checkOperationAvailability()
             return SendHandler(node: self, handle: try manager.networkManager.send(config, to: node))
-        } catch {
+        }
+        catch {
             log(.error("Failed to send config message to \(debugName), message: 0x\(config.opCode.byteArray().toHexString()), error: \(error.localizedDescription)"))
             throw error
         }
@@ -352,7 +353,8 @@ public class MeshNode: NodeCompatible, Loggable {
                 .timeout(.seconds(manager.acknowledgmentMessageTimeout + 1), scheduler: DispatchQueue.global())
                 .eraseToAnyPublisher()
                 .konashi_makeAsync()
-        } catch {
+        }
+        catch {
             log(.error("Failed to wait for response of \(String(describing: type(of: messageType))): \(error.localizedDescription)"))
             throw error
         }
@@ -363,7 +365,8 @@ public class MeshNode: NodeCompatible, Loggable {
         do {
             log(.trace("Set GATT proxy enabled to \(enabled), node: \(debugName)"))
             return try await send(config: ConfigGATTProxySet(enable: enabled))
-        } catch {
+        }
+        catch {
             log(.error("Failed to enable GATT proxy to \(enabled), node: \(debugName)"))
             throw error
         }
@@ -374,7 +377,8 @@ public class MeshNode: NodeCompatible, Loggable {
         do {
             log(.trace("Add application key to \(debugName), key name: \(applicationKey.name)"))
             return try await send(config: ConfigAppKeyAdd(applicationKey: applicationKey))
-        } catch {
+        }
+        catch {
             log(.error("Failed to add application key to: \(debugName), key name: \(applicationKey.name)"))
             throw error
         }
@@ -389,7 +393,8 @@ public class MeshNode: NodeCompatible, Loggable {
                 throw NodeOperationError.invalidParentElement(modelIdentifier: meshModel.modelIdentifier)
             }
             return try await send(config: message)
-        } catch {
+        }
+        catch {
             log(.error("Failed to bind application key to model: \(model), key name: \(applicationKey.name)"))
             throw error
         }
@@ -400,7 +405,8 @@ public class MeshNode: NodeCompatible, Loggable {
         do {
             log(.trace("Reset node: \(debugName)"))
             return try await send(config: ConfigNodeReset())
-        } catch {
+        }
+        catch {
             log(.error("Failed to reset node: \(debugName)"))
             throw error
         }
@@ -413,6 +419,10 @@ public class MeshNode: NodeCompatible, Loggable {
     // MARK: Private
 
     private var cancellable = Set<AnyCancellable>()
+
+    private var debugName: String {
+        return "\(name ?? "Unknown"): \(node.uuid), peripheral: \(peripheral?.completeName ?? "nil")"
+    }
 
     private func checkOperationAvailability() async throws {
         try await manager.waitUntilConnectionOpen()

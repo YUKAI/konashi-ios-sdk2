@@ -20,12 +20,11 @@ extension Peripheral {
 // MARK: - Peripheral
 
 public protocol Peripheral: Hashable, AnyObject, Loggable {
-    
     var operationErrorSubject: PassthroughSubject<Error, Never> { get }
 
     /// A name of a peripheral.
     var name: String? { get }
-    
+
     var identifier: UUID { get }
 
     /// A collection of services of a peripheral.

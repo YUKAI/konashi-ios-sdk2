@@ -18,9 +18,6 @@ import Promises
 public final class CentralManager: NSObject, Loggable {
     // MARK: Lifecycle
 
-    public static let sharedLogOutput = LogOutput()
-    public let logOutput = LogOutput()
-
     override private init() {
         super.init()
         didConnectSubject.sink { [weak self] _ in
@@ -53,8 +50,16 @@ public final class CentralManager: NSObject, Loggable {
         }
     }
 
+    public enum ScanTarget {
+        case all
+        case meshNode
+    }
+
+    public static let sharedLogOutput = LogOutput()
     /// A shared instance of CentralManager.
     public static let shared = CentralManager()
+
+    public let logOutput = LogOutput()
 
     // TODO: Add document
     public var discoversUniquePeripherals = true
@@ -69,8 +74,6 @@ public final class CentralManager: NSObject, Loggable {
     public let didDisconnectSubject = PassthroughSubject<(CBPeripheral, Error?), Never>()
     /// A subject that sends a peripheral when failed to connect.
     public let didFailedToConnectSubject = PassthroughSubject<(CBPeripheral, Error?), Never>()
-
-    private var foundPeripherals = [any Peripheral]()
 
     /// This value indicates that a centeral manager is scanning peripherals.
     @Published public private(set) var isScanning = false
@@ -111,11 +114,6 @@ public final class CentralManager: NSObject, Loggable {
                 resolve(())
             }
         }
-    }
-
-    public enum ScanTarget {
-        case all
-        case meshNode
     }
 
     /// Attempt to find a peripheral.
@@ -160,7 +158,7 @@ public final class CentralManager: NSObject, Loggable {
                     self.log(.error("Failed to find \(name)"))
                     reject(ScanError.peripheralNotFound)
                 }
-            }.catch { [weak self] error in
+            }.catch { [weak self] _ in
                 guard let self else {
                     return
                 }
@@ -238,6 +236,8 @@ public final class CentralManager: NSObject, Loggable {
     }
 
     // MARK: Private
+
+    private var foundPeripherals = [any Peripheral]()
 
     private var statePromise = Promise<Void>.pending()
     private var cancellable = Set<AnyCancellable>()

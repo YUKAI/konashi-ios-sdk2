@@ -35,7 +35,9 @@ public enum ConnectionState: Hashable {
             hasher.combine("connected")
         }
     }
-    
+
+    // MARK: Internal
+
     var connectable: Bool {
         switch self {
         case .disconnected, .error:

@@ -9,10 +9,14 @@ import Combine
 import Foundation
 import nRFMeshProvision
 
+// MARK: - RemoveMethod
+
 public enum RemoveMethod {
     case force
     case strict
 }
+
+// MARK: - NodeCompatible
 
 public protocol NodeCompatible {
     var peripheral: (any Peripheral)? { get }

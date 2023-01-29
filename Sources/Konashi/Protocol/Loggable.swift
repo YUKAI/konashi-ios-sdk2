@@ -7,6 +7,8 @@
 
 import Foundation
 
+// MARK: - Loggable
+
 public protocol Loggable {
     static var sharedLogOutput: LogOutput { get }
     var logOutput: LogOutput { get }

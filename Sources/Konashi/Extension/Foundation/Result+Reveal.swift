@@ -25,7 +25,7 @@ public extension Result {
             return nil
         }
     }
-    
+
     func onFailure() -> Failure? {
         switch self {
         case .success:

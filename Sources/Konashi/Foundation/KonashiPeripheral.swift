@@ -5,10 +5,10 @@
 //  Created by Akira Matsuda on 2021/08/03.
 //
 
-import Foundation
 import Combine
 import CombineExt
 import CoreBluetooth
+import Foundation
 import nRFMeshProvision
 import Promises
 
@@ -21,25 +21,13 @@ public extension KonashiPeripheral {
 
 /// A remote peripheral device.
 public final class KonashiPeripheral: Peripheral {
-    
-    public var rssi: Published<NSNumber>.Publisher {
-        return $currentRSSI
-    }
-
-    var debugName: String {
-        return "\(name ?? "Unknown"): \(peripheral.identifier)"
-    }
-
-    static public let sharedLogOutput = LogOutput()
-    public let logOutput = LogOutput()
-
     // MARK: Lifecycle
 
     public init(peripheral: CBPeripheral, advertisementData: [String: Any], rssi: NSNumber) {
         self.peripheral = peripheral
         self.advertisementData = advertisementData
-        self.currentRSSI = rssi
-        self.lastUpdatedDate = Date()
+        currentRSSI = rssi
+        lastUpdatedDate = Date()
         self.peripheral.delegate = delegate
         prepareCombine()
         prepareKVO()
@@ -49,11 +37,11 @@ public final class KonashiPeripheral: Peripheral {
         readRssiTimer?.invalidate()
     }
 
-    public var isOutdated: Bool {
-        return lastUpdatedDate.timeIntervalSinceNow < -60 // 1 min
-    }
-
     // MARK: Public
+
+    public static let sharedLogOutput = LogOutput()
+
+    public let logOutput = LogOutput()
 
     /// A service of a peripheral's setting.
     public let settingsService = SettingsService()
@@ -71,33 +59,9 @@ public final class KonashiPeripheral: Peripheral {
         ]
     }()
 
-    enum CharacteristicsConfigurationState {
-        case invalidated
-        case discovered
-        case configured
-    }
-    
-    /// A publisher of peripheral state.
-    @Published public private(set) var currentConnectionState: ConnectionState = .disconnected {
-        didSet {
-            log(.debug("Update connection status: \(debugName), status: \(currentConnectionState)"))
-        }
-    }
     /// A publisher that indicates date of the peripheral updated advertisement data or RSSI.
     @Published public private(set) var lastUpdatedDate: Date
-    /// A publisher of RSSI value.
-    @Published public internal(set) var currentRSSI: NSNumber {
-        didSet {
-            lastUpdatedDate = Date()
-        }
-    }
-    /// A publisher that data of the peripheral advertised.
-    @Published public internal(set) var advertisementData: [String: Any] {
-        didSet {
-            lastUpdatedDate = Date()
-        }
-    }
-    
+
     /// This variable indicates that whether a peripheral is ready to use or not.
     public private(set) lazy var isReady: AnyPublisher<Bool, Never> = Publishers.CombineLatest(
         $currentConnectionState,
@@ -111,6 +75,35 @@ public final class KonashiPeripheral: Peripheral {
     /// A subject that sends value that is written to af peripheral.
     public let didWriteValueSubject = PassthroughSubject<(uuid: CBUUID, error: Error?), Never>()
 
+    public var rssi: Published<NSNumber>.Publisher {
+        return $currentRSSI
+    }
+
+    public var isOutdated: Bool {
+        return lastUpdatedDate.timeIntervalSinceNow < -60 // 1 min
+    }
+
+    /// A publisher of peripheral state.
+    @Published public private(set) var currentConnectionState: ConnectionState = .disconnected {
+        didSet {
+            log(.debug("Update connection status: \(debugName), status: \(currentConnectionState)"))
+        }
+    }
+
+    /// A publisher of RSSI value.
+    @Published public internal(set) var currentRSSI: NSNumber {
+        didSet {
+            lastUpdatedDate = Date()
+        }
+    }
+
+    /// A publisher that data of the peripheral advertised.
+    @Published public internal(set) var advertisementData: [String: Any] {
+        didSet {
+            lastUpdatedDate = Date()
+        }
+    }
+
     // TODO: Add document
     public var meshNode: NodeCompatible? {
         didSet {
@@ -120,6 +113,7 @@ public final class KonashiPeripheral: Peripheral {
             log(.trace("Node assigned: \(debugName)"))
         }
     }
+
     @Published public private(set) var currentProvisioningState: ProvisioningState? {
         didSet {
             guard let currentProvisioningState else {
@@ -133,7 +127,7 @@ public final class KonashiPeripheral: Peripheral {
     public var name: String? {
         return peripheral.name
     }
-    
+
     public var identifier: UUID {
         return peripheral.identifier
     }
@@ -238,7 +232,7 @@ public final class KonashiPeripheral: Peripheral {
     @discardableResult
     public func disconnect() -> Promise<Void> {
         log(.trace("Disconnecting: \(debugName)"))
-        if self.currentConnectionState == .disconnected {
+        if currentConnectionState == .disconnected {
             log(.debug("Peripheral is already disconnected: \(debugName)"))
             return Promise<Void>(())
         }
@@ -450,7 +444,8 @@ public final class KonashiPeripheral: Peripheral {
                     )
                 )
             )
-        } catch {
+        }
+        catch {
             log(.error(error.localizedDescription))
             throw error
         }
@@ -515,7 +510,8 @@ public final class KonashiPeripheral: Peripheral {
                 try await bearer.close()
                 throw error
             }
-        } catch {
+        }
+        catch {
             log(.error(error.localizedDescription))
             throw error
         }
@@ -525,7 +521,7 @@ public final class KonashiPeripheral: Peripheral {
         currentRSSI = RSSI
     }
 
-    public func setAdvertisementData(_ advertisementData: [String : Any]) {
+    public func setAdvertisementData(_ advertisementData: [String: Any]) {
         if let unprovisionedDevice = UnprovisionedDevice(advertisementData: advertisementData) {
             self.unprovisionedDevice = unprovisionedDevice
         }
@@ -535,6 +531,21 @@ public final class KonashiPeripheral: Peripheral {
     }
 
     // MARK: Internal
+
+    enum CharacteristicsConfigurationState {
+        case invalidated
+        case discovered
+        case configured
+    }
+
+    internal let didUpdateValueSubject = PassthroughSubject<(characteristic: CBCharacteristic, error: Error?), Never>()
+    internal var readyPromise = Promise<Void>.pending()
+    internal var discoveredServices = [CBService]()
+    internal var configuredCharacteristics = [CBCharacteristic]()
+
+    var debugName: String {
+        return "\(name ?? "Unknown"): \(peripheral.identifier)"
+    }
 
     internal var unprovisionedDevice: UnprovisionedDevice? {
         didSet {
@@ -547,10 +558,6 @@ public final class KonashiPeripheral: Peripheral {
             log(.trace("Update characteristics state: \(debugName), state: \(characteristicsState)"))
         }
     }
-    internal let didUpdateValueSubject = PassthroughSubject<(characteristic: CBCharacteristic, error: Error?), Never>()
-    internal var readyPromise = Promise<Void>.pending()
-    internal var discoveredServices = [CBService]()
-    internal var configuredCharacteristics = [CBCharacteristic]()
 
     internal func discoverCharacteristics(for service: CBService) {
         if let foundService = services.find(service: service) {
@@ -622,7 +629,7 @@ public final class KonashiPeripheral: Peripheral {
     }
 
     private func configureCharacteristics() {
-        log(.trace("Configure characteristics: \(self.debugName)"))
+        log(.trace("Configure characteristics: \(debugName)"))
         for service in services {
             service.applyAttributes(peripheral: peripheral)
         }

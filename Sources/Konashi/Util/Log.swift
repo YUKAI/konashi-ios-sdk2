@@ -11,7 +11,7 @@ import os.log
 
 public typealias LogOutput = PassthroughSubject<Log, Never>
 
-// MARK: - LogMessage
+// MARK: - Log
 
 public struct Log: CustomStringConvertible {
     public enum Level: String {
@@ -41,6 +41,8 @@ public struct Log: CustomStringConvertible {
         /// attention.
         case critical
 
+        // MARK: Internal
+
         var priority: Int {
             switch self {
             case .trace:
@@ -69,6 +71,8 @@ public struct Log: CustomStringConvertible {
         case warning(String)
         case error(String)
         case critical(String)
+
+        // MARK: Public
 
         public var level: Level {
             switch self {
@@ -110,10 +114,11 @@ public struct Log: CustomStringConvertible {
     }
 
     public let label: String
+    public let message: Message
+
     public var level: Level {
         return message.level
     }
-    public let message: Message
 
     public var description: String {
         return "[\(message.level)] \(message.description)"

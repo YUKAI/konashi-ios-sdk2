@@ -8,14 +8,20 @@
 import Foundation
 import nRFMeshProvision
 
+// MARK: - SendCompletionHandler
+
 public struct SendCompletionHandler {
-    public let node: NodeCompatible
-    public let message: SendMessage
-    
+    // MARK: Lifecycle
+
     public init(node: NodeCompatible, message: SendMessage) {
         self.node = node
         self.message = message
     }
+
+    // MARK: Public
+
+    public let node: NodeCompatible
+    public let message: SendMessage
 }
 
 public extension SendCompletionHandler {
