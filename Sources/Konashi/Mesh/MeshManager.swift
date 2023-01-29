@@ -52,6 +52,10 @@ public class MeshManager: Loggable {
     public private(set) var networkKey: NetworkKey?
     public private(set) var applicationKey: ApplicationKey?
 
+    public var acknowledgmentMessageTimeout: TimeInterval {
+        return networkManager.acknowledgmentMessageTimeout
+    }
+
     public var numberOfNodes: Int {
         return networkManager.meshNetwork?.nodes.count ?? 0
     }
