@@ -61,7 +61,7 @@ public final actor MeshManager: Loggable {
         // TODO: MeshNodeに変更する
         return networkManager.meshNetwork?.nodes ?? []
     }
-    
+
     public func load() {
         // If load failed, create a new MeshNetwork.
         if let loaded = try? networkManager.load(), loaded == true {

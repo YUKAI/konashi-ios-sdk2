@@ -16,4 +16,6 @@ extension nRFMeshProvision.Element {
     }
 }
 
+// MARK: - nRFMeshProvision.Element + NodeElement
+
 extension nRFMeshProvision.Element: NodeElement {}
