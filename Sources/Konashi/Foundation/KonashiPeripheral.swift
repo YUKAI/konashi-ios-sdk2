@@ -21,6 +21,14 @@ public extension KonashiPeripheral {
 
 /// A remote peripheral device.
 public final class KonashiPeripheral: Peripheral {
+    public var state: ConnectionState {
+        return currentConnectionState
+    }
+    
+    public var provisioningState: ProvisioningState? {
+        return currentProvisioningState
+    }
+    
     // MARK: Lifecycle
 
     public init(peripheral: CBPeripheral, advertisementData: [String: Any], rssi: NSNumber) {
@@ -34,8 +42,8 @@ public final class KonashiPeripheral: Peripheral {
     }
 
     deinit {
-        log(.trace("Deinit \(debugName)"))
         readRssiTimer?.invalidate()
+        log(.debug("Deinit \(debugName)"))
     }
 
     // MARK: Public
@@ -76,7 +84,7 @@ public final class KonashiPeripheral: Peripheral {
     /// A subject that sends value that is written to af peripheral.
     public let didWriteValueSubject = PassthroughSubject<(uuid: CBUUID, error: Error?), Never>()
 
-    public var rssi: Published<NSNumber>.Publisher {
+    public var rssiPublisher: Published<NSNumber>.Publisher {
         return $currentRSSI
     }
 
@@ -134,11 +142,11 @@ public final class KonashiPeripheral: Peripheral {
     }
 
     /// A connection status of a peripheral.
-    public var state: Published<ConnectionState>.Publisher {
+    public var statePublisher: Published<ConnectionState>.Publisher {
         return $currentConnectionState
     }
 
-    public var provisioningState: Published<ProvisioningState?>.Publisher {
+    public var provisioningStatePublisher: Published<ProvisioningState?>.Publisher {
         return $currentProvisioningState
     }
 

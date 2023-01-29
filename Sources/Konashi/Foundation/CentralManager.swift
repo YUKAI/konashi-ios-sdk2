@@ -197,7 +197,7 @@ public final class CentralManager: NSObject, Loggable {
 
     public func clearFoundPeripherals() {
         log(.trace("Clear found peripherals"))
-        foundPeripherals.removeAll()
+        foundPeripherals.removeAll { $0.state != .connected }
     }
 
     // MARK: Internal

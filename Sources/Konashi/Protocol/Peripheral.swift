@@ -31,12 +31,13 @@ public protocol Peripheral: Hashable, AnyObject, Loggable {
     var services: [Service] { get }
 
     /// A connection status of a peripheral.
-    var state: Published<ConnectionState>.Publisher { get }
-    var rssi: Published<NSNumber>.Publisher { get }
+    var statePublisher: Published<ConnectionState>.Publisher { get }
+    var rssiPublisher: Published<NSNumber>.Publisher { get }
+    var provisioningStatePublisher: Published<ProvisioningState?>.Publisher { get }
 
+    var state: ConnectionState { get }
+    var provisioningState: ProvisioningState? { get }
     var isOutdated: Bool { get }
-
-    var provisioningState: Published<ProvisioningState?>.Publisher { get }
     var isProvisionable: Bool { get }
 
     // TODO: Add document
