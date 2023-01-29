@@ -158,10 +158,11 @@ public final class CentralManager: NSObject, Loggable {
                     self.log(.error("Failed to find \(name)"))
                     reject(ScanError.peripheralNotFound)
                 }
-            }.catch { [weak self] _ in
+            }.catch { [weak self] error in
                 guard let self else {
                     return
                 }
+                reject(error)
                 self.log(.error("Failed to find \(name)"))
             }
         }.always {
