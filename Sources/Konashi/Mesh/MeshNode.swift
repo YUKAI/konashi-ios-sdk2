@@ -215,7 +215,9 @@ public class MeshNode: NodeCompatible, Loggable {
         }
         set {
             node.isConfigComplete = newValue
-            try? manager.save()
+            Task {
+                try? await manager.save()
+            }
         }
     }
 
@@ -247,11 +249,11 @@ public class MeshNode: NodeCompatible, Loggable {
         return node.elements
     }
 
-    public func updateName(_ name: String?) throws {
+    public func updateName(_ name: String?) async throws {
         let oldName = node.name
         do {
             node.name = name
-            try manager.save()
+            try await manager.save()
         }
         catch {
             node.name = oldName
@@ -294,7 +296,7 @@ public class MeshNode: NodeCompatible, Loggable {
                 }
             }
             network.remove(node: node)
-            try manager.save()
+            try await manager.save()
             try await peripheral?.disconnect()
         }
         catch {

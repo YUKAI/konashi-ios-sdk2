@@ -29,7 +29,7 @@ public protocol NodeCompatible {
     var receivedMessageSubject: PassthroughSubject<ReceivedMessage, Never> { get }
     var isConfigured: Bool { get set }
 
-    func updateName(_ name: String?) throws
+    func updateName(_ name: String?) async throws
     @discardableResult
     func send(message: nRFMeshProvision.MeshMessage, to model: nRFMeshProvision.Model) async throws -> SendHandler
     @discardableResult

@@ -470,7 +470,7 @@ public final class KonashiPeripheral: Peripheral {
     public func provision(for manager: MeshManager) async throws -> NodeCompatible {
         do {
             log(.trace("Start provision: \(debugName)"))
-            if manager.connection == nil {
+            if await manager.connection == nil {
                 log(.error("No network connection: \(debugName)"))
                 throw MeshManager.NetworkError.noNetworkConnection
             }
@@ -478,7 +478,7 @@ public final class KonashiPeripheral: Peripheral {
                 log(.error("Invalid unprovisioned device: \(debugName)"))
                 throw MeshManager.ConfigurationError.invalidUnprovisionedDevice
             }
-            guard let networkKey = manager.networkKey else {
+            guard let networkKey = await manager.networkKey else {
                 log(.error("Invalid network key: \(debugName)"))
                 throw MeshManager.ConfigurationError.invalidNetworkKey
             }
@@ -487,14 +487,14 @@ public final class KonashiPeripheral: Peripheral {
                 try await connect()
             }
             let bearer = MeshBearer(for: PBGattBearer(target: peripheral))
-            bearer.originalBearer.logger = manager.logger
+            bearer.originalBearer.logger = await manager.logger
             do {
                 log(.trace("Get provisioning manager: \(debugName)"))
-                let provisioningManager = try manager.provision(
+                let provisioningManager = try await manager.provision(
                     unprovisionedDevice: unprovisionedDevice,
                     over: bearer.originalBearer
                 )
-                provisioningManager.logger = manager.logger
+                provisioningManager.logger = await manager.logger
                 provisioningManager.networkKey = networkKey
                 let provisioner = MeshProvisioner(
                     for: provisioningManager,
@@ -514,7 +514,7 @@ public final class KonashiPeripheral: Peripheral {
                 log(.trace("Wait for provision: \(debugName)"))
                 try await MeshProvisionQueue.waitForProvision(provisioner)
                 log(.trace("Provisioned: \(debugName)"))
-                try manager.save()
+                try await manager.save()
                 try await bearer.close()
                 guard let node = MeshNode(manager: manager, uuid: unprovisionedDevice.uuid, peripheral: self) else {
                     log(.critical("Can not find a mesh node of \(debugName), uuid: \(unprovisionedDevice.uuid)"))
@@ -522,7 +522,7 @@ public final class KonashiPeripheral: Peripheral {
                 }
                 meshNode = node
                 log(.trace("Update node name: \(debugName)"))
-                try node.updateName(name)
+                try await node.updateName(name)
                 cancellable.cancel()
                 return node
             }

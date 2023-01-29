@@ -10,8 +10,7 @@ import Foundation
 import nRFMeshProvision
 
 // MARK: - MeshManager
-
-public class MeshManager: Loggable {
+public actor MeshManager: Loggable {
     // MARK: Lifecycle
 
     public init() {
@@ -28,14 +27,16 @@ public class MeshManager: Loggable {
         networkManager.acknowledgmentMessageTimeout = 40.0
         networkManager.delegate = self
 
-        // If load failed, create a new MeshNetwork.
-        if let loaded = try? networkManager.load(), loaded == true {
-            log(.trace("Load mesh network settings"))
-            meshNetworkDidChange()
-        }
-        else {
-            log(.info("There are no mesh networks, the mesh manager creates new network."))
-            try? createNewMeshNetwork()
+        Task {
+            // If load failed, create a new MeshNetwork.
+            if let loaded = try? networkManager.load(), loaded == true {
+                log(.trace("Load mesh network settings"))
+                await meshNetworkDidChange()
+            }
+            else {
+                log(.info("There are no mesh networks, the mesh manager creates new network."))
+                try? await createNewMeshNetwork()
+            }
         }
     }
 
@@ -46,9 +47,9 @@ public class MeshManager: Loggable {
 
     public let logOutput = LogOutput()
 
-    public let didNetworkSaveSubject = PassthroughSubject<Void, StorageError>()
-    public let didSendMessageSubject = PassthroughSubject<Result<SendMessage, MessageTransmissionError>, Never>()
-    public let didReceiveMessageSubject = PassthroughSubject<ReceivedMessage, Never>()
+    nonisolated public let didNetworkSaveSubject = PassthroughSubject<Void, StorageError>()
+    nonisolated public let didSendMessageSubject = PassthroughSubject<Result<SendMessage, MessageTransmissionError>, Never>()
+    nonisolated public let didReceiveMessageSubject = PassthroughSubject<ReceivedMessage, Never>()
     public private(set) var networkKey: NetworkKey?
     public private(set) var applicationKey: ApplicationKey?
 
@@ -63,11 +64,11 @@ public class MeshManager: Loggable {
         return networkManager.acknowledgmentMessageTimeout
     }
 
-    public var numberOfNodes: Int {
+    nonisolated public var numberOfNodes: Int {
         return networkManager.meshNetwork?.nodes.count ?? 0
     }
 
-    public var allNodes: [Node] {
+    nonisolated public var allNodes: [Node] {
         // TODO: MeshNodeに変更する
         return networkManager.meshNetwork?.nodes ?? []
     }
@@ -168,7 +169,7 @@ public class MeshManager: Loggable {
 
     private(set) var logger: LoggerDelegate?
 
-    internal func node(for uuid: UUID) -> Node? {
+    internal nonisolated func node(for uuid: UUID) -> Node? {
         return networkManager.meshNetwork?.node(withUuid: uuid)
     }
 
@@ -244,7 +245,7 @@ public class MeshManager: Loggable {
 // MARK: MeshNetworkDelegate
 
 extension MeshManager: MeshNetworkDelegate {
-    public func meshNetworkManager(
+    nonisolated public func meshNetworkManager(
         _ manager: MeshNetworkManager,
         didReceiveMessage message: MeshMessage,
         sentFrom source: Address,
@@ -254,7 +255,7 @@ extension MeshManager: MeshNetworkDelegate {
         didReceiveMessageSubject.send(ReceivedMessage(body: message, source: source, destination: destination))
     }
 
-    public func meshNetworkManager(
+    nonisolated public func meshNetworkManager(
         _ manager: MeshNetworkManager,
         didSendMessage message: MeshMessage,
         from localElement: Element,
@@ -264,7 +265,7 @@ extension MeshManager: MeshNetworkDelegate {
         didSendMessageSubject.send(.success(SendMessage(body: message, from: localElement, destination: destination)))
     }
 
-    public func meshNetworkManager(
+    nonisolated public func meshNetworkManager(
         _ manager: MeshNetworkManager,
         failedToSendMessage message: MeshMessage,
         from localElement: Element,
