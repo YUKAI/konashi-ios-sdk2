@@ -206,6 +206,8 @@ public class MeshNode: NodeCompatible {
     public var receivedMessageSubject = PassthroughSubject<ReceivedMessage, Never>()
 
     public private(set) var node: Node
+    
+    public private(set) weak var peripheral: (any Peripheral)?
 
     public var unicastAddress: Address? {
         return node.unicastAddress

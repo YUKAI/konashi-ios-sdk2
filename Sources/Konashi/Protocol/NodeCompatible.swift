@@ -10,6 +10,7 @@ import Foundation
 import nRFMeshProvision
 
 public protocol NodeCompatible {
+    var peripheral: (any Peripheral)? { get }
     var unicastAddress: Address? { get }
     var deviceKey: Data? { get }
     var name: String? { get }
