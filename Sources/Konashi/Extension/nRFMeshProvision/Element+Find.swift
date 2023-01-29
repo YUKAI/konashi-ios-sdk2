@@ -15,3 +15,5 @@ extension nRFMeshProvision.Element {
         return meshModel
     }
 }
+
+extension nRFMeshProvision.Element: NodeElement {}

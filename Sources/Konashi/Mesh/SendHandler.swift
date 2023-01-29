@@ -34,7 +34,7 @@ public struct SendHandler {
     }
 
     @discardableResult
-    public func waitForSendMessage() async throws -> Result<SendCompletionHandler, MessageTransmissionError> {
+    public func waitForSendMessage() async throws -> SendCompletionHandler {
         return try await node.waitForSendMessage(self)
     }
 

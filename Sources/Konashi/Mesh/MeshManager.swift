@@ -14,8 +14,8 @@ import nRFMeshProvision
 public final actor MeshManager: Loggable {
     // MARK: Lifecycle
 
-    public init() {
-        networkManager = MeshNetworkManager()
+    public init(filename: String) {
+        networkManager = MeshNetworkManager(using: filename)
         networkManager.acknowledgmentTimerInterval = 0.150
         networkManager.transmissionTimerInterval = 0.600
         networkManager.incompleteMessageTimeout = 10.0
@@ -27,30 +27,18 @@ public final actor MeshManager: Loggable {
         // Then, leave 10 seconds for until the incomplete message times out.
         networkManager.acknowledgmentMessageTimeout = 40.0
         networkManager.delegate = self
-
-        Task {
-            // If load failed, create a new MeshNetwork.
-            if let loaded = try? networkManager.load(), loaded == true {
-                log(.trace("Load mesh network settings"))
-                await meshNetworkDidChange()
-            }
-            else {
-                log(.info("There are no mesh networks, the mesh manager creates new network."))
-                try? await createNewMeshNetwork()
-            }
-        }
     }
 
     // MARK: Public
 
     public static let sharedLogOutput = LogOutput()
-    public static let shared = MeshManager()
+    public static let shared = MeshManager(filename: "Konashi.SharedMeshNetwork")
 
     public let logOutput = LogOutput()
 
     public nonisolated let didNetworkSaveSubject = PassthroughSubject<Void, StorageError>()
-    public nonisolated let didSendMessageSubject = PassthroughSubject<Result<SendMessage, MessageTransmissionError>, Never>()
-    public nonisolated let didReceiveMessageSubject = PassthroughSubject<ReceivedMessage, Never>()
+    public nonisolated let didSendMessageSubject = PassthroughSubject<SendMessage, Never>()
+    public nonisolated let didReceiveMessageSubject = PassthroughSubject<Result<ReceivedMessage, MessageTransmissionError>, Never>()
     public private(set) var networkKey: NetworkKey?
     public private(set) var applicationKey: ApplicationKey?
 
@@ -72,6 +60,18 @@ public final actor MeshManager: Loggable {
     public nonisolated var allNodes: [Node] {
         // TODO: MeshNodeに変更する
         return networkManager.meshNetwork?.nodes ?? []
+    }
+    
+    public func load() {
+        // If load failed, create a new MeshNetwork.
+        if let loaded = try? networkManager.load(), loaded == true {
+            log(.trace("Load mesh network settings"))
+            meshNetworkDidChange()
+        }
+        else {
+            log(.info("There are no mesh networks, the mesh manager creates new network."))
+            try? createNewMeshNetwork()
+        }
     }
 
     public func provision(unprovisionedDevice: UnprovisionedDevice, over bearer: ProvisioningBearer) throws -> ProvisioningManager {
@@ -253,7 +253,7 @@ extension MeshManager: MeshNetworkDelegate {
         to destination: Address
     ) {
         log(.debug("Did receive message from: 0x\(source.byteArray().toHexString()), opCode: 0x\(message.opCode.byteArray().toHexString()), to: 0x\(destination.byteArray().toHexString())"))
-        didReceiveMessageSubject.send(ReceivedMessage(body: message, source: source, destination: destination))
+        didReceiveMessageSubject.send(.success(ReceivedMessage(body: message, source: source, destination: destination)))
     }
 
     public nonisolated func meshNetworkManager(
@@ -263,7 +263,7 @@ extension MeshManager: MeshNetworkDelegate {
         to destination: Address
     ) {
         log(.debug("Did send message to: 0x\(destination.byteArray().toHexString()), opCode: 0x\(message.opCode.byteArray().toHexString())"))
-        didSendMessageSubject.send(.success(SendMessage(body: message, from: localElement, destination: destination)))
+        didSendMessageSubject.send(SendMessage(body: message, from: localElement, destination: destination))
     }
 
     public nonisolated func meshNetworkManager(
@@ -274,7 +274,7 @@ extension MeshManager: MeshNetworkDelegate {
         error: Error
     ) {
         log(.error("Failed to send message to: 0x\(destination.byteArray().toHexString()), opCode: 0x\(message.opCode.byteArray().toHexString()), error: \(error.localizedDescription)"))
-        didSendMessageSubject.send(
+        didReceiveMessageSubject.send(
             .failure(
                 MessageTransmissionError(
                     error: error,

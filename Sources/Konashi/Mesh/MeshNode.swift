@@ -33,7 +33,7 @@ public final class MeshNode: NodeCompatible, Loggable {
 
     // MARK: Public
 
-    public enum Element: Int, NodeElement {
+    public enum Element: UInt8, NodeElement {
         case configuration // Element 1
         case control0 // Element 2
         case control1 // Element 3
@@ -199,7 +199,7 @@ public final class MeshNode: NodeCompatible, Loggable {
             }
         }
 
-        public var index: Int {
+        public var index: UInt8 {
             return rawValue
         }
     }
@@ -208,7 +208,7 @@ public final class MeshNode: NodeCompatible, Loggable {
 
     public let logOutput = LogOutput()
 
-    public var receivedMessageSubject = PassthroughSubject<ReceivedMessage, Never>()
+    public var receivedMessageSubject = PassthroughSubject<Result<ReceivedMessage, MessageTransmissionError>, Never>()
     public private(set) var node: Node
 
     public private(set) weak var peripheral: (any Peripheral)?
@@ -266,11 +266,11 @@ public final class MeshNode: NodeCompatible, Loggable {
     }
 
     public func element(for element: NodeElement) -> nRFMeshProvision.Element? {
-        return node.elements[safe: element.index]
+        return node.elements[safe: Int(element.index)]
     }
 
     public func model(for model: NodeModel) -> nRFMeshProvision.Model? {
-        return node.elements[safe: model.element.index]?.model(withModelId: model.identifier)
+        return node.elements[safe: Int(model.element.index)]?.model(withModelId: model.identifier)
     }
 
     public func removeFromNetwork(_ method: RemoveMethod) async throws {
@@ -283,7 +283,6 @@ public final class MeshNode: NodeCompatible, Loggable {
                 log(.trace("Remove node: \(debugName), from network: \(network.meshName)"))
                 try await reset()
                     .waitForSendMessage()
-                    .onSuccess()
                     .waitForResponse(for: ConfigNodeResetStatus.self)
                 log(.trace("Reset message was sent to \(debugName)"))
             }
@@ -335,25 +334,14 @@ public final class MeshNode: NodeCompatible, Loggable {
     }
 
     @discardableResult
-    public func waitForSendMessage(_ handler: SendHandler) async throws -> Result<SendCompletionHandler, MessageTransmissionError> {
+    public func waitForSendMessage(_ handler: SendHandler) async throws -> SendCompletionHandler {
         do {
             log(.trace("Wait for send message from \(debugName), to: 0x\(handler.destination.byteArray().toHexString()), message: \(handler.opCode)"))
             try await checkOperationAvailability()
-            return try await manager.didSendMessageSubject.filter { result in
-                switch result {
-                case let .success(message):
-                    return handler.isEqualTo(message)
-                case let .failure(error):
-                    return handler.isEqualTo(error.message)
-                }
-            }.map { result in
-                switch result {
-                case let .success(message):
-                    return .success(SendCompletionHandler(node: self, message: message))
-                case let .failure(error):
-                    return .failure(error)
-                }
-            }.eraseToAnyPublisher().konashi_makeAsync()
+            return try await manager.didSendMessageSubject
+                .map { SendCompletionHandler(node: self, message: $0) }
+                .eraseToAnyPublisher()
+                .konashi_makeAsync()
         }
     }
 
@@ -362,11 +350,25 @@ public final class MeshNode: NodeCompatible, Loggable {
         do {
             log(.trace("Wait for response of \(String(describing: type(of: messageType)))"))
             try await checkOperationAvailability()
-            return try await receivedMessageSubject
-                .filter { type(of: $0.body) is T }
-                .timeout(.seconds(manager.acknowledgmentMessageTimeout + 1), scheduler: DispatchQueue.global())
+            let result = try await receivedMessageSubject
+                .filter {
+                    switch $0 {
+                    case let .success(message):
+                        return type(of: message.body) is T
+                    case let .failure(error):
+                        return type(of: error.message.body) is T
+                    }
+                }
                 .eraseToAnyPublisher()
                 .konashi_makeAsync()
+            switch result {
+            case let .success(message):
+                log(.trace("Received response \(String(describing: type(of: messageType)))"))
+                return message
+            case let .failure(error):
+                log(.trace("Failed to receive response \(error.localizedDescription)"))
+                throw error
+            }
         }
         catch {
             log(.error("Failed to wait for response of \(String(describing: type(of: messageType))): \(error.localizedDescription)"))

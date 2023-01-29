@@ -26,7 +26,7 @@ public protocol NodeCompatible {
     var uuid: UUID { get }
     var isProvisioner: Bool { get }
     var elements: [nRFMeshProvision.Element] { get }
-    var receivedMessageSubject: PassthroughSubject<ReceivedMessage, Never> { get }
+    var receivedMessageSubject: PassthroughSubject<Result<ReceivedMessage, MessageTransmissionError>, Never> { get }
     var isConfigured: Bool { get set }
 
     func updateName(_ name: String?) async throws
@@ -35,7 +35,7 @@ public protocol NodeCompatible {
     @discardableResult
     func send(config: nRFMeshProvision.ConfigMessage) async throws -> SendHandler
     @discardableResult
-    func waitForSendMessage(_ handler: SendHandler) async throws -> Result<SendCompletionHandler, MessageTransmissionError>
+    func waitForSendMessage(_ handler: SendHandler) async throws -> SendCompletionHandler
     @discardableResult
     func waitForResponse(for messageType: any MeshMessage.Type) async throws -> ReceivedMessage
     func element(with address: nRFMeshProvision.Address) -> nRFMeshProvision.Element?

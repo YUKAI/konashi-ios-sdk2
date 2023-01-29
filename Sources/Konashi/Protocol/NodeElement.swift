@@ -8,5 +8,5 @@
 import Foundation
 
 public protocol NodeElement {
-    var index: Int { get }
+    var index: UInt8 { get }
 }
