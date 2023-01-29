@@ -20,3 +20,17 @@ public extension PassthroughSubject where Output == SendMessage, Failure == Mess
         }
     }
 }
+
+public extension LogOutput {
+    func applyLogLevel(_ logLevel: Int) -> Publishers.Filter<PassthroughSubject> {
+        return filter {
+            $0.level.priority >= logLevel
+        }
+    }
+
+    func applyLogLevel(_ logLevel: Log.Level) -> Publishers.Filter<PassthroughSubject> {
+        return filter {
+            $0.level.priority >= logLevel.priority
+        }
+    }
+}

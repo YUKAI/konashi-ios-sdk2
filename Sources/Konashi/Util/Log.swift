@@ -40,6 +40,25 @@ public struct Log: CustomStringConvertible {
         /// Appropriate for critical error conditions that usually require immediate
         /// attention.
         case critical
+
+        var priority: Int {
+            switch self {
+            case .trace:
+                return 0
+            case .debug:
+                return 1
+            case .info:
+                return 2
+            case .notice:
+                return 3
+            case .warning:
+                return 4
+            case .error:
+                return 5
+            case .critical:
+                return 6
+            }
+        }
     }
 
     public enum Message: CustomStringConvertible {
