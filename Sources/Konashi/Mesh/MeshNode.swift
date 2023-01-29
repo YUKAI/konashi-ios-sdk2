@@ -436,7 +436,7 @@ public final class MeshNode: NodeCompatible, Loggable {
     private var cancellable = Set<AnyCancellable>()
 
     private var debugName: String {
-        return "\(name ?? "Unknown"): \(node.uuid), peripheral: \(peripheral?.identifier.uuidString ?? "nil")"
+        return "\(name ?? "Unknown"): \(node.uuid)"
     }
 
     private func checkOperationAvailability() async throws {
