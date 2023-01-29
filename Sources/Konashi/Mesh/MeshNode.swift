@@ -275,7 +275,8 @@ public class MeshNode: NodeCompatible, Loggable {
                     .onSuccess()
                     .waitForResponse(for: ConfigNodeResetStatus.self)
                 log(.trace("Reset message was sent to \(debugName)"))
-            } catch {
+            }
+            catch {
                 if method == .strict {
                     throw MeshManager.NetworkError.noNetworkConnection
                 }

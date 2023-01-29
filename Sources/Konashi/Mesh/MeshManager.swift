@@ -51,7 +51,7 @@ public class MeshManager: Loggable {
     public let didReceiveMessageSubject = PassthroughSubject<ReceivedMessage, Never>()
     public private(set) var networkKey: NetworkKey?
     public private(set) var applicationKey: ApplicationKey?
-    
+
     public var isConnectionOpen: Bool {
         if let connection {
             return connection.isOpen

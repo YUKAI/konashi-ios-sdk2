@@ -13,7 +13,9 @@ import Foundation
 // https://medium.com/geekculture/from-combine-to-async-await-c08bf1d15b77
 enum AsyncError: Error, LocalizedError {
     case timeout
-    
+
+    // MARK: Internal
+
     var errorDescription: String? {
         switch self {
         case .timeout:
