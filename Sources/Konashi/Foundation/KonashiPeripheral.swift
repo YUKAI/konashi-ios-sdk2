@@ -116,10 +116,10 @@ public final class KonashiPeripheral: Peripheral {
     // TODO: Add document
     public var meshNode: NodeCompatible? {
         didSet {
-            guard meshNode != nil else {
+            guard let meshNode else {
                 return
             }
-            log(.trace("Node assigned: \(debugName)"))
+            log(.debug("Node assigned: \(debugName), node: \(meshNode.uuid)"))
         }
     }
 
