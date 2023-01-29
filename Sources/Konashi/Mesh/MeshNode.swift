@@ -316,6 +316,7 @@ public class MeshNode: NodeCompatible {
         return self
     }
 
+    @discardableResult
     public func reset() async throws -> SendHandler {
         return try await send(config: ConfigNodeReset())
     }

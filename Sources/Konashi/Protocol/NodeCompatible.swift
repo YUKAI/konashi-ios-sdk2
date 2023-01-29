@@ -31,6 +31,7 @@ public protocol NodeCompatible {
     func element(for element: NodeElement) -> nRFMeshProvision.Element?
     func model(for model: NodeModel) -> nRFMeshProvision.Model?
     func removeFromNetwork() async throws
+    @discardableResult
     func reset() async throws -> SendHandler
 
     @discardableResult
