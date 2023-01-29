@@ -12,3 +12,11 @@ public extension PassthroughSubject where Output == ReceivedMessage {
         return filter { node.element(with: $0.source) != nil }
     }
 }
+
+public extension PassthroughSubject where Output == SendMessage, Failure == MessageTransmissionError {
+    func filter(for node: NodeCompatible) -> Publishers.Filter<PassthroughSubject> {
+        return filter {
+            node.element(with: $0.destination) != nil
+        }
+    }
+}

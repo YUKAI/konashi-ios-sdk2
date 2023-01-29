@@ -280,9 +280,23 @@ public class MeshNode: NodeCompatible {
     }
 
     @discardableResult
-    public func waitForSendMessage() async throws -> SendMessage {
+    public func waitForSendMessage(_ handler: SendHandler) async throws -> Result<SendCompletionHandler, MessageTransmissionError> {
         try await checkOperationAvailability()
-        return try await manager.didSendMessageSubject.eraseToAnyPublisher().konashi_makeAsync()
+        return try await manager.didSendMessageSubject.filter { result in
+            switch result {
+            case let .success(message):
+                return handler.isEqualTo(message)
+            case let .failure(error):
+                return handler.isEqualTo(error.message)
+            }
+        }.map { result in
+            switch result {
+            case let .success(message):
+                return .success(SendCompletionHandler(node: self, message: message))
+            case let .failure(error):
+                return .failure(error)
+            }
+        }.eraseToAnyPublisher().konashi_makeAsync()
     }
 
     @discardableResult
@@ -295,25 +309,22 @@ public class MeshNode: NodeCompatible {
     }
 
     @discardableResult
-    public func setGattProxyEnabled(_ enabled: Bool) async throws -> NodeCompatible {
-        try await send(config: ConfigGATTProxySet(enable: enabled))
-        return self
+    public func setGattProxyEnabled(_ enabled: Bool) async throws -> SendHandler {
+        return try await send(config: ConfigGATTProxySet(enable: enabled))
     }
 
     @discardableResult
-    public func addApplicationKey(_ applicationKey: ApplicationKey) async throws -> NodeCompatible {
-        try await send(config: ConfigAppKeyAdd(applicationKey: applicationKey))
-        return self
+    public func addApplicationKey(_ applicationKey: ApplicationKey) async throws -> SendHandler {
+        return try await send(config: ConfigAppKeyAdd(applicationKey: applicationKey))
     }
 
     @discardableResult
-    public func bindApplicationKey(_ applicationKey: ApplicationKey, to model: NodeModel) async throws -> NodeCompatible {
+    public func bindApplicationKey(_ applicationKey: ApplicationKey, to model: NodeModel) async throws -> SendHandler {
         let meshModel = try node.findElement(of: model.element).findModel(of: model)
         guard let message = ConfigModelAppBind(applicationKey: applicationKey, to: meshModel) else {
             throw NodeOperationError.invalidParentElement(modelIdentifier: meshModel.modelIdentifier)
         }
-        try await send(config: message)
-        return self
+        return try await send(config: message)
     }
 
     @discardableResult

@@ -42,7 +42,7 @@ public class MeshManager {
     public static let shared = MeshManager()
 
     public let didNetworkSaveSubject = PassthroughSubject<Void, StorageError>()
-    public let didSendMessageSubject = PassthroughSubject<SendMessage, MessageTransmissionError>()
+    public let didSendMessageSubject = PassthroughSubject<Result<SendMessage, MessageTransmissionError>, Never>()
     public let didReceiveMessageSubject = PassthroughSubject<ReceivedMessage, Never>()
     public private(set) var networkKey: NetworkKey?
     public private(set) var applicationKey: ApplicationKey?
@@ -205,7 +205,7 @@ extension MeshManager: MeshNetworkDelegate {
         from localElement: Element,
         to destination: Address
     ) {
-        didSendMessageSubject.send(SendMessage(body: message, from: localElement, destination: destination))
+        didSendMessageSubject.send(.success(SendMessage(body: message, from: localElement, destination: destination)))
     }
 
     public func meshNetworkManager(
@@ -216,7 +216,7 @@ extension MeshManager: MeshNetworkDelegate {
         error: Error
     ) {
         didSendMessageSubject.send(
-            completion: .failure(
+            .failure(
                 MessageTransmissionError(
                     error: error,
                     message: SendMessage(body: message, from: localElement, destination: destination)

@@ -24,7 +24,7 @@ public protocol NodeCompatible {
     @discardableResult
     func send(config: nRFMeshProvision.ConfigMessage) async throws -> SendHandler
     @discardableResult
-    func waitForSendMessage() async throws -> SendMessage
+    func waitForSendMessage(_ handler: SendHandler) async throws -> Result<SendCompletionHandler, MessageTransmissionError>
     @discardableResult
     func waitForResponse(for messageType: any MeshMessage.Type) async throws -> ReceivedMessage
     func element(with address: nRFMeshProvision.Address) -> nRFMeshProvision.Element?
@@ -35,9 +35,9 @@ public protocol NodeCompatible {
     func reset() async throws -> SendHandler
 
     @discardableResult
-    func setGattProxyEnabled(_ enabled: Bool) async throws -> NodeCompatible
+    func setGattProxyEnabled(_ enabled: Bool) async throws -> SendHandler
     @discardableResult
-    func addApplicationKey(_ applicationKey: ApplicationKey) async throws -> NodeCompatible
+    func addApplicationKey(_ applicationKey: ApplicationKey) async throws -> SendHandler
     @discardableResult
-    func bindApplicationKey(_ applicationKey: ApplicationKey, to model: NodeModel) async throws -> NodeCompatible
+    func bindApplicationKey(_ applicationKey: ApplicationKey, to model: NodeModel) async throws -> SendHandler
 }

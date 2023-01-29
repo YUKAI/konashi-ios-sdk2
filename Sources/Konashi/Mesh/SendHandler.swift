@@ -30,6 +30,11 @@ public class SendHandler {
     public var destination: Address {
         return handle.destination
     }
+    
+    @discardableResult
+    public func waitForSendMessage() async throws -> Result<SendCompletionHandler, MessageTransmissionError> {
+        return try await node.waitForSendMessage(self)
+    }
 
     @discardableResult
     public func waitForResponse(for messageType: any MeshMessage.Type) async throws -> ReceivedMessage {
@@ -43,4 +48,10 @@ public class SendHandler {
     // MARK: Internal
 
     let handle: SendCancellable
+}
+
+extension SendHandler {
+    func isEqualTo(_ message: SendMessage) -> Bool {
+        return opCode == message.body.opCode && source == message.from.parentNode?.unicastAddress && destination == message.destination
+    }
 }
