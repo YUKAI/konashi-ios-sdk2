@@ -348,7 +348,7 @@ public final class MeshNode: NodeCompatible, Loggable {
     @discardableResult
     public func waitForResponse<T>(for messageType: T) async throws -> ReceivedMessage {
         do {
-            log(.trace("Wait for response of \(String(describing: type(of: messageType)))"))
+            log(.trace("Wait for response: \(debugName), type: \(String(describing: type(of: messageType)))"))
             try await checkOperationAvailability()
             let result = try await receivedMessageSubject
                 .filter {
@@ -363,15 +363,15 @@ public final class MeshNode: NodeCompatible, Loggable {
                 .konashi_makeAsync()
             switch result {
             case let .success(message):
-                log(.trace("Received response \(String(describing: type(of: messageType)))"))
+                log(.trace("Received response: \(debugName), type: \(String(describing: type(of: messageType)))"))
                 return message
             case let .failure(error):
-                log(.trace("Failed to receive response \(error.localizedDescription)"))
+                log(.trace("Failed to receive response: \(debugName), error: \(error.localizedDescription)"))
                 throw error
             }
         }
         catch {
-            log(.error("Failed to wait for response of \(String(describing: type(of: messageType))): \(error.localizedDescription)"))
+            log(.error("Failed to wait for response: \(debugName), type: \(String(describing: type(of: messageType))): \(error.localizedDescription)"))
             throw error
         }
     }
@@ -437,7 +437,7 @@ public final class MeshNode: NodeCompatible, Loggable {
     private var cancellable = Set<AnyCancellable>()
 
     private var debugName: String {
-        return "\(name ?? "Unknown"): \(node.uuid), peripheral: \(peripheral?.completeName ?? "nil")"
+        return "\(name ?? "Unknown"): \(node.uuid), peripheral: \(peripheral?.identifier.uuidString ?? "nil")"
     }
 
     private func checkOperationAvailability() async throws {
