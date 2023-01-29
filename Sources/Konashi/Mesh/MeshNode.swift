@@ -259,7 +259,10 @@ public class MeshNode: NodeCompatible {
         guard let network = manager.networkManager.meshNetwork else {
             throw MeshManager.NetworkError.invalidMeshNetwork
         }
-        try await reset().waitForResponse(for: ConfigNodeResetStatus.self)
+        try await reset()
+            .waitForSendMessage()
+            .onSuccess()
+            .waitForResponse(for: ConfigNodeResetStatus.self)
         network.remove(node: node)
         try manager.save()
     }
