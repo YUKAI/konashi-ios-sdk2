@@ -366,7 +366,6 @@ public final class MeshNode: NodeCompatible, Loggable {
                 log(.trace("Received response: \(debugName), type: \(String(describing: type(of: messageType)))"))
                 return message
             case let .failure(error):
-                log(.trace("Failed to receive response: \(debugName), error: \(error.localizedDescription)"))
                 throw error
             }
         }
