@@ -641,6 +641,15 @@ public final class KonashiPeripheral: Peripheral {
         }
     }
 
+    private func reset() {
+        currentProvisioningState = nil
+        currentConnectionState = .disconnected
+        characteristicsState = .invalidated
+        discoveredServices.removeAll()
+        configuredCharacteristics.removeAll()
+        readRssiTimer?.invalidate()
+    }
+
     private func prepareCombine() {
         internalCancellable.removeAll()
         CentralManager.shared.didDisconnectSubject.sink { [weak self] peripheral, _ in
@@ -648,8 +657,7 @@ public final class KonashiPeripheral: Peripheral {
                 return
             }
             if peripheral == self.peripheral {
-                self.readRssiTimer?.invalidate()
-                self.internalCancellable.removeAll()
+                self.reset()
             }
         }.store(in: &internalCancellable)
         $currentConnectionState.removeDuplicates().sink { [weak self] status in
