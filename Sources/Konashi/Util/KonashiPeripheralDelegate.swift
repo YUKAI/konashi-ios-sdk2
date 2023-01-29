@@ -57,7 +57,7 @@ extension KonashiPeripheralDelegate: CBPeripheralDelegate {
             return
         }
         log(.trace("Did read RSSI: \(peripheral.konashi_debugName), RSSI: \(RSSI)"))
-        parentPeripheral.rssi = RSSI
+        parentPeripheral.currentRSSI = RSSI
     }
 
     public func peripheral(_ peripheral: CBPeripheral, didWriteValueFor characteristic: CBCharacteristic, error: Error?) {
@@ -92,7 +92,7 @@ extension KonashiPeripheralDelegate: CBPeripheralDelegate {
         let numberOfConfigureableCharacteristics = parentPeripheral.services.flatMap(\.notifiableCharacteristics).count
         if parentPeripheral.configuredCharacteristics.count == numberOfConfigureableCharacteristics {
             log(.trace("Characteristics configured: \(peripheral.konashi_debugName)"))
-            parentPeripheral.isCharacteristicsConfigured = true
+            parentPeripheral.characteristicsState = .configured
         }
     }
 

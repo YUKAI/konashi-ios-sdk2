@@ -19,15 +19,23 @@ extension Peripheral {
 
 // MARK: - Peripheral
 
-public protocol Peripheral: Hashable, Loggable {
+public protocol Peripheral: Hashable, AnyObject, Loggable {
+    
+    var operationErrorSubject: PassthroughSubject<Error, Never> { get }
+
     /// A name of a peripheral.
     var name: String? { get }
+    
+    var identifier: UUID { get }
 
     /// A collection of services of a peripheral.
     var services: [Service] { get }
 
     /// A connection status of a peripheral.
-    var status: Published<ConnectionStatus>.Publisher { get }
+    var state: Published<ConnectionState>.Publisher { get }
+    var rssi: Published<NSNumber>.Publisher { get }
+
+    var isOutdated: Bool { get }
 
     var provisioningState: Published<ProvisioningState?>.Publisher { get }
     var isProvisionable: Bool { get }
@@ -66,4 +74,13 @@ public protocol Peripheral: Hashable, Loggable {
 
     @discardableResult
     func provision(for manager: MeshManager) async throws -> NodeCompatible
+
+    func setRSSI(_ RSSI: NSNumber)
+    func setAdvertisementData(_ advertisementData: [String: Any])
+}
+
+public extension Peripheral {
+    var completeName: String {
+        return "\(name ?? "Unknown"): \(identifier)"
+    }
 }
