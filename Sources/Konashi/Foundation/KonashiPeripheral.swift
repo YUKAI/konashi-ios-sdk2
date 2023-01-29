@@ -34,6 +34,7 @@ public final class KonashiPeripheral: Peripheral {
     }
 
     deinit {
+        log(.trace("Deinit \(debugName)"))
         readRssiTimer?.invalidate()
     }
 
@@ -453,23 +454,28 @@ public final class KonashiPeripheral: Peripheral {
 
     @discardableResult
     public func provision(for manager: MeshManager) async throws -> NodeCompatible {
-        log(.trace("Start provision: \(debugName)"))
         do {
+            log(.trace("Start provision: \(debugName)"))
             if manager.connection == nil {
+                log(.error("No network connection: \(debugName)"))
                 throw MeshManager.NetworkError.noNetworkConnection
             }
             guard let unprovisionedDevice else {
+                log(.error("Invalid unprovisioned device: \(debugName)"))
                 throw MeshManager.ConfigurationError.invalidUnprovisionedDevice
             }
             guard let networkKey = manager.networkKey else {
+                log(.error("Invalid network key: \(debugName)"))
                 throw MeshManager.ConfigurationError.invalidNetworkKey
             }
             if currentConnectionState == .disconnected {
+                log(.trace("Attempt to connect to \(debugName)"))
                 try await connect()
             }
             let bearer = MeshBearer(for: PBGattBearer(target: peripheral))
             bearer.originalBearer.logger = manager.logger
             do {
+                log(.trace("Get provisioning manager: \(debugName)"))
                 let provisioningManager = try manager.provision(
                     unprovisionedDevice: unprovisionedDevice,
                     over: bearer.originalBearer
@@ -671,6 +677,7 @@ public final class KonashiPeripheral: Peripheral {
                 self.readyPromise.fulfill(())
             }
             else {
+                self.log(.trace("Pending: \(self.debugName)"))
                 self.readyPromise = Promise<Void>.pending()
             }
         }.store(in: &internalCancellable)
