@@ -267,19 +267,21 @@ public class MeshNode: NodeCompatible, Loggable {
             guard let network = manager.networkManager.meshNetwork else {
                 throw MeshManager.NetworkError.invalidMeshNetwork
             }
-            if manager.connection != nil {
+            do {
+                try await manager.waitUntilConnectionOpen()
                 log(.trace("Remove node: \(debugName), from network: \(network.meshName)"))
                 try await reset()
                     .waitForSendMessage()
                     .onSuccess()
                     .waitForResponse(for: ConfigNodeResetStatus.self)
                 log(.trace("Reset message was sent to \(debugName)"))
-            }
-            else if method == .strict {
-                throw MeshManager.NetworkError.noNetworkConnection
-            }
-            else {
-                log(.trace("No network connection. Continue to remove node: \(debugName), from network: \(network.meshName)"))
+            } catch {
+                if method == .strict {
+                    throw MeshManager.NetworkError.noNetworkConnection
+                }
+                else {
+                    log(.debug("No network connection. Continue to remove node: \(debugName), from network: \(network.meshName)"))
+                }
             }
             network.remove(node: node)
             try manager.save()

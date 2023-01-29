@@ -51,6 +51,13 @@ public class MeshManager: Loggable {
     public let didReceiveMessageSubject = PassthroughSubject<ReceivedMessage, Never>()
     public private(set) var networkKey: NetworkKey?
     public private(set) var applicationKey: ApplicationKey?
+    
+    public var isConnectionOpen: Bool {
+        if let connection {
+            return connection.isOpen
+        }
+        return false
+    }
 
     public var acknowledgmentMessageTimeout: TimeInterval {
         return networkManager.acknowledgmentMessageTimeout
@@ -171,8 +178,8 @@ public class MeshManager: Loggable {
             throw MeshManager.NetworkError.noNetworkConnection
         }
         do {
-            log(.trace("Wait until connection open"))
             if connection.isOpen == false {
+                log(.trace("Wait until connection open"))
                 let result = try await connection.$isOpen
                     .removeDuplicates()
                     .timeout(.seconds(timeoutInterval), scheduler: DispatchQueue.global())
@@ -183,6 +190,7 @@ public class MeshManager: Loggable {
                     log(.error("Failed to wait until connection open. Bearer is closed."))
                     throw MeshManager.NetworkError.bearerIsClosed
                 }
+                log(.trace("Connection opened"))
             }
         }
         catch {
