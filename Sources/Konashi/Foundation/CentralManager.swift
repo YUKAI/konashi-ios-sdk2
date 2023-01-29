@@ -27,13 +27,7 @@ public final class CentralManager: NSObject, Loggable {
             guard let self else {
                 return
             }
-            self.numberOfConnectingPeripherals -= 1
-        }.store(in: &cancellable)
-        didFailedToConnectSubject.sink { [weak self] _ in
-            guard let self else {
-                return
-            }
-            self.numberOfConnectingPeripherals -= 1
+            self.numberOfConnectingPeripherals += 1
         }.store(in: &cancellable)
         didFailedToConnectSubject.sink { [weak self] _ in
             guard let self else {
