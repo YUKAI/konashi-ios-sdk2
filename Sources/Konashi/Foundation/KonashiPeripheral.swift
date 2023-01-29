@@ -176,7 +176,7 @@ public final class KonashiPeripheral: Peripheral {
     @discardableResult
     public func connect() -> Promise<any Peripheral> {
         log(.trace("Connecting: \(debugName)"))
-        if currentConnectionState.connectable == false {
+        if currentConnectionState.isConnectable == false {
             if currentConnectionState == .connected {
                 log(.debug("Peripheral is already connected: \(debugName)"))
                 return Promise<any Peripheral>(self)

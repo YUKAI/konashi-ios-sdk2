@@ -36,9 +36,7 @@ public enum ConnectionState: Hashable {
         }
     }
 
-    // MARK: Internal
-
-    var connectable: Bool {
+    public var isConnectable: Bool {
         switch self {
         case .disconnected, .error:
             return true
