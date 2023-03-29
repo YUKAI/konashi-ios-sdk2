@@ -171,67 +171,67 @@ public struct ControlService: Service {
 }
 
 public extension ControlService {
-    public static let controlCommand = WriteableCharacteristic<ControlCommand>(
+    static let controlCommand = WriteableCharacteristic<ControlCommand>(
         serviceUUID: ControlService.uuid,
         uuid: UUID(
             uuidString: "064D0301-8251-49D9-B6F3-F7BA35E5D0A1"
         )!
     )
-    public static let gpioOutput = ReadableCharacteristic<GPIOxValue>(
+    static let gpioOutput = ReadableCharacteristic<GPIOxValue>(
         serviceUUID: ControlService.uuid,
         uuid: UUID(
             uuidString: "064D0302-8251-49D9-B6F3-F7BA35E5D0A1"
         )!
     )
-    public static let gpioInput = ReadableCharacteristic<GPIOxValue>(
+    static let gpioInput = ReadableCharacteristic<GPIOxValue>(
         serviceUUID: ControlService.uuid,
         uuid: UUID(
             uuidString: "064D0303-8251-49D9-B6F3-F7BA35E5D0A1"
         )!
     )
-    public static let softwarePWMOutput = ReadableCharacteristic<SoftwarePWMxOutput>(
+    static let softwarePWMOutput = ReadableCharacteristic<SoftwarePWMxOutput>(
         serviceUUID: ControlService.uuid,
         uuid: UUID(
             uuidString: "064D0304-8251-49D9-B6F3-F7BA35E5D0A1"
         )!
     )
-    public static let hardwarePWMOutput = ReadableCharacteristic<HardwarePWMxOutput>(
+    static let hardwarePWMOutput = ReadableCharacteristic<HardwarePWMxOutput>(
         serviceUUID: ControlService.uuid,
         uuid: UUID(
             uuidString: "064D0305-8251-49D9-B6F3-F7BA35E5D0A1"
         )!
     )
-    public static let analogOutput = ReadableCharacteristic<AnalogxOutputValue>(
+    static let analogOutput = ReadableCharacteristic<AnalogxOutputValue>(
         serviceUUID: ControlService.uuid,
         uuid: UUID(
             uuidString: "064D0306-8251-49D9-B6F3-F7BA35E5D0A1"
         )!
     )
-    public static let analogInput = ReadableCharacteristic<AnalogxInputValue>(
+    static let analogInput = ReadableCharacteristic<AnalogxInputValue>(
         serviceUUID: ControlService.uuid,
         uuid: UUID(
             uuidString: "064D0307-8251-49D9-B6F3-F7BA35E5D0A1"
         )!
     )
-    public static let i2cDataInput = NotifiableCharacteristic<I2C.Value>(
+    static let i2cDataInput = NotifiableCharacteristic<I2C.Value>(
         serviceUUID: ControlService.uuid,
         uuid: UUID(
             uuidString: "064D0308-8251-49D9-B6F3-F7BA35E5D0A1"
         )!
     )
-    public static let uartDataInput = NotifiableCharacteristic<UARTInputValue>(
+    static let uartDataInput = NotifiableCharacteristic<UARTInputValue>(
         serviceUUID: ControlService.uuid,
         uuid: UUID(
             uuidString: "064D0309-8251-49D9-B6F3-F7BA35E5D0A1"
         )!
     )
-    public static let uartSendDone = NotifiableCharacteristic<UARTDataSendResult>(
+    static let uartSendDone = NotifiableCharacteristic<UARTDataSendResult>(
         serviceUUID: ControlService.uuid,
         uuid: UUID(
             uuidString: "064D030A-8251-49D9-B6F3-F7BA35E5D0A1"
         )!
     )
-    public static let spiDataInput = NotifiableCharacteristic<SPIInputValue>(
+    static let spiDataInput = NotifiableCharacteristic<SPIInputValue>(
         serviceUUID: ControlService.uuid,
         uuid: UUID(
             uuidString: "064D030B-8251-49D9-B6F3-F7BA35E5D0A1"

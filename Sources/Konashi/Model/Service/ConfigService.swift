@@ -150,7 +150,7 @@ public struct ConfigService: Service {
 
 public extension ConfigService {
     /// A characteristic to configure a hardware element in Konashi.
-    public static let configCommand = WriteableCharacteristic<ConfigCommand>(
+    static let configCommand = WriteableCharacteristic<ConfigCommand>(
         serviceUUID: ConfigService.uuid,
         uuid: UUID(
             uuidString: "064D0201-8251-49D9-B6F3-F7BA35E5D0A1"
@@ -158,7 +158,7 @@ public extension ConfigService {
     )
 
     /// A characteristic to get the current configuration of the GPIOs.
-    public static let gpioConfig = ReadableCharacteristic<GPIOxConfig>(
+    static let gpioConfig = ReadableCharacteristic<GPIOxConfig>(
         serviceUUID: ConfigService.uuid,
         uuid: UUID(
             uuidString: "064D0202-8251-49D9-B6F3-F7BA35E5D0A1"
@@ -166,7 +166,7 @@ public extension ConfigService {
     )
 
     /// A characteristic to get the current configuration of the SoftPWMs.
-    public static let softwarePWMConfig = ReadableCharacteristic<SoftwarePWMxConfig>(
+    static let softwarePWMConfig = ReadableCharacteristic<SoftwarePWMxConfig>(
         serviceUUID: ConfigService.uuid,
         uuid: UUID(
             uuidString: "064D0203-8251-49D9-B6F3-F7BA35E5D0A1"
@@ -174,7 +174,7 @@ public extension ConfigService {
     )
 
     /// A characteristic to get the current configuration of the HardPWMs.
-    public static let hardwarePWMConfig = ReadableCharacteristic<HardwarePWMxConfig>(
+    static let hardwarePWMConfig = ReadableCharacteristic<HardwarePWMxConfig>(
         serviceUUID: ConfigService.uuid,
         uuid: UUID(
             uuidString: "064D0204-8251-49D9-B6F3-F7BA35E5D0A1"
@@ -182,7 +182,7 @@ public extension ConfigService {
     )
 
     /// A characteristic to get the current configuration of the Analog pins.
-    public static let analogConfig = ReadableCharacteristic<AnalogxConfig>(
+    static let analogConfig = ReadableCharacteristic<AnalogxConfig>(
         serviceUUID: ConfigService.uuid,
         uuid: UUID(
             uuidString: "064D0205-8251-49D9-B6F3-F7BA35E5D0A1"
@@ -190,7 +190,7 @@ public extension ConfigService {
     )
 
     /// A characteristic to get the current configuration of I2C.
-    public static let i2cConfig = ReadableCharacteristic<I2C.Config>(
+    static let i2cConfig = ReadableCharacteristic<I2C.Config>(
         serviceUUID: ConfigService.uuid,
         uuid: UUID(
             uuidString: "064D0206-8251-49D9-B6F3-F7BA35E5D0A1"
@@ -198,7 +198,7 @@ public extension ConfigService {
     )
 
     /// A characteristic to get the current configuration of UART.
-    public static let uartConfig = ReadableCharacteristic<UART.Config>(
+    static let uartConfig = ReadableCharacteristic<UART.Config>(
         serviceUUID: ConfigService.uuid,
         uuid: UUID(
             uuidString: "064D0207-8251-49D9-B6F3-F7BA35E5D0A1"
@@ -206,7 +206,7 @@ public extension ConfigService {
     )
 
     /// A characteristic to get the current configuration of SPI.
-    public static let spiConfig = ReadableCharacteristic<SPI.Config>(
+    static let spiConfig = ReadableCharacteristic<SPI.Config>(
         serviceUUID: ConfigService.uuid,
         uuid: UUID(
             uuidString: "064D0208-8251-49D9-B6F3-F7BA35E5D0A1"

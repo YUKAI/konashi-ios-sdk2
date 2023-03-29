@@ -159,7 +159,7 @@ public final class KonashiPeripheral: Peripheral {
         discoveredServices.removeAll()
         configuredCharacteristics.removeAll()
         return Promise<any Peripheral> { [unowned self] resolve, reject in
-            self.isReady.sink { [weak self] ready in
+            isReady.sink { [weak self] ready in
                 guard let self else {
                     return
                 }
@@ -199,7 +199,7 @@ public final class KonashiPeripheral: Peripheral {
                     self.operationErrorSubject.send(error)
                 }
             }.store(in: &cancellable)
-            CentralManager.shared.connect(self.peripheral)
+            CentralManager.shared.connect(peripheral)
         }.always {
             cancellable.removeAll()
         }

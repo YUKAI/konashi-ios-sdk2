@@ -331,19 +331,19 @@ public struct SettingsService: Service {
 }
 
 public extension SettingsService {
-    public static let settingsCommand = WriteableCharacteristic<SettingCommand>(
+    static let settingsCommand = WriteableCharacteristic<SettingCommand>(
         serviceUUID: SettingsService.uuid,
         uuid: UUID(
             uuidString: "064D0101-8251-49D9-B6F3-F7BA35E5D0A1"
         )!
     )
-    public static let systemSettings = ReadableCharacteristic<SystemSettings>(
+    static let systemSettings = ReadableCharacteristic<SystemSettings>(
         serviceUUID: SettingsService.uuid,
         uuid: UUID(
             uuidString: "064D0102-8251-49D9-B6F3-F7BA35E5D0A1"
         )!
     )
-    public static let bluetoothSettings = ReadableCharacteristic<BluetoothSettings>(
+    static let bluetoothSettings = ReadableCharacteristic<BluetoothSettings>(
         serviceUUID: SettingsService.uuid,
         uuid: UUID(
             uuidString: "064D0103-8251-49D9-B6F3-F7BA35E5D0A1"
