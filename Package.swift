@@ -4,7 +4,7 @@
 import PackageDescription
 
 let package = Package(
-    name: "Konashi",
+    name: "konashi-ios-sdk2",
     platforms: [
         .iOS(.v13),
         .macOS(.v10_15)
