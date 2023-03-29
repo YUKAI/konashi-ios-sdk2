@@ -7,7 +7,8 @@
 #
 
 Pod::Spec.new do |s|
-    s.name             = 'Konashi'
+    s.name             = 'konashi-ios-sdk2'
+    s.module_name      = 'Konashi'
     s.version          = '1.0.0'
     s.summary          = 'iOS SDK for konashi, a wireless physical computing toolkit'
     s.swift_versions   = '5.7'
@@ -29,7 +30,6 @@ Pod::Spec.new do |s|
     # s.social_media_url = 'https://twitter.com/<TWITTER_USERNAME>'
   
     s.ios.deployment_target = '13.0'
-    s.static_framework = true
   
     s.source_files = 'Sources/**/**.swift'
     
