@@ -4,9 +4,9 @@ iOS SDK for konashi, a wireless physical computing toolkit.
 
 [![Swift 5 supported](https://img.shields.io/badge/Swift-5.7-orange.svg)](https://github.com/apple/swift)
 [![Swift Package Manager compatible](https://img.shields.io/badge/Swift_Package_Manager-compatible-orange)](https://swift.org/package-manager/)
-[![License](https://img.shields.io/cocoapods/l/Konashi.svg?style=flat)](http://cocoadocs.org/docsets/Konashi)
-[![Version](https://img.shields.io/cocoapods/v/Konashi.svg)](https://cocoapods.org/pods/Konashi)
-![Platform](https://img.shields.io/cocoapods/p/Konashi.svg?style=flat)
+![License](https://img.shields.io/cocoapods/l/konashi-ios-sdk2.svg?style=flat)
+[![Version](https://img.shields.io/cocoapods/v/konashi-ios-sdk2.svg)](https://cocoapods.org/pods/konashi-ios-sdk2)
+![Platform](https://img.shields.io/cocoapods/p/konashi-ios-sdk2.svg?style=flat)
 
 ## Requirements
 
