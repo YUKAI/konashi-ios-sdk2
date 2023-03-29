@@ -184,57 +184,6 @@ public struct ConfigService: Service {
             spiConfig
         ]
     }
-
-    // MARK: Internal
-
-    let configCommand = WriteableCharacteristic<ConfigCommand>(
-        serviceUUID: ConfigService.uuid,
-        uuid: UUID(
-            uuidString: "064D0201-8251-49D9-B6F3-F7BA35E5D0A1"
-        )!
-    )
-    let gpioConfig = ReadableCharacteristic<GPIOxConfig>(
-        serviceUUID: ConfigService.uuid,
-        uuid: UUID(
-            uuidString: "064D0202-8251-49D9-B6F3-F7BA35E5D0A1"
-        )!
-    )
-    let softwarePWMConfig = ReadableCharacteristic<SoftwarePWMxConfig>(
-        serviceUUID: ConfigService.uuid,
-        uuid: UUID(
-            uuidString: "064D0203-8251-49D9-B6F3-F7BA35E5D0A1"
-        )!
-    )
-    let hardwarePWMConfig = ReadableCharacteristic<HardwarePWMxConfig>(
-        serviceUUID: ConfigService.uuid,
-        uuid: UUID(
-            uuidString: "064D0204-8251-49D9-B6F3-F7BA35E5D0A1"
-        )!
-    )
-    let analogConfig = ReadableCharacteristic<AnalogxConfig>(
-        serviceUUID: ConfigService.uuid,
-        uuid: UUID(
-            uuidString: "064D0205-8251-49D9-B6F3-F7BA35E5D0A1"
-        )!
-    )
-    let i2cConfig = ReadableCharacteristic<I2C.Config>(
-        serviceUUID: ConfigService.uuid,
-        uuid: UUID(
-            uuidString: "064D0206-8251-49D9-B6F3-F7BA35E5D0A1"
-        )!
-    )
-    let uartConfig = ReadableCharacteristic<UART.Config>(
-        serviceUUID: ConfigService.uuid,
-        uuid: UUID(
-            uuidString: "064D0207-8251-49D9-B6F3-F7BA35E5D0A1"
-        )!
-    )
-    let spiConfig = ReadableCharacteristic<SPI.Config>(
-        serviceUUID: ConfigService.uuid,
-        uuid: UUID(
-            uuidString: "064D0208-8251-49D9-B6F3-F7BA35E5D0A1"
-        )!
-    )
 }
 
 public extension ConfigService {
