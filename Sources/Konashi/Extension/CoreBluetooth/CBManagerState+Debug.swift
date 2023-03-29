@@ -22,6 +22,8 @@ extension CBManagerState {
             return "poweredOff"
         case .poweredOn:
             return "poweredOn"
+        default:
+            return "unknown"
         }
     }
 }
