@@ -71,11 +71,11 @@ public extension KonashiPeripheral {
                     return val.pin == pin
                 }
                 guard let value else {
-                    reject(OperationError.couldNotReadValue)
+                    reject(PeripheralOperationError.couldNotReadValue)
                     return
                 }
                 if value.isValid == false {
-                    reject(OperationError.invalidReadValue)
+                    reject(PeripheralOperationError.invalidReadValue)
                     return
                 }
                 resolve(value.level)
@@ -129,11 +129,11 @@ public extension KonashiPeripheral {
                     return val.pin == pin
                 }
                 guard let value else {
-                    reject(OperationError.couldNotReadValue)
+                    reject(PeripheralOperationError.couldNotReadValue)
                     return
                 }
                 if value.isValid == false {
-                    reject(OperationError.invalidReadValue)
+                    reject(PeripheralOperationError.invalidReadValue)
                     return
                 }
                 resolve(value)

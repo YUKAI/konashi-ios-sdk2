@@ -17,17 +17,27 @@ extension Peripheral {
     }
 }
 
-public protocol Peripheral: Hashable {
+// MARK: - Peripheral
+
+public protocol Peripheral: Hashable, AnyObject, Loggable {
+    var operationErrorSubject: PassthroughSubject<Error, Never> { get }
+
     /// A name of a peripheral.
     var name: String? { get }
+
+    var identifier: UUID { get }
 
     /// A collection of services of a peripheral.
     var services: [Service] { get }
 
     /// A connection status of a peripheral.
-    var status: Published<ConnectionStatus>.Publisher { get }
+    var statePublisher: Published<ConnectionState>.Publisher { get }
+    var rssiPublisher: Published<NSNumber>.Publisher { get }
+    var provisioningStatePublisher: Published<ProvisioningState?>.Publisher { get }
 
-    var provisioningState: Published<ProvisioningState?>.Publisher { get }
+    var state: ConnectionState { get }
+    var provisioningState: ProvisioningState? { get }
+    var isOutdated: Bool { get }
     var isProvisionable: Bool { get }
 
     // TODO: Add document
@@ -51,7 +61,7 @@ public protocol Peripheral: Hashable {
     ///   - command: The command to write.
     ///   - type: The type of write to execute. For a list of the possible types of writes to a characteristic’s value, see CBCharacteristicWriteType.
     @discardableResult
-    func write<WriteCommand: Command>(characteristic: WriteableCharacteristic<WriteCommand>, command: WriteCommand, type: CBCharacteristicWriteType) -> Promise<any Peripheral>
+    func write<WriteCommand: Command>(characteristic: WriteableCharacteristic<WriteCommand>, command: WriteCommand, type writeType: CBCharacteristicWriteType) -> Promise<any Peripheral>
 
     /// Retrieves the value of a specified characteristic.
     /// - Parameter characteristic: The characteristic whose value you want to read.
@@ -60,6 +70,17 @@ public protocol Peripheral: Hashable {
     func read<Value: CharacteristicValue>(characteristic: ReadableCharacteristic<Value>) -> Promise<Value>
 
     // TODO: Add document
+    func setMeshEnabled(_ enabled: Bool) async throws
+
     @discardableResult
     func provision(for manager: MeshManager) async throws -> NodeCompatible
+
+    func setRSSI(_ RSSI: NSNumber)
+    func setAdvertisementData(_ advertisementData: [String: Any])
+}
+
+public extension Peripheral {
+    var completeName: String {
+        return "\(name ?? "Unknown"): \(identifier)"
+    }
 }

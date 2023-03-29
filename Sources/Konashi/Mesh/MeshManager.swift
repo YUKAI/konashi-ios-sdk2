@@ -9,78 +9,13 @@ import Combine
 import Foundation
 import nRFMeshProvision
 
-public class MeshManager {
-    public enum ConfigurationError: Error, LocalizedError {
-        case invalidUnprovisionedDevice
-        case invalidNetworkKey
-        case invalidApplicationKey
+// MARK: - MeshManager
 
-        public var errorDescription: String? {
-            switch self {
-            case .invalidUnprovisionedDevice:
-                return "Failed to convert advertisement data."
-            case .invalidNetworkKey:
-                return "Network key shoud not be nil."
-            case .invalidApplicationKey:
-                return "Application key shoud not be nil."
-            }
-        }
-    }
+public final actor MeshManager: Loggable {
+    // MARK: Lifecycle
 
-    public enum NetworkError: Error, LocalizedError {
-        case invalidMeshNetwork
-        case noNetworkConnection
-        case bearerIsClosed
-        case timeout
-
-        public var errorDescription: String? {
-            switch self {
-            case .invalidMeshNetwork:
-                return "Mesh network should not be nil."
-            case .noNetworkConnection:
-                return "No network connection."
-            case .bearerIsClosed:
-                return "Network connection is closed."
-            case .timeout:
-                return "Operation timeout."
-            }
-        }
-    }
-
-    public enum StorageError: Error, LocalizedError {
-        case failedToSave
-        case failedToCreateMeshNetwork
-
-        public var errorDescription: String? {
-            switch self {
-            case .failedToSave:
-                return "Failed to save keys to local storage."
-            case .failedToCreateMeshNetwork:
-                return "Failed to save mesh network settings to local storage."
-            }
-        }
-    }
-
-    public static let shared = MeshManager()
-
-    public let didSendMessageSubject = PassthroughSubject<SendMessage, MessageTransmissionError>()
-    public let didReceiveMessageSubject = PassthroughSubject<ReceivedMessage, Never>()
-    public private(set) var networkKey: NetworkKey?
-    public private(set) var applicationKey: ApplicationKey?
-    public var numberOfNodes: Int {
-        return networkManager.meshNetwork?.nodes.count ?? 0
-    }
-
-    public var allNodes: [Node] {
-        // TODO: MeshNodeに変更する
-        return networkManager.meshNetwork?.nodes ?? []
-    }
-
-    internal let networkManager: MeshNetworkManager
-    private(set) var connection: MeshNetworkConnection?
-
-    public init() {
-        networkManager = MeshNetworkManager()
+    public init(filename: String) {
+        networkManager = MeshNetworkManager(using: filename)
         networkManager.acknowledgmentTimerInterval = 0.150
         networkManager.transmissionTimerInterval = 0.600
         networkManager.incompleteMessageTimeout = 10.0
@@ -92,25 +27,58 @@ public class MeshManager {
         // Then, leave 10 seconds for until the incomplete message times out.
         networkManager.acknowledgmentMessageTimeout = 40.0
         networkManager.delegate = self
+    }
 
+    // MARK: Public
+
+    public static let sharedLogOutput = LogOutput()
+    public static let shared = MeshManager(filename: "Konashi.SharedMeshNetwork")
+
+    public let logOutput = LogOutput()
+
+    public nonisolated let didNetworkSaveSubject = PassthroughSubject<Void, StorageError>()
+    public nonisolated let didSendMessageSubject = PassthroughSubject<SendMessage, Never>()
+    public nonisolated let didReceiveMessageSubject = PassthroughSubject<Result<ReceivedMessage, MessageTransmissionError>, Never>()
+    public private(set) var networkKey: NetworkKey?
+    public private(set) var applicationKey: ApplicationKey?
+
+    public var isConnectionOpen: Bool {
+        if let connection {
+            return connection.isOpen
+        }
+        return false
+    }
+
+    public var acknowledgmentMessageTimeout: TimeInterval {
+        return networkManager.acknowledgmentMessageTimeout
+    }
+
+    public nonisolated var numberOfNodes: Int {
+        return networkManager.meshNetwork?.nodes.count ?? 0
+    }
+
+    public nonisolated var allNodes: [Node] {
+        // TODO: MeshNodeに変更する
+        return networkManager.meshNetwork?.nodes ?? []
+    }
+
+    public func load() {
         // If load failed, create a new MeshNetwork.
         if let loaded = try? networkManager.load(), loaded == true {
+            log(.trace("Load mesh network settings"))
             meshNetworkDidChange()
         }
         else {
+            log(.info("There are no mesh networks, the mesh manager creates new network."))
             try? createNewMeshNetwork()
         }
     }
 
     public func provision(unprovisionedDevice: UnprovisionedDevice, over bearer: ProvisioningBearer) throws -> ProvisioningManager {
+        log(.trace("Provision: \(unprovisionedDevice.name ?? "Unknown"), uuid: \(unprovisionedDevice.uuid)"))
         return try networkManager.provision(unprovisionedDevice: unprovisionedDevice, over: bearer)
     }
 
-    internal func node(for uuid: UUID) -> Node? {
-        return networkManager.meshNetwork?.node(withUuid: uuid)
-    }
-
-    private(set) var logger: LoggerDelegate?
     public func setLogger(_ logger: LoggerDelegate) {
         self.logger = logger
         networkManager.logger = logger
@@ -119,53 +87,124 @@ public class MeshManager {
 
     public func save() throws {
         if networkManager.save() == false {
-            throw StorageError.failedToSave
+            log(.critical("Failed to save network settings"))
+            didNetworkSaveSubject.send(completion: .failure(StorageError.failedToSaveNetworkSettings))
+            throw StorageError.failedToSaveNetworkSettings
         }
+        log(.debug("Did save mesh network settings"))
+        didNetworkSaveSubject.send(())
     }
 
     public func addNetworkKey(_ newKeyData: Data) throws {
-        guard let network = networkManager.meshNetwork else {
-            throw NetworkError.invalidMeshNetwork
-        }
-        let oldKey = networkKey
-        if let oldKey {
-            if oldKey.key != newKeyData {
-                try network.remove(networkKey: oldKey, force: true)
+        log(.trace("Add network key: \(newKeyData.toHexString())"))
+        do {
+            guard let network = networkManager.meshNetwork else {
+                throw NetworkError.invalidMeshNetwork
             }
+            let oldKey = networkKey
+            if let oldKey {
+                if oldKey.key != newKeyData {
+                    try network.remove(networkKey: oldKey, force: true)
+                }
+            }
+            let newNetworkKey = try network.add(
+                networkKey: newKeyData,
+                withIndex: oldKey?.index,
+                name: "Konashi Mesh Network Key"
+            )
+            networkKey = newNetworkKey
+            try save()
         }
-        let newNetworkKey = try network.add(
-            networkKey: newKeyData,
-            withIndex: oldKey?.index,
-            name: "Konashi Mesh Network Key"
-        )
-        networkKey = newNetworkKey
-        try save()
+        catch {
+            log(.error("Failed to add a network key: \(newKeyData.toHexString()), error: \(error.localizedDescription)"))
+            throw error
+        }
     }
 
     public func addApplicationKey(_ newKeyData: Data) throws {
-        guard let network = networkManager.meshNetwork else {
-            throw NetworkError.invalidMeshNetwork
-        }
-        let oldKey = applicationKey
-        if let oldKey {
-            if oldKey.key != newKeyData {
-                try network.remove(applicationKey: oldKey, force: true)
+        log(.trace("Add application key: \(newKeyData.toHexString())"))
+        do {
+            guard let network = networkManager.meshNetwork else {
+                throw NetworkError.invalidMeshNetwork
             }
+            let oldKey = applicationKey
+            if let oldKey {
+                if oldKey.key != newKeyData {
+                    try network.remove(applicationKey: oldKey, force: true)
+                }
+            }
+            let newApplicationKey = try network.add(
+                applicationKey: newKeyData,
+                withIndex: oldKey?.index,
+                name: "Konashi Mesh Application Key"
+            )
+            applicationKey = newApplicationKey
+            if let index = oldKey?.index,
+               let networkKey = network.networkKeys[index] {
+                try newApplicationKey.bind(to: networkKey)
+            }
+            try save()
         }
-        let newApplicationKey = try network.add(
-            applicationKey: newKeyData,
-            withIndex: oldKey?.index,
-            name: "Konashi Mesh Application Key"
-        )
-        applicationKey = newApplicationKey
-        if let index = oldKey?.index,
-           let networkKey = network.networkKeys[index] {
-            try newApplicationKey.bind(to: networkKey)
+        catch {
+            log(.error("Failed to add an application key: \(newKeyData.toHexString()), error: \(error.localizedDescription)"))
+            throw error
         }
-        try save()
     }
 
+    public func reset() throws {
+        do {
+            try createNewMeshNetwork()
+            try save()
+            log(.trace("Did reset mesh manager"))
+        }
+        catch {
+            log(.trace("Failed to reset mesh manager: \(error.localizedDescription)"))
+            throw error
+        }
+    }
+
+    // MARK: Internal
+
+    internal let networkManager: MeshNetworkManager
+    private(set) var connection: MeshNetworkConnection?
+
+    private(set) var logger: LoggerDelegate?
+
+    internal nonisolated func node(for uuid: UUID) -> Node? {
+        return networkManager.meshNetwork?.node(withUuid: uuid)
+    }
+
+    func waitUntilConnectionOpen(timeoutInterval: TimeInterval = 10) async throws {
+        guard let connection else {
+            log(.error("Failed to wait until connection open. No network connection."))
+            throw MeshManager.NetworkError.noNetworkConnection
+        }
+        do {
+            if connection.isOpen == false {
+                log(.trace("Wait until connection open"))
+                let result = try await connection.$isOpen
+                    .removeDuplicates()
+                    .timeout(.seconds(timeoutInterval), scheduler: DispatchQueue.global())
+                    .filter { $0 }
+                    .eraseToAnyPublisher()
+                    .konashi_makeAsync()
+                if result == false {
+                    log(.error("Failed to wait until connection open. Bearer is closed."))
+                    throw MeshManager.NetworkError.bearerIsClosed
+                }
+                log(.trace("Connection opened"))
+            }
+        }
+        catch {
+            log(.error("Failed to wait until connection open: \(error.localizedDescription)"))
+            throw error
+        }
+    }
+
+    // MARK: Private
+
     private func createNewMeshNetwork() throws {
+        log(.trace("Create new mesh network"))
         let provisioner = Provisioner(
             name: "Konashi Mesh Manager",
             allocatedUnicastRange: [AddressRange(0x0001 ... 0x199A)],
@@ -174,6 +213,7 @@ public class MeshManager {
         )
         _ = networkManager.createNewMeshNetwork(withName: "Konashi Mesh Network", by: provisioner)
         if networkManager.save() == false {
+            log(.critical("Failed to save mesh network"))
             throw StorageError.failedToCreateMeshNetwork
         }
         meshNetworkDidChange()
@@ -182,7 +222,9 @@ public class MeshManager {
     /// Sets up the local Elements and reinitializes the `NetworkConnection`
     /// so that it starts scanning for devices advertising the new Network ID.
     private func meshNetworkDidChange() {
+        log(.trace("Mesh network did change"))
         guard let network = networkManager.meshNetwork else {
+            log(.critical("There is no mesh network"))
             return
         }
         networkKey = network.networkKeys.first
@@ -199,53 +241,41 @@ public class MeshManager {
         networkManager.transmitter = connection
         connection?.open()
     }
-
-    func waitUntilConnectionOpen(timeoutInterval: TimeInterval = 10) async throws {
-        guard let connection else {
-            throw MeshManager.NetworkError.noNetworkConnection
-        }
-        if connection.isOpen == false {
-            let result = try await connection.$isOpen
-                .removeDuplicates()
-                .timeout(.seconds(timeoutInterval), scheduler: DispatchQueue.global())
-                .filter { $0 }
-                .eraseToAnyPublisher()
-                .async()
-            if result == false {
-                throw MeshManager.NetworkError.bearerIsClosed
-            }
-        }
-    }
 }
 
+// MARK: MeshNetworkDelegate
+
 extension MeshManager: MeshNetworkDelegate {
-    public func meshNetworkManager(
+    public nonisolated func meshNetworkManager(
         _ manager: MeshNetworkManager,
         didReceiveMessage message: MeshMessage,
         sentFrom source: Address,
         to destination: Address
     ) {
-        didReceiveMessageSubject.send(ReceivedMessage(body: message, source: source, destination: destination))
+        log(.debug("Did receive message from: 0x\(source.byteArray().toHexString()), opCode: 0x\(message.opCode.byteArray().toHexString()), to: 0x\(destination.byteArray().toHexString())"))
+        didReceiveMessageSubject.send(.success(ReceivedMessage(body: message, source: source, destination: destination)))
     }
 
-    public func meshNetworkManager(
+    public nonisolated func meshNetworkManager(
         _ manager: MeshNetworkManager,
         didSendMessage message: MeshMessage,
         from localElement: Element,
         to destination: Address
     ) {
+        log(.debug("Did send message to: 0x\(destination.byteArray().toHexString()), opCode: 0x\(message.opCode.byteArray().toHexString())"))
         didSendMessageSubject.send(SendMessage(body: message, from: localElement, destination: destination))
     }
 
-    public func meshNetworkManager(
+    public nonisolated func meshNetworkManager(
         _ manager: MeshNetworkManager,
         failedToSendMessage message: MeshMessage,
         from localElement: Element,
         to destination: Address,
         error: Error
     ) {
-        didSendMessageSubject.send(
-            completion: .failure(
+        log(.error("Failed to send message to: 0x\(destination.byteArray().toHexString()), opCode: 0x\(message.opCode.byteArray().toHexString()), error: \(error.localizedDescription)"))
+        didReceiveMessageSubject.send(
+            .failure(
                 MessageTransmissionError(
                     error: error,
                     message: SendMessage(body: message, from: localElement, destination: destination)

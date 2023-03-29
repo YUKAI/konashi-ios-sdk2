@@ -35,7 +35,7 @@ let package = Package(
         .package(
             name: "Promises",
             url: "https://github.com/google/promises.git",
-            from: "2.0.0"
+            from: "2.1.0"
         )
     ],
     targets: [

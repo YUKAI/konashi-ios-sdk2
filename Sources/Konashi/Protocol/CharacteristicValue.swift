@@ -7,6 +7,8 @@
 
 import Foundation
 
+// MARK: - CharacteristicValue
+
 /// An interface for value of characteristics.
 public protocol CharacteristicValue {
     static var byteSize: UInt { get }
@@ -15,11 +17,15 @@ public protocol CharacteristicValue {
     static func parse(data: Data) -> Result<Self, Error>
 }
 
+// MARK: - ComparisonMethod
+
 /// An enum that represents a method for comparing characteristic value.
 public enum ComparisonMethod {
     case equal
     case lessThan
 }
+
+// MARK: - CharacteristicValueParseError
 
 /// An enum that represents a reason of why a characteristic value could not be parsed correctly.
 public enum CharacteristicValueParseError: LocalizedError {

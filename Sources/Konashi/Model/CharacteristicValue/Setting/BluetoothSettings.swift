@@ -13,11 +13,14 @@ public struct BluetoothSettings: CharacteristicValue {
         case invalidAdvertiserStatus
     }
 
-    public static var byteSize: UInt {
-        return 7
-    }
-
     public enum AdvertiserStatus: UInt8, CustomStringConvertible {
+        case disabled = 0x0
+        case legacyAdvertising = 0x01
+        case extendedAdvertising = 0x02
+        case error = 0x0F
+
+        // MARK: Public
+
         public var description: String {
             switch self {
             case .disabled:
@@ -30,11 +33,10 @@ public struct BluetoothSettings: CharacteristicValue {
                 return "error"
             }
         }
+    }
 
-        case disabled = 0x0
-        case legacyAdvertising = 0x01
-        case extendedAdvertising = 0x02
-        case error = 0x0F
+    public static var byteSize: UInt {
+        return 7
     }
 
     public let isExadvEnabled: Bool

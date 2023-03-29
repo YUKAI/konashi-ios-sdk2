@@ -7,13 +7,18 @@
 
 import nRFMeshProvision
 
-class MeshBearer<T: Bearer> {
-    private var currentContinuation: CheckedContinuation<Void, Error>?
-    private(set) var originalBearer: T
+// MARK: - MeshBearer
+
+final class MeshBearer<T: Bearer> {
+    // MARK: Lifecycle
 
     init(for bearer: T) {
         originalBearer = bearer
     }
+
+    // MARK: Internal
+
+    private(set) var originalBearer: T
 
     func open() async throws {
         originalBearer.delegate = self
@@ -30,7 +35,13 @@ class MeshBearer<T: Bearer> {
             self.originalBearer.close()
         }
     }
+
+    // MARK: Private
+
+    private var currentContinuation: CheckedContinuation<Void, Error>?
 }
+
+// MARK: BearerDelegate
 
 extension MeshBearer: BearerDelegate {
     func bearerDidOpen(_ bearer: Bearer) {

@@ -7,6 +7,8 @@
 
 import CoreBluetooth
 
+// MARK: - Service
+
 /// An interface for BLE Service.
 public protocol Service {
     static var uuid: UUID { get }

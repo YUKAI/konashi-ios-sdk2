@@ -21,6 +21,13 @@ public enum PWM {
 
     /// A representation of PWM pin.
     public enum Pin: UInt8, CaseIterable, CustomStringConvertible {
+        case pin0
+        case pin1
+        case pin2
+        case pin3
+
+        // MARK: Public
+
         public var description: String {
             switch self {
             case .pin0:
@@ -33,11 +40,6 @@ public enum PWM {
                 return "PWM3"
             }
         }
-
-        case pin0
-        case pin1
-        case pin2
-        case pin3
     }
 
     public enum Software {
@@ -68,6 +70,15 @@ public enum PWM {
 
         /// A payload of software PWM configuration.
         public struct PinConfig: ParsablePayload, Hashable {
+            // MARK: Public
+
+            /// A pin of configuration.
+            public let pin: PWM.Pin
+            /// Drive configuration of corresponding pin configuration.
+            public let driveConfig: DriveConfig
+
+            // MARK: Internal
+
             enum InfoKey: String {
                 case pin
             }
@@ -75,11 +86,6 @@ public enum PWM {
             static var byteSize: UInt {
                 return 3
             }
-
-            /// A pin of configuration.
-            public let pin: PWM.Pin
-            /// Drive configuration of corresponding pin configuration.
-            public let driveConfig: DriveConfig
 
             static func parse(_ data: [UInt8], info: [String: Any]?) -> Result<PWM.Software.PinConfig, Error> {
                 if data.count != byteSize {
@@ -135,9 +141,13 @@ public enum PWM {
 
         /// A payload to control software PWM.
         public struct ControlPayload: Payload {
+            // MARK: Public
+
             public let pin: Pin
             public let value: ControlValue
             public let transitionDuration: UInt32
+
+            // MARK: Internal
 
             func compose() -> [UInt8] {
                 let firstByte: UInt8 = pin.rawValue
@@ -157,6 +167,11 @@ public enum PWM {
     public enum Hardware {
         /// The clock source for the PWM timer
         public enum Clock: UInt8, CaseIterable, CustomStringConvertible {
+            case _38_4M
+            case _20k
+
+            // MARK: Public
+
             public var description: String {
                 switch self {
                 case ._38_4M:
@@ -165,13 +180,24 @@ public enum PWM {
                     return "20kHz"
                 }
             }
-
-            case _38_4M
-            case _20k
         }
 
         /// The clock prescaler for the PWM timer
         public enum Prescaler: UInt8, CaseIterable, CustomStringConvertible {
+            case div1
+            case div2
+            case div4
+            case div8
+            case div16
+            case div32
+            case div64
+            case div128
+            case div256
+            case div512
+            case div1024
+
+            // MARK: Public
+
             public var description: String {
                 switch self {
                 case .div1:
@@ -198,22 +224,19 @@ public enum PWM {
                     return "div1024"
                 }
             }
-
-            case div1
-            case div2
-            case div4
-            case div8
-            case div16
-            case div32
-            case div64
-            case div128
-            case div256
-            case div512
-            case div1024
         }
 
         /// A payload of harware PWM configuration.
         public struct PinConfig: ParsablePayload, Hashable {
+            // MARK: Public
+
+            /// A pin of configuration.
+            public let pin: PWM.Pin
+            /// Enable or disable hardware PWM.
+            public let isEnabled: Bool
+
+            // MARK: Internal
+
             enum InfoKey: String {
                 case pin
             }
@@ -221,11 +244,6 @@ public enum PWM {
             static var byteSize: UInt {
                 return 1
             }
-
-            /// A pin of configuration.
-            public let pin: PWM.Pin
-            /// Enable or disable hardware PWM.
-            public let isEnabled: Bool
 
             static func parse(_ data: [UInt8], info: [String: Any]?) -> Result<PWM.Hardware.PinConfig, Error> {
                 if data.count != byteSize {
@@ -253,9 +271,13 @@ public enum PWM {
 
         /// A payload to configure hardware PWM clock.
         public struct ClockConfig: Payload, Hashable {
+            // MARK: Public
+
             public let clock: Clock
             public let prescaler: Prescaler
             public let timerValue: UInt16
+
+            // MARK: Internal
 
             func compose() -> [UInt8] {
                 let firstByte: UInt8 = 0xFF
@@ -274,8 +296,12 @@ public enum PWM {
         }
 
         public struct ConfigPayload: Payload {
+            // MARK: Public
+
             public var pinConfig: [PinConfig]?
             public var clockConfig: ClockConfig?
+
+            // MARK: Internal
 
             func compose() -> [UInt8] {
                 var bytes = [UInt8]()
@@ -291,9 +317,13 @@ public enum PWM {
 
         /// A payload to control hardware PWM.
         public struct ControlPayload: Payload {
+            // MARK: Public
+
             public let pin: Pin
             public let controlValue: UInt16
             public let transitionDurationMillisec: UInt32
+
+            // MARK: Internal
 
             func compose() -> [UInt8] {
                 let firstByte: UInt8 = pin.rawValue

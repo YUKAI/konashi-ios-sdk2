@@ -8,34 +8,49 @@
 import Combine
 import Foundation
 
+// MARK: - AsyncError
+
 // https://medium.com/geekculture/from-combine-to-async-await-c08bf1d15b77
-enum AsyncError: Error {
-    case finishedWithoutValue
+enum AsyncError: Error, LocalizedError {
+    case timeout
+
+    // MARK: Internal
+
+    var errorDescription: String? {
+        switch self {
+        case .timeout:
+            return "Operation timeout"
+        }
+    }
 }
 
 extension AnyPublisher {
-    func async() async throws -> Output {
+    func konashi_makeAsync() async throws -> Output {
         try await withCheckedThrowingContinuation { continuation in
-            let uuid = UUID()
-            var finishedWithoutValue = true
-            SharedCancellable.shared.cancelablle[uuid] = first()
-                .sink { result in
-                    switch result {
-                    case .finished:
-                        if finishedWithoutValue {
-                            continuation.resume(throwing: AsyncError.finishedWithoutValue)
-                        }
-                    case let .failure(error):
-                        continuation.resume(throwing: error)
-                    }
-                    SharedCancellable.shared.cancelablle[uuid]?.cancel()
-                    SharedCancellable.shared.cancelablle.removeValue(forKey: uuid)
-                } receiveValue: { value in
-                    finishedWithoutValue = false
-                    continuation.resume(with: .success(value))
-                    SharedCancellable.shared.cancelablle[uuid]?.cancel()
-                    SharedCancellable.shared.cancelablle.removeValue(forKey: uuid)
-                }
+            Task {
+                let uuid = UUID()
+                var finishedWithoutValue = true
+                await SharedCancellable.shared.store(
+                    first()
+                        .sink { result in
+                            switch result {
+                            case .finished:
+                                if finishedWithoutValue {
+                                    continuation.resume(throwing: AsyncError.timeout)
+                                }
+                            case let .failure(error):
+                                continuation.resume(throwing: error)
+                            }
+
+                            Task { await SharedCancellable.shared.remove(uuid)?.cancel() }
+                        } receiveValue: { value in
+                            finishedWithoutValue = false
+                            continuation.resume(with: .success(value))
+                            Task { await SharedCancellable.shared.remove(uuid)?.cancel() }
+                        },
+                    for: uuid
+                )
+            }
         }
     }
 }

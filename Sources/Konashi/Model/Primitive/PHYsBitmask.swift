@@ -11,6 +11,14 @@ import Foundation
 
 /// A representation of bluetooth physical layer bitmask.
 public struct PHYsBitmask: OptionSet, CustomStringConvertible, CaseIterable {
+    // MARK: Lifecycle
+
+    public init(rawValue: UInt8) {
+        self.rawValue = rawValue
+    }
+
+    // MARK: Public
+
     /// 1M PHY uncoded
     public static var _1MUncoded = PHYsBitmask(rawValue: 0x01)
     /// 2M PHY uncoded
@@ -29,13 +37,11 @@ public struct PHYsBitmask: OptionSet, CustomStringConvertible, CaseIterable {
 
     public let rawValue: UInt8
 
-    public init(rawValue: UInt8) {
-        self.rawValue = rawValue
-    }
-
     public var description: String {
         return String(format: "0x%02X", rawValue)
     }
+
+    // MARK: Internal
 
     static func convert(_ value: UInt8) -> PHYsBitmask {
         var mask = PHYsBitmask()

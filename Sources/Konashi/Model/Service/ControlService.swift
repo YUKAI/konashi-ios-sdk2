@@ -8,6 +8,8 @@
 import CoreBluetooth
 import Foundation
 
+// MARK: - ControlService
+
 /// A BLE service to control Konashi.
 public struct ControlService: Service {
     /// Service UUID of control service.
@@ -124,24 +126,7 @@ public struct ControlService: Service {
         case uartSend(UART.SendControlPayload)
         case spiTransfer(SPI.TransferControlPayload)
 
-        func commandIdentifier() -> UInt8 {
-            switch self {
-            case .gpio:
-                return 0x01
-            case .softwarePWM:
-                return 0x02
-            case .hardwarePWM:
-                return 0x03
-            case .analog:
-                return 0x04
-            case .i2cTransfer:
-                return 0x05
-            case .uartSend:
-                return 0x06
-            case .spiTransfer:
-                return 0x07
-            }
-        }
+        // MARK: Public
 
         public func compose() -> Data {
             var bytes = [UInt8]()
@@ -167,7 +152,135 @@ public struct ControlService: Service {
             bytes.append(contentsOf: payload)
             return Data(bytes)
         }
+
+        // MARK: Internal
+
+        func commandIdentifier() -> UInt8 {
+            switch self {
+            case .gpio:
+                return 0x01
+            case .softwarePWM:
+                return 0x02
+            case .hardwarePWM:
+                return 0x03
+            case .analog:
+                return 0x04
+            case .i2cTransfer:
+                return 0x05
+            case .uartSend:
+                return 0x06
+            case .spiTransfer:
+                return 0x07
+            }
+        }
     }
+
+    /// Service UUID of control service.
+    public static var uuid: UUID {
+        return UUID(uuidString: "064D0300-8251-49D9-B6F3-F7BA35E5D0A1")!
+    }
+
+    /// An array of all characteristics of control service.
+    public var characteristics: [Characteristic] {
+        return [
+            controlCommand,
+            gpioOutput,
+            gpioInput,
+            softwarePWMOutput,
+            hardwarePWMOutput,
+            analogOutput,
+            analogInput,
+            i2cDataInput,
+            uartDataInput,
+            uartSendDone,
+            spiDataInput
+        ]
+    }
+
+    /// An array of characteristics that can notify update.
+    public var notifiableCharacteristics: [Characteristic] {
+        return [
+            gpioInput,
+            gpioOutput,
+            softwarePWMOutput,
+            hardwarePWMOutput,
+            analogInput,
+            analogOutput,
+            i2cDataInput,
+            uartSendDone,
+            uartDataInput,
+            spiDataInput
+        ]
+    }
+
+    // MARK: Internal
+
+    let controlCommand = WriteableCharacteristic<ControlCommand>(
+        serviceUUID: ControlService.uuid,
+        uuid: UUID(
+            uuidString: "064D0301-8251-49D9-B6F3-F7BA35E5D0A1"
+        )!
+    )
+    let gpioOutput = ReadableCharacteristic<GPIOxValue>(
+        serviceUUID: ControlService.uuid,
+        uuid: UUID(
+            uuidString: "064D0302-8251-49D9-B6F3-F7BA35E5D0A1"
+        )!
+    )
+    let gpioInput = ReadableCharacteristic<GPIOxValue>(
+        serviceUUID: ControlService.uuid,
+        uuid: UUID(
+            uuidString: "064D0303-8251-49D9-B6F3-F7BA35E5D0A1"
+        )!
+    )
+    let softwarePWMOutput = ReadableCharacteristic<SoftwarePWMxOutput>(
+        serviceUUID: ControlService.uuid,
+        uuid: UUID(
+            uuidString: "064D0304-8251-49D9-B6F3-F7BA35E5D0A1"
+        )!
+    )
+    let hardwarePWMOutput = ReadableCharacteristic<HardwarePWMxOutput>(
+        serviceUUID: ControlService.uuid,
+        uuid: UUID(
+            uuidString: "064D0305-8251-49D9-B6F3-F7BA35E5D0A1"
+        )!
+    )
+    let analogOutput = ReadableCharacteristic<AnalogxOutputValue>(
+        serviceUUID: ControlService.uuid,
+        uuid: UUID(
+            uuidString: "064D0306-8251-49D9-B6F3-F7BA35E5D0A1"
+        )!
+    )
+    let analogInput = ReadableCharacteristic<AnalogxInputValue>(
+        serviceUUID: ControlService.uuid,
+        uuid: UUID(
+            uuidString: "064D0307-8251-49D9-B6F3-F7BA35E5D0A1"
+        )!
+    )
+    let i2cDataInput = NotifiableCharacteristic<I2C.Value>(
+        serviceUUID: ControlService.uuid,
+        uuid: UUID(
+            uuidString: "064D0308-8251-49D9-B6F3-F7BA35E5D0A1"
+        )!
+    )
+    let uartDataInput = NotifiableCharacteristic<UARTInputValue>(
+        serviceUUID: ControlService.uuid,
+        uuid: UUID(
+            uuidString: "064D0309-8251-49D9-B6F3-F7BA35E5D0A1"
+        )!
+    )
+    let uartSendDone = NotifiableCharacteristic<UARTDataSendResult>(
+        serviceUUID: ControlService.uuid,
+        uuid: UUID(
+            uuidString: "064D030A-8251-49D9-B6F3-F7BA35E5D0A1"
+        )!
+    )
+    let spiDataInput = NotifiableCharacteristic<SPIInputValue>(
+        serviceUUID: ControlService.uuid,
+        uuid: UUID(
+            uuidString: "064D030B-8251-49D9-B6F3-F7BA35E5D0A1"
+        )!
+    )
 }
 
 public extension ControlService {

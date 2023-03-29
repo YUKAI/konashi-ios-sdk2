@@ -10,12 +10,37 @@ import CoreBluetooth
 import nRFMeshProvision
 import Promises
 
+// MARK: - CentralManager
+
+// TODO: actorにしたい
 /// A utility class of managiment procetudes such as discover, connect and disconnect peripherals.
 /// This class is a wrapper of CBCentralManager.
-public final class CentralManager: NSObject {
+public final class CentralManager: NSObject, Loggable {
+    // MARK: Lifecycle
+
+    override private init() {
+        super.init()
+        didConnectSubject.sink { [weak self] _ in
+            guard let self else {
+                return
+            }
+            self.numberOfConnectingPeripherals += 1
+        }.store(in: &cancellable)
+        didFailedToConnectSubject.sink { [weak self] _ in
+            guard let self else {
+                return
+            }
+            self.numberOfConnectingPeripherals -= 1
+        }.store(in: &cancellable)
+    }
+
+    // MARK: Public
+
     public enum ScanError: Error, LocalizedError {
         /// The Konashi device was not found within the timeout time.
         case peripheralNotFound
+
+        // MARK: Public
 
         public var errorDescription: String? {
             switch self {
@@ -30,13 +55,11 @@ public final class CentralManager: NSObject {
         case meshNode
     }
 
+    public static let sharedLogOutput = LogOutput()
     /// A shared instance of CentralManager.
     public static let shared = CentralManager()
 
-    /// Represents the current state of a CBManager.
-    public var state: CBManagerState {
-        return manager.state
-    }
+    public let logOutput = LogOutput()
 
     // TODO: Add document
     public var discoversUniquePeripherals = true
@@ -44,7 +67,7 @@ public final class CentralManager: NSObject {
     /// A subject that sends any operation errors.
     public let operationErrorSubject = PassthroughSubject<Error, Never>()
     /// A subject that sends discovered peripheral and advertisement datas.
-    public let didDiscoverSubject = PassthroughSubject<(peripheral: any Peripheral, advertisementData: [String: Any], rssi: NSNumber), Never>()
+    public let didDiscoverSubject = PassthroughSubject<any Peripheral, Never>()
     /// A subject that sends a peripheral that is connected.
     public let didConnectSubject = PassthroughSubject<CBPeripheral, Never>()
     /// A subject that sends a peripheral when a peripheral is disconnected.
@@ -57,46 +80,16 @@ public final class CentralManager: NSObject {
     /// This value indicates that a centeral manager is connecting a peripheral.
     @Published public private(set) var isConnecting = false
 
-    private var statePromise = Promise<Void>.pending()
-    private var cancellable = Set<AnyCancellable>()
-    private lazy var manager = CBCentralManager(delegate: self, queue: nil)
-
-    fileprivate var numberOfConnectingPeripherals = 0 {
-        didSet {
-            if numberOfConnectingPeripherals == 0 {
-                isConnecting = false
-            }
-            else {
-                isConnecting = true
-            }
-        }
-    }
-
-    override public init() {
-        super.init()
-        didConnectSubject.sink { [weak self] _ in
-            guard let self else {
-                return
-            }
-            self.numberOfConnectingPeripherals -= 1
-        }.store(in: &cancellable)
-        didFailedToConnectSubject.sink { [weak self] _ in
-            guard let self else {
-                return
-            }
-            self.numberOfConnectingPeripherals -= 1
-        }.store(in: &cancellable)
-        didFailedToConnectSubject.sink { [weak self] _ in
-            guard let self else {
-                return
-            }
-            self.numberOfConnectingPeripherals -= 1
-        }.store(in: &cancellable)
+    /// Represents the current state of a CBManager.
+    public var state: CBManagerState {
+        return manager.state
     }
 
     /// Attempt to scan available peripherals.
     /// - Returns: A promise object for this method.
-    public func scan(for target: ScanTarget = .all) -> Promise<Void> {
+    public func scan() -> Promise<Void> {
+        log(.trace("Start scan"))
+
         if manager.state == .poweredOn {
             statePromise.fulfill(())
         }
@@ -108,19 +101,12 @@ public final class CentralManager: NSObject {
                 guard let self else {
                     return
                 }
-                var services: [CBUUID] {
-                    if target == .meshNode {
-                        return [
-                            MeshProvisioningService.uuid
-                        ]
-                    }
-                    return [
-                        SettingsService.serviceUUID
-                    ]
-                }
                 self.isScanning = true
                 self.manager.scanForPeripherals(
-                    withServices: services,
+                    withServices: [
+                        SettingsService.serviceUUID,
+                        MeshProvisioningService.uuid
+                    ],
                     options: [
                         CBCentralManagerScanOptionAllowDuplicatesKey: !self.discoversUniquePeripherals
                     ]
@@ -134,30 +120,51 @@ public final class CentralManager: NSObject {
     /// - Parameters:
     ///   - name: Peripheral name to find.
     ///   - timeoutInterval: The duration of timeout.
+    ///   - target: Filter mesh node or not
     /// - Returns: A promise object for this method.
-    public func find(name: String, timeoutInterval: TimeInterval = 5) -> Promise<any Peripheral> {
+    public func find(name: String, timeoutInterval: TimeInterval = 5, target: ScanTarget = .all) -> Promise<any Peripheral> {
+        log(.trace("Start find \(name), timeout: \(timeoutInterval)"))
         var cancellable = Set<AnyCancellable>()
         return Promise<any Peripheral> { [weak self] resolve, reject in
             guard let self else {
                 return
             }
             var didFound = false
+            if let foundPeripheral = self.foundPeripherals.first(where: {
+                $0.name == name
+            }) {
+                self.log(.debug("Peripheral already found \(name)"))
+                didFound = true
+                resolve(foundPeripheral)
+                return
+            }
+            self.didDiscoverSubject.filter { peripheral in
+                if target == .meshNode {
+                    return peripheral.isProvisionable
+                }
+                return true
+            }.sink { peripheral in
+                if peripheral.name == name {
+                    didFound = true
+                    self.log(.debug("Peripheral found \(name)"))
+                    resolve(peripheral)
+                }
+            }.store(in: &cancellable)
             self.scan().delay(timeoutInterval).then { [weak self] _ in
                 guard let self else {
                     return
                 }
                 if didFound == false {
+                    self.log(.error("Failed to find \(name)"))
                     reject(ScanError.peripheralNotFound)
                 }
-                self.stopScan()
-            }
-            self.didDiscoverSubject.sink { peripheral, _, _ in
-                if peripheral.name == name {
-                    didFound = true
-                    resolve(peripheral)
-                    self.stopScan()
+            }.catch { [weak self] error in
+                guard let self else {
+                    return
                 }
-            }.store(in: &cancellable)
+                reject(error)
+                self.log(.error("Failed to find \(name)"))
+            }
         }.always {
             cancellable.removeAll()
         }
@@ -167,6 +174,7 @@ public final class CentralManager: NSObject {
     /// - Returns: A promise object for this method.
     @discardableResult
     public func stopScan() -> Promise<Void> {
+        log(.trace("Stop scan"))
         let promise = Promise<Void>.pending()
         isScanning = false
         manager.stopScan()
@@ -174,9 +182,30 @@ public final class CentralManager: NSObject {
         return promise
     }
 
+    @discardableResult
+    public func removeFoundPeripheal(for identifier: UUID) -> Bool {
+        if foundPeripherals.contains(where: {
+            $0.identifier == identifier
+        }) {
+            foundPeripherals.removeAll {
+                $0.identifier == identifier
+            }
+            return true
+        }
+        return false
+    }
+
+    public func clearFoundPeripherals() {
+        log(.trace("Clear found peripherals"))
+        foundPeripherals.removeAll { $0.state != .connected }
+    }
+
+    // MARK: Internal
+
     /// Connect to peripheral.
     /// - Parameter peripheral: A peripheral to connect.
     func connect(_ peripheral: CBPeripheral) {
+        log(.trace("Connect to \(peripheral.konashi_debugName): \(peripheral.identifier)"))
         numberOfConnectingPeripherals += 1
         manager.connect(peripheral, options: nil)
     }
@@ -184,12 +213,44 @@ public final class CentralManager: NSObject {
     /// Disconnect peripheral.
     /// - Parameter peripheral: A peripheral to disconnect.
     func disconnect(_ peripheral: CBPeripheral) {
+        log(.trace("Disconnect to \(peripheral.konashi_debugName): \(peripheral.identifier)"))
+
         manager.cancelPeripheralConnection(peripheral)
     }
+
+    func clearFoundPeripheralsIfNeeded() {
+        log(.trace("Clear outdated peripherals"))
+        foundPeripherals.removeAll(where: \.isOutdated)
+    }
+
+    // MARK: Fileprivate
+
+    fileprivate var numberOfConnectingPeripherals = 0 {
+        didSet {
+            if numberOfConnectingPeripherals == 0 {
+                isConnecting = false
+            }
+            else {
+                isConnecting = true
+            }
+        }
+    }
+
+    // MARK: Private
+
+    private var foundPeripherals = [any Peripheral]()
+
+    private var statePromise = Promise<Void>.pending()
+    private var cancellable = Set<AnyCancellable>()
+    private lazy var manager = CBCentralManager(delegate: self, queue: nil)
 }
+
+// MARK: CBCentralManagerDelegate
 
 extension CentralManager: CBCentralManagerDelegate {
     public func centralManagerDidUpdateState(_ central: CBCentralManager) {
+        log(.trace("Did update central manager state: \(central.state.konashi_description)"))
+
         if central.state == .poweredOn {
             statePromise.fulfill(())
         }
@@ -204,33 +265,54 @@ extension CentralManager: CBCentralManagerDelegate {
         advertisementData: [String: Any],
         rssi RSSI: NSNumber
     ) {
-        didDiscoverSubject.send(
-            (
-                peripheral: KonashiPeripheral(
+        let result: any Peripheral = {
+            guard let existingPeripheral = foundPeripherals.first(where: { $0.identifier == peripheral.identifier }) else {
+                log(.trace("Did discover peripheral: \(peripheral.konashi_debugName), mesh: \(UnprovisionedDevice(advertisementData: advertisementData) != nil ? true : false), rssi: \(RSSI), advertising data: \(advertisementData)"))
+                return KonashiPeripheral(
                     peripheral: peripheral,
-                    advertisementData: advertisementData
-                ),
-                advertisementData: advertisementData,
-                rssi: RSSI
-            )
-        )
+                    advertisementData: advertisementData,
+                    rssi: RSSI
+                )
+            }
+
+            existingPeripheral.setRSSI(RSSI)
+            existingPeripheral.setAdvertisementData(advertisementData)
+            return existingPeripheral
+        }()
+        foundPeripherals.append(result)
+        didDiscoverSubject.send(result)
+        // TODO: clear found peripherals
+        // clearFoundPeripheralsIfNeeded()
     }
 
     public func centralManager(_ central: CBCentralManager, didConnect peripheral: CBPeripheral) {
+        log(.trace("Did connect: \(peripheral.konashi_debugName)"))
         didConnectSubject.send(peripheral)
     }
 
     public func centralManager(_ central: CBCentralManager, didDisconnectPeripheral peripheral: CBPeripheral, error: Error?) {
         if let error {
+            if let existingPeripheral = foundPeripherals.first(where: { $0.identifier == peripheral.identifier }) {
+                existingPeripheral.operationErrorSubject.send(error)
+            }
             operationErrorSubject.send(error)
+            log(.error("Failed to disconnect: \(peripheral.konashi_debugName), error: \(error.localizedDescription)"))
+        }
+        else {
+            log(.trace("Did disconnect: \(peripheral.konashi_debugName)"))
         }
         didDisconnectSubject.send(
             (peripheral, error)
         )
+        foundPeripherals.removeAll { $0.identifier == peripheral.identifier }
     }
 
     public func centralManager(_ central: CBCentralManager, didFailToConnect peripheral: CBPeripheral, error: Error?) {
+        log(.trace("Did fail to connect: \(peripheral.konashi_debugName), error: \(error?.localizedDescription ?? "nil")"))
         if let error {
+            if let existingPeripheral = foundPeripherals.first(where: { $0.identifier == peripheral.identifier }) {
+                existingPeripheral.operationErrorSubject.send(error)
+            }
             operationErrorSubject.send(error)
         }
         didFailedToConnectSubject.send(

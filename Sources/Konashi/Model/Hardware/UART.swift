@@ -34,14 +34,18 @@ public enum UART {
 
     /// A payload of UART configuration.
     public enum Config: ParsablePayload, Hashable {
-        public static var byteSize: UInt {
-            return 5
-        }
-
         /// A payload to enable UART.
         case enable(parity: Parity, stopBit: StopBit, baudrate: UInt32)
         /// A payload to disable UART.
         case disable
+
+        // MARK: Public
+
+        public static var byteSize: UInt {
+            return 5
+        }
+
+        // MARK: Internal
 
         static func parse(_ data: [UInt8], info: [String: Any]? = nil) -> Result<UART.Config, Error> {
             if data.count != byteSize {
@@ -89,8 +93,12 @@ public enum UART {
 
     /// A payload of UART send control.
     public struct SendControlPayload: Payload {
+        // MARK: Public
+
         /// Bytes to send.
         public let data: [UInt8]
+
+        // MARK: Internal
 
         func compose() -> [UInt8] {
             if data.count >= 127 {

@@ -8,6 +8,13 @@
 import Foundation
 
 public enum NVMSaveTrigger: CaseIterable, CustomStringConvertible {
+    /// `automatic` for automatic save,
+    case automatic
+    /// `manual` for manual save (`SystemSettingPayload.nvmSaveNow` needs to be called to save).
+    case manual
+
+    // MARK: Public
+
     public var description: String {
         switch self {
         case .automatic:
@@ -16,9 +23,4 @@ public enum NVMSaveTrigger: CaseIterable, CustomStringConvertible {
             return "Manual"
         }
     }
-
-    /// `automatic` for automatic save,
-    case automatic
-    /// `manual` for manual save (`SystemSettingPayload.nvmSaveNow` needs to be called to save).
-    case manual
 }

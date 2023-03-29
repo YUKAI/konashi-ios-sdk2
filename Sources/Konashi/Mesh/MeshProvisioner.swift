@@ -5,44 +5,55 @@
 //  Created by Akira Matsuda on 2023/01/06.
 //
 
+import Combine
 import Foundation
 import nRFMeshProvision
 
-class MeshProvisioner {
-    public enum ProvisioningError: Error, LocalizedError {
-        case unknown
-        case invalidUnicastAddress
-        case invalidCapability
-        case unsupportedDevice
+// MARK: - MeshProvisioner
 
-        public var errorDescription: String? {
-            switch self {
-            case .unknown:
-                return "Unknown error."
-            case .invalidUnicastAddress:
-                return "The device has invalid unicast address."
-            case .invalidCapability:
-                return "Provisioning capability should not be nil."
-            case .unsupportedDevice:
-                return "The device is not able to provision."
-            }
-        }
-    }
+final class MeshProvisioner: Provisionable {
+    // MARK: Lifecycle
 
-    private var provisioningManager: ProvisioningManager
-
-    @Published var state: ProvisioningState?
-
-    init(for provisioningManager: ProvisioningManager) {
+    init(for provisioningManager: ProvisioningManager, context: Context, bearer: MeshBearer<PBGattBearer>) {
         self.provisioningManager = provisioningManager
+        self.context = context
+        self.bearer = bearer
+        self.provisioningManager.delegate = self
     }
 
-    @discardableResult
-    func identify(attractFor: UInt8 = 5) async throws -> ProvisioningCapabilities {
-        provisioningManager.delegate = self
+    // MARK: Internal
+
+    struct Context {
+        let algorithm: Algorithm
+        let publicKey: PublicKey
+        let authenticationMethod: AuthenticationMethod
+    }
+
+    @Published private(set) var internalState: ProvisioningState?
+    let uuid = UUID()
+    let context: Context
+
+    var state: Published<nRFMeshProvision.ProvisioningState?>.Publisher {
+        $internalState
+    }
+
+    var isOpen: Bool {
+        return bearer.originalBearer.isOpen
+    }
+
+    static func == (lhs: MeshProvisioner, rhs: MeshProvisioner) -> Bool {
+        return lhs.uuid == rhs.uuid
+    }
+
+    func open() async throws {
+        try await bearer.open()
+    }
+
+    func identify(attractFor: UInt8 = 5) async throws {
+        try checkConnectivity()
         do {
             try provisioningManager.identify(andAttractFor: attractFor)
-            let capabilities = try await $state.filter { state in
+            _ = try await state.filter { state in
                 if case .capabilitiesReceived = state {
                     return true
                 }
@@ -52,7 +63,7 @@ class MeshProvisioner {
                     return capabilities
                 }
                 return nil
-            }.eraseToAnyPublisher().async()
+            }.eraseToAnyPublisher().konashi_makeAsync()
             guard let isUnicastAddressValid = provisioningManager.isUnicastAddressValid else {
                 throw ProvisioningError.unknown
             }
@@ -65,45 +76,54 @@ class MeshProvisioner {
             if isDeviceSupported == false {
                 throw ProvisioningError.invalidUnicastAddress
             }
-            return capabilities
         }
         catch {
             throw error
         }
     }
 
-    func provision(
-        usingAlgorithm algorithm: Algorithm,
-        publicKey: PublicKey,
-        authenticationMethod: AuthenticationMethod
-    ) async throws {
-        provisioningManager.delegate = self
+    func provision() async throws {
+        try checkConnectivity()
         do {
             try provisioningManager.provision(
-                usingAlgorithm: algorithm,
-                publicKey: publicKey,
-                authenticationMethod: authenticationMethod
+                usingAlgorithm: context.algorithm,
+                publicKey: context.publicKey,
+                authenticationMethod: context.authenticationMethod
             )
-            _ = try await $state.filter { state in
-                if case .complete = state {
-                    return true
-                }
-                return false
-            }.eraseToAnyPublisher().async()
+            _ = try await state
+                .filter { state in
+                    if case .complete = state {
+                        return true
+                    }
+                    return false
+                }.eraseToAnyPublisher().konashi_makeAsync()
             return
         }
         catch {
             throw error
         }
     }
+
+    // MARK: Private
+
+    private var provisioningManager: ProvisioningManager
+    private var bearer: MeshBearer<PBGattBearer>
+
+    private func checkConnectivity() throws {
+        if isOpen == false {
+            throw ProvisionerError.connectionError
+        }
+    }
 }
+
+// MARK: ProvisioningDelegate
 
 extension MeshProvisioner: ProvisioningDelegate {
     public func provisioningState(
         of unprovisionedDevice: UnprovisionedDevice,
         didChangeTo state: ProvisioningState
     ) {
-        self.state = state
+        internalState = state
     }
 
     public func authenticationActionRequired(_ action: AuthAction) {

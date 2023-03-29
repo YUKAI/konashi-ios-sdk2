@@ -8,17 +8,23 @@
 import Combine
 import Foundation
 
+// MARK: - ReadableCharacteristic
+
 /// A characteristic that stores value.
 public class ReadableCharacteristic<Value: CharacteristicValue>: Characteristic {
-    public let serviceUUID: UUID
-    public let uuid: UUID
-    public var value = PassthroughSubject<Value, Never>()
-    public var parseErrorSubject = PassthroughSubject<Never, Error>()
+    // MARK: Lifecycle
 
     init(serviceUUID: UUID, uuid: UUID) {
         self.serviceUUID = serviceUUID
         self.uuid = uuid
     }
+
+    // MARK: Public
+
+    public let serviceUUID: UUID
+    public let uuid: UUID
+    public var value = PassthroughSubject<Value, Never>()
+    public var parseErrorSubject = PassthroughSubject<Never, Error>()
 
     public func update(data: Data?) {
         guard let data else {
@@ -35,7 +41,6 @@ public class ReadableCharacteristic<Value: CharacteristicValue>: Characteristic 
 
 public extension ReadableCharacteristic {
     func parse(data: Data) -> Result<Value, Error> {
-        print(">>> read \(uuid) \n \(Value.parse(data: data)) \n \([UInt8](data).toHexString())")
         return Value.parse(data: data)
     }
 }

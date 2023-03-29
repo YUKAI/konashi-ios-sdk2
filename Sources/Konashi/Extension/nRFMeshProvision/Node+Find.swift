@@ -9,7 +9,7 @@ import nRFMeshProvision
 
 extension nRFMeshProvision.Node {
     func findElement(of element: NodeElement) throws -> nRFMeshProvision.Element {
-        guard let element = elements[safe: element.index] else {
+        guard let element = elements[safe: Int(element.index)] else {
             throw NodeOperationError.elementNotFound(element)
         }
         return element

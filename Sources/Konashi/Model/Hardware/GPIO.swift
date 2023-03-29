@@ -17,6 +17,17 @@ public enum GPIO {
     }
 
     public enum Pin: UInt8, CaseIterable, CustomStringConvertible {
+        case pin0
+        case pin1
+        case pin2
+        case pin3
+        case pin4
+        case pin5
+        case pin6
+        case pin7
+
+        // MARK: Public
+
         public var description: String {
             switch self {
             case .pin0:
@@ -37,15 +48,6 @@ public enum GPIO {
                 return "GPIO7"
             }
         }
-
-        case pin0
-        case pin1
-        case pin2
-        case pin3
-        case pin4
-        case pin5
-        case pin6
-        case pin7
     }
 
     public enum Function: UInt8 {
@@ -74,6 +76,8 @@ public enum GPIO {
         case pullUp
         case pullDown
 
+        // MARK: Internal
+
         static func compose(pullUp: Bool, pullDown: Bool) -> RegisterState {
             if pullUp == false, pullDown == false {
                 return .none
@@ -91,6 +95,8 @@ public enum GPIO {
         case output
         case openSource // wired or, input
         case openDrain // wired and, input
+
+        // MARK: Internal
 
         static func compose(enabled: Bool, direction: Direction, wiredFunction: WiredFunction) -> PinMode {
             if enabled == false {
@@ -145,25 +151,30 @@ public enum GPIO {
     }
 
     public struct PinConfig: ParsablePayload, Hashable {
-        enum InfoKey: String {
-            case pin
-        }
-
-        static var byteSize: UInt {
-            return 2
-        }
+        // MARK: Public
 
         public let pin: GPIO.Pin
         public let mode: PinMode
         public var registerState: RegisterState = .none
         public var notifyOnInputChange = false
         public var function: Function = .gpio
+
         public var direction: Direction {
             return mode.toDirection()
         }
 
         public var wiredFunction: WiredFunction {
             return mode.toWiredFunction()
+        }
+
+        // MARK: Internal
+
+        enum InfoKey: String {
+            case pin
+        }
+
+        static var byteSize: UInt {
+            return 2
         }
 
         static func parse(_ data: [UInt8], info: [String: Any]?) -> Result<GPIO.PinConfig, Error> {
@@ -228,8 +239,12 @@ public enum GPIO {
     }
 
     public struct ControlPayload: Payload {
+        // MARK: Public
+
         public let pin: GPIO.Pin
         public let level: Level
+
+        // MARK: Internal
 
         func compose() -> [UInt8] {
             var byte: UInt8 = pin.rawValue << 4

@@ -1,14 +1,39 @@
-//
-//  MeshNetworkConnection.swift
-//  konashi-ios-sdk2
-//
-//  Created by Akira Matsuda on 2022/12/26.
-//
+/*
+* Copyright (c) 2019, Nordic Semiconductor
+* All rights reserved.
+*
+* Redistribution and use in source and binary forms, with or without modification,
+* are permitted provided that the following conditions are met:
+*
+* 1. Redistributions of source code must retain the above copyright notice, this
+*    list of conditions and the following disclaimer.
+*
+* 2. Redistributions in binary form must reproduce the above copyright notice, this
+*    list of conditions and the following disclaimer in the documentation and/or
+*    other materials provided with the distribution.
+*
+* 3. Neither the name of the copyright holder nor the names of its contributors may
+*    be used to endorse or promote products derived from this software without
+*    specific prior written permission.
+*
+* THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
+* ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+* WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED.
+* IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT,
+* INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT
+* NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR
+* PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
+* WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+* ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+* POSSIBILITY OF SUCH DAMAGE.
+*/
 
 import Combine
 import CoreBluetooth
 import Foundation
 import nRFMeshProvision
+
+// MARK: - MeshNetworkConnection
 
 /// The Network Connection object maintains connections to Bluetooth
 /// mesh proxies. It scans in the background and connects to nodes that
@@ -20,17 +45,31 @@ import nRFMeshProvision
 /// to one of the devices is lost. Only the first device will
 /// receive outgoing messages. However, the `dataDelegate` will be
 /// notified about messages received from any of the connected proxies.
-class MeshNetworkConnection: NSObject, Bearer {
-    private let connectionModeKey = "konashi-ios-sdk2_connectionMode"
+final class MeshNetworkConnection: NSObject, Bearer {
+    // MARK: Lifecycle
+
+    init(to meshNetwork: MeshNetwork) {
+        centralManager = CBCentralManager()
+        self.meshNetwork = meshNetwork
+        super.init()
+        centralManager.delegate = self
+
+        // By default, the connection mode is automatic.
+        UserDefaults.standard.register(defaults: [connectionModeKey: true])
+    }
+
+    // MARK: Public
+
+    public var supportedPduTypes: PduTypes {
+        return [.networkPdu, .meshBeacon, .proxyConfiguration]
+    }
+
+    // MARK: Internal
 
     /// Maximum number of connections that `NetworkConnection` can
     /// handle.
     static let maxConnections = 1
-    /// The Bluetooth Central Manager instance that will scan and
-    /// connect to proxies.
-    private let centralManager: CBCentralManager
-    /// The Mesh Network for this connection.
-    private let meshNetwork: MeshNetwork
+
     /// The list of connected GATT Proxies.
     private(set) var proxies: [GattBearer] = []
     /// A flag set to `true` when any of the underlying bearers is open.
@@ -38,6 +77,7 @@ class MeshNetworkConnection: NSObject, Bearer {
 
     weak var delegate: BearerDelegate?
     weak var dataDelegate: BearerDataDelegate?
+
     weak var logger: LoggerDelegate? {
         didSet {
             proxies.forEach {
@@ -45,15 +85,6 @@ class MeshNetworkConnection: NSObject, Bearer {
             }
         }
     }
-
-    public var supportedPduTypes: PduTypes {
-        return [.networkPdu, .meshBeacon, .proxyConfiguration]
-    }
-
-    /// A flag indicating whether the network connection is open.
-    /// When open, it will scan for mesh nodes in range and connect to
-    /// them if found.
-    private var isStarted = false
 
     /// Returns `true` if at least one Proxy is connected, `false` otherwise.
     var isConnected: Bool {
@@ -77,16 +108,6 @@ class MeshNetworkConnection: NSObject, Bearer {
                 centralManager.scanForPeripherals(withServices: [MeshProxyService.uuid], options: nil)
             }
         }
-    }
-
-    init(to meshNetwork: MeshNetwork) {
-        centralManager = CBCentralManager()
-        self.meshNetwork = meshNetwork
-        super.init()
-        centralManager.delegate = self
-
-        // By default, the connection mode is automatic.
-        UserDefaults.standard.register(defaults: [connectionModeKey: true])
     }
 
     func open() {
@@ -140,7 +161,23 @@ class MeshNetworkConnection: NSObject, Bearer {
             bearerDidOpen(self)
         }
     }
+
+    // MARK: Private
+
+    private let connectionModeKey = "konashi-ios-sdk2_connectionMode"
+
+    /// The Bluetooth Central Manager instance that will scan and
+    /// connect to proxies.
+    private let centralManager: CBCentralManager
+    /// The Mesh Network for this connection.
+    private let meshNetwork: MeshNetwork
+    /// A flag indicating whether the network connection is open.
+    /// When open, it will scan for mesh nodes in range and connect to
+    /// them if found.
+    private var isStarted = false
 }
+
+// MARK: CBCentralManagerDelegate
 
 extension MeshNetworkConnection: CBCentralManagerDelegate {
     func centralManagerDidUpdateState(_ central: CBCentralManager) {
@@ -195,6 +232,8 @@ extension MeshNetworkConnection: CBCentralManagerDelegate {
         bearer.open()
     }
 }
+
+// MARK: GattBearerDelegate, BearerDataDelegate
 
 extension MeshNetworkConnection: GattBearerDelegate, BearerDataDelegate {
     func bearerDidOpen(_ bearer: Bearer) {
