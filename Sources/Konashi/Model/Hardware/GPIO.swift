@@ -96,9 +96,9 @@ public enum GPIO {
         case openSource // wired or, input
         case openDrain // wired and, input
 
-        // MARK: Internal
+        // MARK: Public
 
-        static func compose(enabled: Bool, direction: Direction, wiredFunction: WiredFunction) -> PinMode {
+        public static func compose(enabled: Bool, direction: Direction, wiredFunction: WiredFunction) -> PinMode {
             if enabled == false {
                 return .disable
             }
@@ -113,6 +113,8 @@ public enum GPIO {
             }
             return .output
         }
+
+        // MARK: Internal
 
         func unwrap() -> (enabled: Bool, direction: Direction, wiredFunction: WiredFunction) {
             switch self {
@@ -151,6 +153,16 @@ public enum GPIO {
     }
 
     public struct PinConfig: ParsablePayload, Hashable {
+        // MARK: Lifecycle
+
+        public init(pin: GPIO.Pin, mode: PinMode, registerState: RegisterState, notifyOnInputChange: Bool = false, function: Function) {
+            self.pin = pin
+            self.mode = mode
+            self.registerState = registerState
+            self.notifyOnInputChange = notifyOnInputChange
+            self.function = function
+        }
+
         // MARK: Public
 
         public let pin: GPIO.Pin
@@ -239,6 +251,13 @@ public enum GPIO {
     }
 
     public struct ControlPayload: Payload {
+        // MARK: Lifecycle
+
+        public init(pin: GPIO.Pin, level: Level) {
+            self.pin = pin
+            self.level = level
+        }
+
         // MARK: Public
 
         public let pin: GPIO.Pin

@@ -95,6 +95,15 @@ public enum Analog {
     }
 
     public struct PinConfig: ParsablePayload, Hashable {
+        // MARK: Lifecycle
+
+        public init(pin: Analog.Pin, isEnabled: Bool, notifyOnInputChange: Bool, direction: Direction) {
+            self.pin = pin
+            self.isEnabled = isEnabled
+            self.notifyOnInputChange = notifyOnInputChange
+            self.direction = direction
+        }
+
         // MARK: Public
 
         public let pin: Analog.Pin
@@ -146,6 +155,16 @@ public enum Analog {
     }
 
     public struct ConfigPayload: Payload {
+        // MARK: Lifecycle
+
+        public init(pinConfig: [PinConfig]? = nil, adcUpdatePeriod: ADCUpdatePeriodConfig? = nil, adcVoltageReferenceConfig: ADCVoltageReferenceConfig? = nil, vdacVoltageReferenceConfig: VDACVoltageReferenceConfig? = nil, idacCurrentRangeConfig: IDACCurrentRangeConfig? = nil) {
+            self.pinConfig = pinConfig
+            self.adcUpdatePeriod = adcUpdatePeriod
+            self.adcVoltageReferenceConfig = adcVoltageReferenceConfig
+            self.vdacVoltageReferenceConfig = vdacVoltageReferenceConfig
+            self.idacCurrentRangeConfig = idacCurrentRangeConfig
+        }
+
         // MARK: Public
 
         public var pinConfig: [PinConfig]?
@@ -179,6 +198,12 @@ public enum Analog {
     }
 
     public struct ADCUpdatePeriodConfig: Payload {
+        // MARK: Lifecycle
+
+        public init(updatePeriodStep: UInt8) {
+            self.updatePeriodStep = updatePeriodStep
+        }
+
         // MARK: Public
 
         public let updatePeriodStep: UInt8
@@ -191,6 +216,12 @@ public enum Analog {
     }
 
     public struct ADCVoltageReferenceConfig: Payload {
+        // MARK: Lifecycle
+
+        public init(reference: ADCVoltageReference) {
+            self.reference = reference
+        }
+
         // MARK: Public
 
         public let reference: ADCVoltageReference
@@ -203,6 +234,12 @@ public enum Analog {
     }
 
     public struct VDACVoltageReferenceConfig: Payload {
+        // MARK: Lifecycle
+
+        public init(reference: VDACVoltageReference) {
+            self.reference = reference
+        }
+
         // MARK: Public
 
         public let reference: VDACVoltageReference
@@ -215,6 +252,12 @@ public enum Analog {
     }
 
     public struct IDACCurrentRangeConfig: Payload {
+        // MARK: Lifecycle
+
+        public init(step: IDACCurrentStepSize) {
+            self.step = step
+        }
+
         // MARK: Public
 
         public let step: IDACCurrentStepSize
@@ -227,6 +270,14 @@ public enum Analog {
     }
 
     public struct ControlPayload: Payload {
+        // MARK: Lifecycle
+
+        public init(pin: Pin, stepValue: UInt16, transitionDurationMillisec: UInt32) {
+            self.pin = pin
+            self.stepValue = stepValue
+            self.transitionDurationMillisec = transitionDurationMillisec
+        }
+
         // MARK: Public
 
         public let pin: Pin

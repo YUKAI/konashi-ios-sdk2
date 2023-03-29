@@ -51,7 +51,8 @@ public extension KonashiPeripheral {
                     pin: pin,
                     mode: .compose(enabled: true, direction: direction, wiredFunction: wiredFunction),
                     registerState: state,
-                    notifyOnInputChange: notifyOnInputChange
+                    notifyOnInputChange: notifyOnInputChange,
+                    function: .gpio
                 )
             ])
         )
