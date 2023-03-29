@@ -24,7 +24,7 @@ pod 'konashi-ios-sdk2'
 
 ```swift
 dependencies: [
-    .package(url: "https://github.com/YUKAI/konashi-ios-sdk2.git", from: "1.0.0"),
+    .package(name: "Konashi", url: "https://github.com/YUKAI/konashi-ios-sdk2.git", from: "1.0.0"),
     /// ...
 ]
 ```
