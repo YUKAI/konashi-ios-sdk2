@@ -17,7 +17,7 @@ iOS 13.0+
 ### CocoaPods
 
 ```ruby
-pod 'Konashi'
+pod 'konashi-ios-sdk2'
 ```
 
 ### Swift Package Manager
