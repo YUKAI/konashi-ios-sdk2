@@ -15,7 +15,8 @@ class GPIOTest: XCTestCase {
             pin: .pin0,
             mode: .input,
             registerState: .none,
-            notifyOnInputChange: true
+            notifyOnInputChange: true,
+            function: .gpio
         )
         XCTAssertEqual(
             gpio0.compose(),
@@ -32,7 +33,9 @@ class GPIOTest: XCTestCase {
         // GPIO1: enable, output -> 0x11 0x10
         let gpio1 = GPIO.PinConfig(
             pin: .pin1,
-            mode: .output
+            mode: .output,
+            registerState: .none,
+            function: .gpio
         )
         XCTAssertEqual(
             gpio1.compose(),
@@ -50,7 +53,8 @@ class GPIOTest: XCTestCase {
         let gpio2 = GPIO.PinConfig(
             pin: .pin2,
             mode: .output,
-            registerState: .pullUp
+            registerState: .pullUp,
+            function: .gpio
         )
         XCTAssertEqual(
             gpio2.compose(),
@@ -68,7 +72,8 @@ class GPIOTest: XCTestCase {
         let gpio3 = GPIO.PinConfig(
             pin: .pin3,
             mode: .output,
-            registerState: .pullDown
+            registerState: .pullDown,
+            function: .gpio
         )
         XCTAssertEqual(
             gpio3.compose(),
@@ -85,7 +90,9 @@ class GPIOTest: XCTestCase {
         // GPIO4: enable, open source (wired-or function) -> 0x41 0x08
         let gpio4 = GPIO.PinConfig(
             pin: .pin4,
-            mode: .openSource
+            mode: .openSource,
+            registerState: .none,
+            function: .gpio
         )
         XCTAssertEqual(
             gpio4.compose(),
@@ -103,7 +110,8 @@ class GPIOTest: XCTestCase {
         let gpio5 = GPIO.PinConfig(
             pin: .pin5,
             mode: .openSource,
-            registerState: .pullDown
+            registerState: .pullDown,
+            function: .gpio
         )
         XCTAssertEqual(
             gpio5.compose(),
@@ -120,7 +128,9 @@ class GPIOTest: XCTestCase {
         // GPIO6: enable, open drain (wired-and function) -> 0x61 0x04
         let gpio6 = GPIO.PinConfig(
             pin: .pin6,
-            mode: .openDrain
+            mode: .openDrain,
+            registerState: .none,
+            function: .gpio
         )
         XCTAssertEqual(
             gpio6.compose(),
@@ -138,7 +148,8 @@ class GPIOTest: XCTestCase {
         let gpio7 = GPIO.PinConfig(
             pin: .pin7,
             mode: .openDrain,
-            registerState: .pullUp
+            registerState: .pullUp,
+            function: .gpio
         )
         XCTAssertEqual(
             gpio7.compose(),
@@ -174,6 +185,7 @@ class GPIOTest: XCTestCase {
         let gpio0 = GPIO.PinConfig(
             pin: .pin0,
             mode: .disable,
+            registerState: .none,
             function: .disabled
         )
         XCTAssertEqual(
