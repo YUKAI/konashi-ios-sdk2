@@ -13,7 +13,7 @@ Pod::Spec.new do |s|
     s.summary          = 'iOS SDK for konashi, a wireless physical computing toolkit'
     s.swift_versions   = '5.7'
     s.description      = <<-DESC
-      Konashi communicates directly with any iPhone, iPod touch, and iPad which supports Bluetooth Low Energy (BLE) technology. You do not need to apply for an MFi License.
+      Konashi communicates directly with iOS devices supporting Bluetooth Low Energy (BLE) technology. You do not need to apply for an MFi License.
     DESC
   
     s.homepage         = 'https://github.com/YUKAI/konashi-ios-sdk2'
