@@ -152,38 +152,6 @@ public struct ConfigService: Service {
             }
         }
     }
-
-    /// Service UUID of config service.
-    public static var uuid: UUID {
-        return UUID(uuidString: "064d0200-8251-49d9-b6f3-f7ba35e5d0a1")!
-    }
-
-    /// An array of all characteristics of config service.
-    public var characteristics: [Characteristic] {
-        return [
-            configCommand,
-            gpioConfig,
-            softwarePWMConfig,
-            hardwarePWMConfig,
-            analogConfig,
-            i2cConfig,
-            uartConfig,
-            spiConfig
-        ]
-    }
-
-    /// An array of characteristics that can notify update.
-    public var notifiableCharacteristics: [Characteristic] {
-        return [
-            gpioConfig,
-            softwarePWMConfig,
-            hardwarePWMConfig,
-            analogConfig,
-            i2cConfig,
-            uartConfig,
-            spiConfig
-        ]
-    }
 }
 
 public extension ConfigService {

@@ -360,28 +360,6 @@ public struct SettingsService: Service {
             return Data(bytes)
         }
     }
-
-    /// Service UUID of settings service.
-    public static var uuid: UUID {
-        return UUID(uuidString: "064d0100-8251-49d9-b6f3-f7ba35e5d0a1")!
-    }
-
-    /// An array of all characteristics of setting services.
-    public var characteristics: [Characteristic] {
-        return [
-            settingsCommand,
-            systemSettings,
-            bluetoothSettings
-        ]
-    }
-
-    /// An array of characteristics that can notify update.
-    public var notifiableCharacteristics: [Characteristic] {
-        return [
-            systemSettings,
-            bluetoothSettings
-        ]
-    }
 }
 
 public extension SettingsService {
