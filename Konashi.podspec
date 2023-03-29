@@ -8,7 +8,7 @@
 
 Pod::Spec.new do |s|
     s.name             = 'Konashi'
-    s.version          = '0.0.1'
+    s.version          = '1.0.0'
     s.summary          = 'iOS SDK for konashi, a wireless physical computing toolkit'
     s.swift_versions   = '5.7'
   # This description is used to generate tags and improve search results.
@@ -41,7 +41,7 @@ Pod::Spec.new do |s|
     # s.frameworks = 'UIKit', 'MapKit'
 
     s.framework  = 'CoreBluetooth'
-    s.dependency 'PromisesSwift', '>= 2.0.0'
+    s.dependency 'PromisesSwift', '>= 2.1.0'
     s.dependency 'CombineExt', '>= 1.0.0'
-    s.dependency 'nRFMeshProvision', '~> 3.2.0'
+    s.dependency 'nRFMeshProvision', '>= 3.2.0'
   end
