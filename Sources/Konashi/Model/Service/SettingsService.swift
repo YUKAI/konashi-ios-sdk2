@@ -32,19 +32,19 @@ public struct SettingsService: Service {
         ]
     }
 
-    let settingsCommand = WriteableCharacteristic<SettingCommand>(
+    public let settingsCommand = WriteableCharacteristic<SettingCommand>(
         serviceUUID: SettingsService.uuid,
         uuid: UUID(
             uuidString: "064D0101-8251-49D9-B6F3-F7BA35E5D0A1"
         )!
     )
-    let systemSettings = ReadableCharacteristic<SystemSettings>(
+    public let systemSettings = ReadableCharacteristic<SystemSettings>(
         serviceUUID: SettingsService.uuid,
         uuid: UUID(
             uuidString: "064D0102-8251-49D9-B6F3-F7BA35E5D0A1"
         )!
     )
-    let bluetoothSettings = ReadableCharacteristic<BluetoothSettings>(
+    public let bluetoothSettings = ReadableCharacteristic<BluetoothSettings>(
         serviceUUID: SettingsService.uuid,
         uuid: UUID(
             uuidString: "064D0103-8251-49D9-B6F3-F7BA35E5D0A1"
@@ -331,19 +331,19 @@ public struct SettingsService: Service {
 }
 
 public extension SettingsService {
-    static let settingsCommand = WriteableCharacteristic<SettingCommand>(
+    public static let settingsCommand = WriteableCharacteristic<SettingCommand>(
         serviceUUID: SettingsService.uuid,
         uuid: UUID(
             uuidString: "064D0101-8251-49D9-B6F3-F7BA35E5D0A1"
         )!
     )
-    static let systemSettings = ReadableCharacteristic<SystemSettings>(
+    public static let systemSettings = ReadableCharacteristic<SystemSettings>(
         serviceUUID: SettingsService.uuid,
         uuid: UUID(
             uuidString: "064D0102-8251-49D9-B6F3-F7BA35E5D0A1"
         )!
     )
-    static let bluetoothSettings = ReadableCharacteristic<BluetoothSettings>(
+    public static let bluetoothSettings = ReadableCharacteristic<BluetoothSettings>(
         serviceUUID: SettingsService.uuid,
         uuid: UUID(
             uuidString: "064D0103-8251-49D9-B6F3-F7BA35E5D0A1"
