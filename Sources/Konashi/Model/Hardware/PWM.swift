@@ -70,6 +70,13 @@ public enum PWM {
 
         /// A payload of software PWM configuration.
         public struct PinConfig: ParsablePayload, Hashable {
+            // MARK: Lifecycle
+
+            public init(pin: PWM.Pin, driveConfig: DriveConfig) {
+                self.pin = pin
+                self.driveConfig = driveConfig
+            }
+
             // MARK: Public
 
             /// A pin of configuration.
@@ -141,6 +148,14 @@ public enum PWM {
 
         /// A payload to control software PWM.
         public struct ControlPayload: Payload {
+            // MARK: Lifecycle
+
+            public init(pin: Pin, value: ControlValue, transitionDuration: UInt32) {
+                self.pin = pin
+                self.value = value
+                self.transitionDuration = transitionDuration
+            }
+
             // MARK: Public
 
             public let pin: Pin
@@ -228,6 +243,13 @@ public enum PWM {
 
         /// A payload of harware PWM configuration.
         public struct PinConfig: ParsablePayload, Hashable {
+            // MARK: Lifecycle
+
+            public init(pin: PWM.Pin, isEnabled: Bool) {
+                self.pin = pin
+                self.isEnabled = isEnabled
+            }
+
             // MARK: Public
 
             /// A pin of configuration.
@@ -271,6 +293,14 @@ public enum PWM {
 
         /// A payload to configure hardware PWM clock.
         public struct ClockConfig: Payload, Hashable {
+            // MARK: Lifecycle
+
+            public init(clock: Clock, prescaler: Prescaler, timerValue: UInt16) {
+                self.clock = clock
+                self.prescaler = prescaler
+                self.timerValue = timerValue
+            }
+
             // MARK: Public
 
             public let clock: Clock
@@ -296,6 +326,13 @@ public enum PWM {
         }
 
         public struct ConfigPayload: Payload {
+            // MARK: Lifecycle
+
+            public init(pinConfig: [PinConfig]? = nil, clockConfig: ClockConfig? = nil) {
+                self.pinConfig = pinConfig
+                self.clockConfig = clockConfig
+            }
+
             // MARK: Public
 
             public var pinConfig: [PinConfig]?
@@ -317,6 +354,14 @@ public enum PWM {
 
         /// A payload to control hardware PWM.
         public struct ControlPayload: Payload {
+            // MARK: Lifecycle
+
+            public init(pin: Pin, controlValue: UInt16, transitionDurationMillisec: UInt32) {
+                self.pin = pin
+                self.controlValue = controlValue
+                self.transitionDurationMillisec = transitionDurationMillisec
+            }
+
             // MARK: Public
 
             public let pin: Pin

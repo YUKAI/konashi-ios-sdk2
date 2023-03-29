@@ -12,42 +12,67 @@ import Foundation
 
 /// A BLE service to control Konashi.
 public struct ControlService: Service {
+    public enum ControlCommand: Command {
+        case gpio([GPIO.ControlPayload])
+        case softwarePWM([PWM.Software.ControlPayload])
+        case hardwarePWM([PWM.Hardware.ControlPayload])
+        case analog([Analog.ControlPayload])
+        case i2cTransfer(I2C.TransferControlPayload)
+        case uartSend(UART.SendControlPayload)
+        case spiTransfer(SPI.TransferControlPayload)
+
+        // MARK: Public
+
+        public func compose() -> Data {
+            var bytes = [UInt8]()
+            bytes.append(commandIdentifier())
+            var payload: [UInt8] {
+                switch self {
+                case let .gpio(payload):
+                    return payload.compose()
+                case let .softwarePWM(payload):
+                    return payload.compose()
+                case let .hardwarePWM(payload):
+                    return payload.compose()
+                case let .analog(payload):
+                    return payload.compose()
+                case let .i2cTransfer(payload):
+                    return payload.compose()
+                case let .uartSend(payload):
+                    return payload.compose()
+                case let .spiTransfer(payload):
+                    return payload.compose()
+                }
+            }
+            bytes.append(contentsOf: payload)
+            return Data(bytes)
+        }
+
+        // MARK: Internal
+
+        func commandIdentifier() -> UInt8 {
+            switch self {
+            case .gpio:
+                return 0x01
+            case .softwarePWM:
+                return 0x02
+            case .hardwarePWM:
+                return 0x03
+            case .analog:
+                return 0x04
+            case .i2cTransfer:
+                return 0x05
+            case .uartSend:
+                return 0x06
+            case .spiTransfer:
+                return 0x07
+            }
+        }
+    }
+
     /// Service UUID of control service.
     public static var uuid: UUID {
         return UUID(uuidString: "064D0300-8251-49D9-B6F3-F7BA35E5D0A1")!
-    }
-
-    /// An array of all characteristics of control service.
-    public var characteristics: [Characteristic] {
-        return [
-            controlCommand,
-            gpioOutput,
-            gpioInput,
-            softwarePWMOutput,
-            hardwarePWMOutput,
-            analogOutput,
-            analogInput,
-            i2cDataInput,
-            uartDataInput,
-            uartSendDone,
-            spiDataInput
-        ]
-    }
-
-    /// An array of characteristics that can notify update.
-    public var notifiableCharacteristics: [Characteristic] {
-        return [
-            gpioInput,
-            gpioOutput,
-            softwarePWMOutput,
-            hardwarePWMOutput,
-            analogInput,
-            analogOutput,
-            i2cDataInput,
-            uartSendDone,
-            uartDataInput,
-            spiDataInput
-        ]
     }
 
     public let controlCommand = WriteableCharacteristic<ControlCommand>(
@@ -117,62 +142,37 @@ public struct ControlService: Service {
         )!
     )
 
-    public enum ControlCommand: Command {
-        case gpio([GPIO.ControlPayload])
-        case softwarePWM([PWM.Software.ControlPayload])
-        case hardwarePWM([PWM.Hardware.ControlPayload])
-        case analog([Analog.ControlPayload])
-        case i2cTransfer(I2C.TransferControlPayload)
-        case uartSend(UART.SendControlPayload)
-        case spiTransfer(SPI.TransferControlPayload)
+    /// An array of all characteristics of control service.
+    public var characteristics: [Characteristic] {
+        return [
+            controlCommand,
+            gpioOutput,
+            gpioInput,
+            softwarePWMOutput,
+            hardwarePWMOutput,
+            analogOutput,
+            analogInput,
+            i2cDataInput,
+            uartDataInput,
+            uartSendDone,
+            spiDataInput
+        ]
+    }
 
-        // MARK: Public
-
-        public func compose() -> Data {
-            var bytes = [UInt8]()
-            bytes.append(commandIdentifier())
-            var payload: [UInt8] {
-                switch self {
-                case let .gpio(payload):
-                    return payload.compose()
-                case let .softwarePWM(payload):
-                    return payload.compose()
-                case let .hardwarePWM(payload):
-                    return payload.compose()
-                case let .analog(payload):
-                    return payload.compose()
-                case let .i2cTransfer(payload):
-                    return payload.compose()
-                case let .uartSend(payload):
-                    return payload.compose()
-                case let .spiTransfer(payload):
-                    return payload.compose()
-                }
-            }
-            bytes.append(contentsOf: payload)
-            return Data(bytes)
-        }
-
-        // MARK: Internal
-
-        func commandIdentifier() -> UInt8 {
-            switch self {
-            case .gpio:
-                return 0x01
-            case .softwarePWM:
-                return 0x02
-            case .hardwarePWM:
-                return 0x03
-            case .analog:
-                return 0x04
-            case .i2cTransfer:
-                return 0x05
-            case .uartSend:
-                return 0x06
-            case .spiTransfer:
-                return 0x07
-            }
-        }
+    /// An array of characteristics that can notify update.
+    public var notifiableCharacteristics: [Characteristic] {
+        return [
+            gpioInput,
+            gpioOutput,
+            softwarePWMOutput,
+            hardwarePWMOutput,
+            analogInput,
+            analogOutput,
+            i2cDataInput,
+            uartSendDone,
+            uartDataInput,
+            spiDataInput
+        ]
     }
 }
 

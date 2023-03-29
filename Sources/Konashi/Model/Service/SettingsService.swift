@@ -12,47 +12,6 @@ import Foundation
 
 /// A BLE service of Konashi settings.
 public struct SettingsService: Service {
-    /// Service UUID of settings service.
-    public static var uuid: UUID {
-        return UUID(uuidString: "064d0100-8251-49d9-b6f3-f7ba35e5d0a1")!
-    }
-
-    /// An array of all characteristics of setting services.
-    public var characteristics: [Characteristic] {
-        return [
-            settingsCommand,
-            systemSettings,
-            bluetoothSettings
-        ]
-    }
-
-    /// An array of characteristics that can notify update.
-    public var notifiableCharacteristics: [Characteristic] {
-        return [
-            systemSettings,
-            bluetoothSettings
-        ]
-    }
-
-    public let settingsCommand = WriteableCharacteristic<SettingCommand>(
-        serviceUUID: SettingsService.uuid,
-        uuid: UUID(
-            uuidString: "064D0101-8251-49D9-B6F3-F7BA35E5D0A1"
-        )!
-    )
-    public let systemSettings = ReadableCharacteristic<SystemSettings>(
-        serviceUUID: SettingsService.uuid,
-        uuid: UUID(
-            uuidString: "064D0102-8251-49D9-B6F3-F7BA35E5D0A1"
-        )!
-    )
-    public let bluetoothSettings = ReadableCharacteristic<BluetoothSettings>(
-        serviceUUID: SettingsService.uuid,
-        uuid: UUID(
-            uuidString: "064D0103-8251-49D9-B6F3-F7BA35E5D0A1"
-        )!
-    )
-
     /// A payload for system setting.
     public enum SystemSettingPayload: Payload {
         /// A payload to set if NVM is used or not.
@@ -163,9 +122,7 @@ public struct SettingsService: Service {
             /// A bit representation of GPIOs.
             public let rawValue: UInt8
 
-            // MARK: Internal
-
-            static func convert(_ values: [Bool]) -> GPIOxInputValue {
+            public static func convert(_ values: [Bool]) -> GPIOxInputValue {
                 var mask = GPIOxInputValue()
                 for (index, enabled) in values.enumerated() where enabled == true {
                     mask = mask.union(allCases[index])
@@ -202,9 +159,7 @@ public struct SettingsService: Service {
             /// A bit representation of AIOs.
             public let rawValue: UInt8
 
-            // MARK: Internal
-
-            static func convert(_ values: [Bool]) -> AIOxInputValue {
+            public static func convert(_ values: [Bool]) -> AIOxInputValue {
                 var mask = AIOxInputValue()
                 for (index, enabled) in values.enumerated() where enabled == true {
                     mask = mask.union(allCases[index])
@@ -359,6 +314,47 @@ public struct SettingsService: Service {
 
             return Data(bytes)
         }
+    }
+
+    /// Service UUID of settings service.
+    public static var uuid: UUID {
+        return UUID(uuidString: "064d0100-8251-49d9-b6f3-f7ba35e5d0a1")!
+    }
+
+    public let settingsCommand = WriteableCharacteristic<SettingCommand>(
+        serviceUUID: SettingsService.uuid,
+        uuid: UUID(
+            uuidString: "064D0101-8251-49D9-B6F3-F7BA35E5D0A1"
+        )!
+    )
+    public let systemSettings = ReadableCharacteristic<SystemSettings>(
+        serviceUUID: SettingsService.uuid,
+        uuid: UUID(
+            uuidString: "064D0102-8251-49D9-B6F3-F7BA35E5D0A1"
+        )!
+    )
+    public let bluetoothSettings = ReadableCharacteristic<BluetoothSettings>(
+        serviceUUID: SettingsService.uuid,
+        uuid: UUID(
+            uuidString: "064D0103-8251-49D9-B6F3-F7BA35E5D0A1"
+        )!
+    )
+
+    /// An array of all characteristics of setting services.
+    public var characteristics: [Characteristic] {
+        return [
+            settingsCommand,
+            systemSettings,
+            bluetoothSettings
+        ]
+    }
+
+    /// An array of characteristics that can notify update.
+    public var notifiableCharacteristics: [Characteristic] {
+        return [
+            systemSettings,
+            bluetoothSettings
+        ]
     }
 }
 

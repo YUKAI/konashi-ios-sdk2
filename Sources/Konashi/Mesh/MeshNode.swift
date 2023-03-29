@@ -312,7 +312,7 @@ public final class MeshNode: NodeCompatible, Loggable {
             if node.isCompositionDataReceived == false {
                 throw NodeOperationError.noCompositionData
             }
-            return SendHandler(node: self, handle: try manager.networkManager.send(message, to: model))
+            return try SendHandler(node: self, handle: manager.networkManager.send(message, to: model))
         }
         catch {
             log(.error("Failed to send config message to \(debugName), message: 0x\(message.opCode.byteArray().toHexString()), error: \(error.localizedDescription)"))
@@ -325,7 +325,7 @@ public final class MeshNode: NodeCompatible, Loggable {
         do {
             log(.trace("Send config message to \(debugName), message: 0x\(config.opCode.byteArray().toHexString())"))
             try await checkOperationAvailability()
-            return SendHandler(node: self, handle: try manager.networkManager.send(config, to: node))
+            return try SendHandler(node: self, handle: manager.networkManager.send(config, to: node))
         }
         catch {
             log(.error("Failed to send config message to \(debugName), message: 0x\(config.opCode.byteArray().toHexString()), error: \(error.localizedDescription)"))
