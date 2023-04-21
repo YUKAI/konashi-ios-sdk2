@@ -36,9 +36,12 @@ public final actor MeshManager: Loggable {
 
     public let logOutput = LogOutput()
 
-    public nonisolated let didNetworkSaveSubject = PassthroughSubject<Void, StorageError>()
-    public nonisolated let didSendMessageSubject = PassthroughSubject<SendMessage, Never>()
-    public nonisolated let didReceiveMessageSubject = PassthroughSubject<Result<ReceivedMessage, MessageTransmissionError>, Never>()
+    nonisolated let didNetworkSaveSubject = PassthroughSubject<Void, StorageError>()
+    public private(set) nonisolated lazy var didNetworkSavePublisher = didNetworkSaveSubject.eraseToAnyPublisher()
+    nonisolated let didSendMessageSubject = PassthroughSubject<SendMessage, Never>()
+    public private(set) nonisolated lazy var didSendMessagePublisher = didSendMessageSubject.eraseToAnyPublisher()
+    nonisolated let didReceiveMessageSubject = PassthroughSubject<Result<ReceivedMessage, MessageTransmissionError>, Never>()
+    public private(set) nonisolated lazy var didReceiveMessagePublisher = didReceiveMessageSubject.eraseToAnyPublisher()
     public private(set) var networkKey: NetworkKey?
     public private(set) var applicationKey: ApplicationKey?
 

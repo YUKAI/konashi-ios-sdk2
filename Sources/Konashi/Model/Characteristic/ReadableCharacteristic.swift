@@ -23,8 +23,10 @@ public class ReadableCharacteristic<Value: CharacteristicValue>: Characteristic 
 
     public let serviceUUID: UUID
     public let uuid: UUID
-    public var value = PassthroughSubject<Value, Never>()
-    public var parseErrorSubject = PassthroughSubject<Never, Error>()
+    var valueSubject = PassthroughSubject<Value, Never>()
+    public private(set) lazy var value = valueSubject.eraseToAnyPublisher()
+    var parseErrorSubject = PassthroughSubject<Never, Error>()
+    public private(set) lazy var parseErrorPublisher = parseErrorSubject.eraseToAnyPublisher()
 
     public func update(data: Data?) {
         guard let data else {
@@ -32,7 +34,7 @@ public class ReadableCharacteristic<Value: CharacteristicValue>: Characteristic 
         }
         switch parse(data: data) {
         case let .success(value):
-            self.value.send(value)
+            self.valueSubject.send(value)
         case let .failure(error):
             parseErrorSubject.send(completion: .failure(error))
         }

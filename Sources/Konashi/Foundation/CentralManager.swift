@@ -64,16 +64,25 @@ public final class CentralManager: NSObject, Loggable {
     // TODO: Add document
     public var discoversUniquePeripherals = true
 
-    /// A subject that sends any operation errors.
-    public let operationErrorSubject = PassthroughSubject<Error, Never>()
-    /// A subject that sends discovered peripheral and advertisement datas.
-    public let didDiscoverSubject = PassthroughSubject<any Peripheral, Never>()
-    /// A subject that sends a peripheral that is connected.
-    public let didConnectSubject = PassthroughSubject<CBPeripheral, Never>()
-    /// A subject that sends a peripheral when a peripheral is disconnected.
-    public let didDisconnectSubject = PassthroughSubject<(CBPeripheral, Error?), Never>()
-    /// A subject that sends a peripheral when failed to connect.
-    public let didFailedToConnectSubject = PassthroughSubject<(CBPeripheral, Error?), Never>()
+    let operationErrorSubject = PassthroughSubject<Error, Never>()
+    /// A publisher that sends any operation errors.
+    public private(set) lazy var operationErrorPublisher = operationErrorSubject.eraseToAnyPublisher()
+    
+    let didDiscoverSubject = PassthroughSubject<any Peripheral, Never>()
+    /// A publisher that sends discovered peripheral and advertisement datas.
+    public private(set) lazy var didDiscoverPublisher = didDiscoverSubject.eraseToAnyPublisher()
+    
+    let didConnectSubject = PassthroughSubject<CBPeripheral, Never>()
+    /// A publisher that sends a peripheral that is connected.
+    public private(set) lazy var didConnectPublisher = didConnectSubject.eraseToAnyPublisher()
+    
+    let didDisconnectSubject = PassthroughSubject<(CBPeripheral, Error?), Never>()
+    /// A publisher that sends a peripheral when a peripheral is disconnected.
+    public private(set) lazy var didDisconnectPublisher = didDisconnectSubject.eraseToAnyPublisher()
+    
+    let didFailedToConnectSubject = PassthroughSubject<(CBPeripheral, Error?), Never>()
+    /// A publisher that sends a peripheral when failed to connect.
+    public private(set) lazy var didFailedToConnectPublisher = didFailedToConnectSubject.eraseToAnyPublisher()
 
     /// This value indicates that a centeral manager is scanning peripherals.
     @Published public private(set) var isScanning = false
@@ -293,7 +302,7 @@ extension CentralManager: CBCentralManagerDelegate {
     public func centralManager(_ central: CBCentralManager, didDisconnectPeripheral peripheral: CBPeripheral, error: Error?) {
         if let error {
             if let existingPeripheral = foundPeripherals.first(where: { $0.identifier == peripheral.identifier }) {
-                existingPeripheral.operationErrorSubject.send(error)
+                existingPeripheral.recordError(error)
             }
             operationErrorSubject.send(error)
             log(.error("Failed to disconnect: \(peripheral.konashi_debugName), error: \(error.localizedDescription)"))
@@ -311,7 +320,7 @@ extension CentralManager: CBCentralManagerDelegate {
         log(.trace("Did fail to connect: \(peripheral.konashi_debugName), error: \(error?.localizedDescription ?? "nil")"))
         if let error {
             if let existingPeripheral = foundPeripherals.first(where: { $0.identifier == peripheral.identifier }) {
-                existingPeripheral.operationErrorSubject.send(error)
+                existingPeripheral.recordError(error)
             }
             operationErrorSubject.send(error)
         }
