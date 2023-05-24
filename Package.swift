@@ -26,8 +26,8 @@ let package = Package(
         ),
         .package(
             name: "NordicMesh",
-            url: "https://github.com/NordicSemiconductor/IOS-nRF-Mesh-Library",
-            from: "3.2.0"
+            url: "https://github.com/YUKAI/IOS-nRF-Mesh-Library",
+            branch: "main"
         ),
         .package(
             name: "Promises",
