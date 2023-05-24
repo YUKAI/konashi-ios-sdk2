@@ -506,7 +506,7 @@ public final class KonashiPeripheral: Peripheral {
                 let provisioner = MeshProvisioner(
                     for: provisioningManager,
                     context: MeshProvisioner.Context(
-                        algorithm: .fipsP256EllipticCurve,
+                        algorithm: .BTM_ECDH_P256_CMAC_AES128_AES_CCM,
                         publicKey: .noOobPublicKey,
                         authenticationMethod: .noOob
                     ),

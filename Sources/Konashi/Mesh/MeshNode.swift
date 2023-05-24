@@ -228,7 +228,7 @@ public final class MeshNode: NodeCompatible, Loggable {
     }
 
     public var unicastAddress: Address? {
-        return node.unicastAddress
+        return node.primaryUnicastAddress
     }
 
     public var deviceKey: Data? {
