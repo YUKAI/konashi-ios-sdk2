@@ -32,7 +32,7 @@ public protocol Peripheral: Hashable, AnyObject, Loggable {
     var statePublisher: Published<ConnectionState>.Publisher { get }
     var rssiPublisher: Published<NSNumber>.Publisher { get }
     var provisioningStatePublisher: Published<ProvisioningState?>.Publisher { get }
-
+    var operationErrorPublisher: AnyPublisher<Error, Never> { get }
     var state: ConnectionState { get }
     var provisioningState: ProvisioningState? { get }
     var isOutdated: Bool { get }
