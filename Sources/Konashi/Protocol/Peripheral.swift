@@ -20,8 +20,6 @@ extension Peripheral {
 // MARK: - Peripheral
 
 public protocol Peripheral: Hashable, AnyObject, Loggable {
-    var operationErrorSubject: PassthroughSubject<Error, Never> { get }
-
     /// A name of a peripheral.
     var name: String? { get }
 
@@ -34,7 +32,7 @@ public protocol Peripheral: Hashable, AnyObject, Loggable {
     var statePublisher: Published<ConnectionState>.Publisher { get }
     var rssiPublisher: Published<NSNumber>.Publisher { get }
     var provisioningStatePublisher: Published<ProvisioningState?>.Publisher { get }
-
+    var operationErrorPublisher: AnyPublisher<Error, Never> { get }
     var state: ConnectionState { get }
     var provisioningState: ProvisioningState? { get }
     var isOutdated: Bool { get }
@@ -44,6 +42,8 @@ public protocol Peripheral: Hashable, AnyObject, Loggable {
     var meshNode: (any NodeCompatible)? { get }
 
     // MARK: - Connection
+    
+    func recordError(_ error: Error)
 
     /// Connects to a peripheral.
     @discardableResult

@@ -11,7 +11,11 @@ import Foundation
 public final actor MeshProvisionQueue {
     // MARK: Public
 
-    public static var isProvisioning = CurrentValueSubject<Bool, Never>(false)
+    static var isProvisioningSubject = CurrentValueSubject<Bool, Never>(false)
+    public static var isProvisioningPublisher = isProvisioningSubject.eraseToAnyPublisher()
+    public static var isProvisioning: Bool {
+        return isProvisioningSubject.value
+    }
 
     public static func waitForProvision(_ provisioner: any Provisionable, attractFor: UInt8 = 5) async throws {
         if queue.isEmpty {
@@ -55,7 +59,7 @@ public final actor MeshProvisionQueue {
     private static var queue = [any Provisionable]()
 
     private static func provision(_ provisioner: any Provisionable, attractFor: UInt8) async throws {
-        isProvisioning.send(true)
+        isProvisioningSubject.send(true)
         try await provisioner.open()
         _ = try await provisioner.identify(attractFor: attractFor)
         try await provisioner.provision()
@@ -63,11 +67,11 @@ public final actor MeshProvisionQueue {
 
     private static func checkNextProvisioner() {
         if !queue.isEmpty {
-            isProvisioning.send(true)
+            isProvisioningSubject.send(true)
             readyToProvisionSubject.send(queue.removeFirst())
         }
         else {
-            isProvisioning.send(false)
+            isProvisioningSubject.send(false)
         }
     }
 }

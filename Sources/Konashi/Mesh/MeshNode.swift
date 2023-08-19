@@ -208,7 +208,9 @@ public final class MeshNode: NodeCompatible, Loggable {
 
     public let logOutput = LogOutput()
 
-    public var receivedMessageSubject = PassthroughSubject<Result<ReceivedMessage, MessageTransmissionError>, Never>()
+    var receivedMessageSubject = PassthroughSubject<Result<ReceivedMessage, MessageTransmissionError>, Never>()
+    public private(set) lazy var receivedMessagePublisher = receivedMessageSubject.eraseToAnyPublisher()
+
     public private(set) var node: Node
 
     public private(set) weak var peripheral: (any Peripheral)?

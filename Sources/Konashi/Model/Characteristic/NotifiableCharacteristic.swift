@@ -23,8 +23,10 @@ public class NotifiableCharacteristic<Value: CharacteristicValue>: Characteristi
 
     public let serviceUUID: UUID
     public let uuid: UUID
-    public var value = PassthroughSubject<Value, Never>()
-    public var parseErrorSubject = PassthroughSubject<Never, Error>()
+    var valueSubject = PassthroughSubject<Value, Never>()
+    public private(set) lazy var value = valueSubject.eraseToAnyPublisher()
+    var parseErrorSubject = PassthroughSubject<Never, Error>()
+    public private(set) lazy var parseErrorPublisher = parseErrorSubject.eraseToAnyPublisher()
 
     public func update(data: Data?) {
         guard let data else {
@@ -32,7 +34,7 @@ public class NotifiableCharacteristic<Value: CharacteristicValue>: Characteristi
         }
         switch parse(data: data) {
         case let .success(value):
-            self.value.send(value)
+            self.valueSubject.send(value)
         case let .failure(error):
             parseErrorSubject.send(completion: .failure(error))
         }
@@ -41,7 +43,6 @@ public class NotifiableCharacteristic<Value: CharacteristicValue>: Characteristi
 
 public extension NotifiableCharacteristic {
     func parse(data: Data) -> Result<Value, Error> {
-        print(">>> notify \(uuid) \n \(Value.parse(data: data)) \n \([UInt8](data).toHexString())")
         return Value.parse(data: data)
     }
 }

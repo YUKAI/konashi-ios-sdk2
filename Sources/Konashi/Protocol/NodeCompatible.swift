@@ -26,7 +26,7 @@ public protocol NodeCompatible {
     var uuid: UUID { get }
     var isProvisioner: Bool { get }
     var elements: [nRFMeshProvision.Element] { get }
-    var receivedMessageSubject: PassthroughSubject<Result<ReceivedMessage, MessageTransmissionError>, Never> { get }
+    var receivedMessagePublisher: AnyPublisher<Result<ReceivedMessage, MessageTransmissionError>, Never> { get }
     var isConfigured: Bool { get set }
 
     func updateName(_ name: String?) async throws

@@ -42,7 +42,8 @@ let package = Package(
                 "CombineExt",
                 "NordicMesh",
                 "Promises"
-            ]
+            ],
+            path: "Sources"
         ),
         .testTarget(
             name: "KonashiTests",
@@ -52,7 +53,8 @@ let package = Package(
                 "Difference",
                 "NordicMesh",
                 "Promises"
-            ]
+            ],
+            path: "Tests"
         )
     ]
 )
