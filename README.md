@@ -14,14 +14,6 @@ iOS 13.0+
 
 ## Installation
 
-### CocoaPods
-
-```ruby
-pod 'konashi-ios-sdk2'
-```
-
-### Swift Package Manager
-
 ```swift
 dependencies: [
     .package(name: "Konashi", url: "https://github.com/YUKAI/konashi-ios-sdk2.git", from: "1.0.0"),
