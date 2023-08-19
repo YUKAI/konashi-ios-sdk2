@@ -179,6 +179,7 @@ public final class KonashiPeripheral: Peripheral {
 
     // MARK: - Connection
 
+    // TODO: Make async function
     /// Connects to a peripheral.
     @discardableResult
     public func connect() -> Promise<any Peripheral> {
@@ -244,6 +245,7 @@ public final class KonashiPeripheral: Peripheral {
         }
     }
 
+    // TODO: Make async function
     /// Disconnects from a peripheral.
     @discardableResult
     public func disconnect() -> Promise<Void> {
@@ -325,6 +327,7 @@ public final class KonashiPeripheral: Peripheral {
 
     // MARK: - Write/Read Command
 
+    // TODO: Make async function
     /// Writes command to the characteristic
     /// - Parameters:
     ///   - characteristic: The characteristic containing the value to write.
@@ -383,6 +386,7 @@ public final class KonashiPeripheral: Peripheral {
         return promise
     }
 
+    // TODO: Make async function
     /// Retrieves the value of a specified characteristic.
     /// - Parameter characteristic: The characteristic whose value you want to read.
     /// - Returns: A promise object of read value.

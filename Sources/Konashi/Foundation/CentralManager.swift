@@ -80,6 +80,7 @@ public final class CentralManager: NSObject, Loggable {
         return manager.state
     }
 
+    // TODO: Make async function
     /// Attempt to scan available peripherals.
     /// - Returns: A promise object for this method.
     public func scan() -> Promise<Void> {
