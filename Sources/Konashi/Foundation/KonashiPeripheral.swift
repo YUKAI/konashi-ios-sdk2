@@ -178,7 +178,7 @@ public final class KonashiPeripheral: Peripheral {
 
     // TODO: Make async function
     /// Connects to a peripheral.
-    public func connect(timeoutInterval: TimeInterval = 15) async throws {
+    public func connect(timeoutInterval: TimeInterval) async throws {
         log(.trace("Connecting: \(debugName)"))
         if currentConnectionState.isConnectable == false {
             if currentConnectionState == .connected {
@@ -241,7 +241,7 @@ public final class KonashiPeripheral: Peripheral {
 
     // TODO: Make async function
     /// Disconnects from a peripheral.
-    public func disconnect(timeoutInterval: TimeInterval = 15) async throws {
+    public func disconnect(timeoutInterval: TimeInterval) async throws {
         log(.trace("Disconnecting: \(debugName)"))
         if currentConnectionState == .disconnected {
             log(.debug("Peripheral is already disconnected: \(debugName)"))

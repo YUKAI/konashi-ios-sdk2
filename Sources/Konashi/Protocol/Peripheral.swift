@@ -79,4 +79,15 @@ public extension Peripheral {
     var completeName: String {
         return "\(name ?? "Unknown"): \(identifier)"
     }
+    
+    /// Connects to a peripheral.
+    func connect() async throws {
+        try await connect(timeoutInterval: 15)
+    }
+
+    /// Disconnects from a peripheral.
+    func disconnect() async throws {
+        try await disconnect(timeoutInterval: 15)
+    }
+
 }
