@@ -181,7 +181,7 @@ extension UIViewController: AlertPresentable {
     public func presentKonashiListViewController(
         scanDuration: TimeInterval = 3,
         rssiThreshold: NSNumber = KonashiUI.defaultRSSIThreshold
-    ) async throws -> (any Peripheral)? {
+    ) async throws -> any Peripheral {
         KonashiUI.shared.rssiThreshold = rssiThreshold
         try await CentralManager.shared.scan(timeoutInterval: scanDuration)
         CentralManager.shared.stopScan()

@@ -35,6 +35,17 @@ public final class CentralManager: NSObject, Loggable {
 
     // MARK: Public
 
+    public enum OperationError: LocalizedError {
+        case invalidManagerState
+        
+        public var errorDescription: String? {
+            switch self {
+            case .invalidManagerState:
+                return "CBCentralManager is not power on."
+            }
+        }
+    }
+
     public enum ScanTarget {
         case all
         case meshNode
@@ -81,11 +92,16 @@ public final class CentralManager: NSObject, Loggable {
 
         if manager.state != .poweredOn {
             // Wait until the state of manager becomes power on
-            _ = try await manager.publisher(for: \.state)
-                .timeout(.seconds(timeoutInterval), scheduler: DispatchQueue.global())
-                .filter { $0 == .poweredOn }
-                .eraseToAnyPublisher()
-                .konashi_makeAsync()
+            do {
+                _ = try await manager.publisher(for: \.state)
+                    .timeout(.seconds(timeoutInterval), scheduler: DispatchQueue.global())
+                    .filter { $0 == .poweredOn }
+                    .eraseToAnyPublisher()
+                    .konashi_makeAsync()
+            } catch {
+                operationErrorSubject.send(OperationError.invalidManagerState)
+                throw OperationError.invalidManagerState
+            }
         }
         isScanning = true
         manager.scanForPeripherals(
