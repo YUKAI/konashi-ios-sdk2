@@ -36,20 +36,6 @@ public final class CentralManager: NSObject, Loggable {
 
     // MARK: Public
 
-    public enum ScanError: Error, LocalizedError {
-        /// The Konashi device was not found within the timeout time.
-        case peripheralNotFound
-
-        // MARK: Public
-
-        public var errorDescription: String? {
-            switch self {
-            case .peripheralNotFound:
-                return "Counld not find any peripherals."
-            }
-        }
-    }
-
     public enum ScanTarget {
         case all
         case meshNode
@@ -130,53 +116,26 @@ public final class CentralManager: NSObject, Loggable {
     ///   - name: Peripheral name to find.
     ///   - timeoutInterval: The duration of timeout.
     ///   - target: Filter mesh node or not
-    /// - Returns: A promise object for this method.
-    public func find(name: String, timeoutInterval: TimeInterval = 5, target: ScanTarget = .all) -> Promise<any Peripheral> {
+    /// - Returns: Found peripheral
+    public func find(name: String, timeoutInterval: TimeInterval = 5, target: ScanTarget = .all) async throws -> (any Peripheral)? {
         log(.trace("Start find \(name), timeout: \(timeoutInterval)"))
-        var cancellable = Set<AnyCancellable>()
-        return Promise<any Peripheral> { [weak self] resolve, reject in
-            guard let self else {
-                return
-            }
-            var didFound = false
-            if let foundPeripheral = self.foundPeripherals.first(where: {
-                $0.name == name
-            }) {
-                self.log(.debug("Peripheral already found \(name)"))
-                didFound = true
-                resolve(foundPeripheral)
-                return
-            }
-            self.didDiscoverSubject.filter { peripheral in
-                if target == .meshNode {
-                    return peripheral.isProvisionable
-                }
-                return true
-            }.sink { peripheral in
-                if peripheral.name == name {
-                    didFound = true
-                    self.log(.debug("Peripheral found \(name)"))
-                    resolve(peripheral)
-                }
-            }.store(in: &cancellable)
-            self.scan().delay(timeoutInterval).then { [weak self] _ in
-                guard let self else {
-                    return
-                }
-                if didFound == false {
-                    self.log(.error("Failed to find \(name)"))
-                    reject(ScanError.peripheralNotFound)
-                }
-            }.catch { [weak self] error in
-                guard let self else {
-                    return
-                }
-                reject(error)
-                self.log(.error("Failed to find \(name)"))
-            }
-        }.always {
-            cancellable.removeAll()
+        if let foundPeripheral = self.foundPeripherals.first(where: { $0.name == name }) {
+            self.log(.debug("Peripheral is already found \(name)"))
+            return foundPeripheral
         }
+        await scan()
+        try await Task.sleep(nanoseconds: UInt64(timeoutInterval * 1000000000))
+        guard let foundPeripheral = self.foundPeripherals.filter({
+            if target == .meshNode {
+                return $0.isProvisionable
+            }
+            return true
+        }).first(where: { $0.name == name }) else {
+            log(.debug("Counld not find the peripheral \(name)"))
+            return nil
+        }
+        log(.debug("Peripheral found \(name)"))
+        return foundPeripheral
     }
 
     /// Stop scanning peripherals.
