@@ -42,7 +42,7 @@ public protocol Peripheral: Hashable, AnyObject, Loggable {
     var meshNode: (any NodeCompatible)? { get }
 
     // MARK: - Connection
-    
+
     func recordError(_ error: Error)
 
     /// Connects to a peripheral.

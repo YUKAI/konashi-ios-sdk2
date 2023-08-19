@@ -29,7 +29,7 @@ final class PrirmaryModelDelegate: ModelDelegate {
     // MARK: Internal
 
     let messageTypes: [UInt32: MeshMessage.Type]
-    let isSubscriptionSupported: Bool = true
+    let isSubscriptionSupported = true
 
     // TODO: Implement Sensor Client publications.
     let publicationMessageComposer: MessageComposer? = nil

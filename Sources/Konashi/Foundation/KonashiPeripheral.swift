@@ -70,7 +70,7 @@ public final class KonashiPeripheral: Peripheral {
     ).map { connectionState, characteristicsState in
         return connectionState == .connected && characteristicsState == .configured
     }.eraseToAnyPublisher()
-    
+
     public func recordError(_ error: Error) {
         operationErrorSubject.send(error)
     }
@@ -78,7 +78,7 @@ public final class KonashiPeripheral: Peripheral {
     let operationErrorSubject = PassthroughSubject<Error, Never>()
     /// A publisher that sends any operation errors.
     public private(set) lazy var operationErrorPublisher = operationErrorSubject.eraseToAnyPublisher()
-    
+
     let didWriteValueSubject = PassthroughSubject<(uuid: CBUUID, error: Error?), Never>()
     /// A publisher that sends value that is written to af peripheral.
     public private(set) lazy var didWriteValuePublisher = didWriteValueSubject.eraseToAnyPublisher()

@@ -53,19 +53,19 @@ public final class CentralManager: NSObject, Loggable {
     let operationErrorSubject = PassthroughSubject<Error, Never>()
     /// A publisher that sends any operation errors.
     public private(set) lazy var operationErrorPublisher = operationErrorSubject.eraseToAnyPublisher()
-    
+
     let didDiscoverSubject = PassthroughSubject<any Peripheral, Never>()
     /// A publisher that sends discovered peripheral and advertisement datas.
     public private(set) lazy var didDiscoverPublisher = didDiscoverSubject.eraseToAnyPublisher()
-    
+
     let didConnectSubject = PassthroughSubject<CBPeripheral, Never>()
     /// A publisher that sends a peripheral that is connected.
     public private(set) lazy var didConnectPublisher = didConnectSubject.eraseToAnyPublisher()
-    
+
     let didDisconnectSubject = PassthroughSubject<(CBPeripheral, Error?), Never>()
     /// A publisher that sends a peripheral when a peripheral is disconnected.
     public private(set) lazy var didDisconnectPublisher = didDisconnectSubject.eraseToAnyPublisher()
-    
+
     let didFailedToConnectSubject = PassthroughSubject<(CBPeripheral, Error?), Never>()
     /// A publisher that sends a peripheral when failed to connect.
     public private(set) lazy var didFailedToConnectPublisher = didFailedToConnectSubject.eraseToAnyPublisher()
@@ -124,7 +124,7 @@ public final class CentralManager: NSObject, Loggable {
             return foundPeripheral
         }
         await scan()
-        try await Task.sleep(nanoseconds: UInt64(timeoutInterval * 1000000000))
+        try await Task.sleep(nanoseconds: UInt64(timeoutInterval * 1_000_000_000))
         guard let foundPeripheral = self.foundPeripherals.filter({
             if target == .meshNode {
                 return $0.isProvisionable

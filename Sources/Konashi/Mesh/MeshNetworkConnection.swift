@@ -60,7 +60,7 @@ final class MeshNetworkConnection: NSObject, Bearer {
 
     // MARK: Public
 
-    public var supportedPduTypes: PduTypes {
+    var supportedPduTypes: PduTypes {
         return [.networkPdu, .meshBeacon, .proxyConfiguration]
     }
 
