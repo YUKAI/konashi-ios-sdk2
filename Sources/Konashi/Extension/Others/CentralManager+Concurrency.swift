@@ -31,13 +31,4 @@ public extension CentralManager {
             }
         }
     }
-
-    /// Stop scanning peripherals.
-    func stopScan() async {
-        return await withCheckedContinuation { continuation in
-            stopScan().then {
-                continuation.resume(returning: ())
-            }
-        }
-    }
 }

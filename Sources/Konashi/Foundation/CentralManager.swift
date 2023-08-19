@@ -171,15 +171,10 @@ public final class CentralManager: NSObject, Loggable {
     }
 
     /// Stop scanning peripherals.
-    /// - Returns: A promise object for this method.
-    @discardableResult
-    public func stopScan() -> Promise<Void> {
+    public func stopScan() {
         log(.trace("Stop scan"))
-        let promise = Promise<Void>.pending()
         isScanning = false
         manager.stopScan()
-        promise.fulfill(())
-        return promise
     }
 
     @discardableResult
