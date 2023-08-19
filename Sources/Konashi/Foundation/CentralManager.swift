@@ -8,7 +8,6 @@
 import Combine
 import CoreBluetooth
 import nRFMeshProvision
-import Promises
 
 // MARK: - CentralManager
 
@@ -197,7 +196,6 @@ public final class CentralManager: NSObject, Loggable {
 
     private var foundPeripherals = [any Peripheral]()
 
-    private var statePromise = Promise<Void>.pending()
     private var cancellable = Set<AnyCancellable>()
     private lazy var manager = CBCentralManager(delegate: self, queue: nil)
 }
@@ -207,13 +205,6 @@ public final class CentralManager: NSObject, Loggable {
 extension CentralManager: CBCentralManagerDelegate {
     public func centralManagerDidUpdateState(_ central: CBCentralManager) {
         log(.trace("Did update central manager state: \(central.state.konashi_description)"))
-
-        if central.state == .poweredOn {
-            statePromise.fulfill(())
-        }
-        else {
-            statePromise = Promise<Void>.pending()
-        }
     }
 
     public func centralManager(
