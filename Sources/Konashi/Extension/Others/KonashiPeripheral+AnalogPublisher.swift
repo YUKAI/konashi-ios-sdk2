@@ -9,43 +9,39 @@ import Combine
 import Foundation
 
 public extension KonashiPeripheral {
-    private func makeAnalogInputSubject(pin: Analog.Pin) -> PassthroughSubject<Analog.InputValue, Never> {
-        guard let subject = objc_getAssociatedObject(
-            self,
-            pin.rawValue.description
-        ) as? PassthroughSubject<Analog.InputValue, Never> else {
-            let subject = PassthroughSubject<Analog.InputValue, Never>()
-            objc_setAssociatedObject(
-                self,
-                pin.rawValue.description,
-                subject,
-                .OBJC_ASSOCIATION_RETAIN
-            )
-            controlService.analogInput.value.map {
-                return $0.values[Int(pin.rawValue)]
-            }.sink { [weak self] value in
-                guard let self else {
-                    return
-                }
-                self.makeAnalogInputSubject(pin: pin).send(value)
-            }.store(in: &subjectCancellable)
-            return subject
-        }
-        return subject
+    typealias AnalogPublisher = (input: AnyPublisher<Analog.InputValue, Never>, output: AnyPublisher<Analog.OutputValue, Never>)
+
+    private func analogInputPublisher(for pin: Analog.Pin) -> AnyPublisher<Analog.InputValue, Never> {
+        return controlService.analogInput.value.map {
+            return $0.values[Int(pin.rawValue)]
+        }.eraseToAnyPublisher()
+    }
+
+    private func analogOutputPublisher(for pin: Analog.Pin) -> AnyPublisher<Analog.OutputValue, Never> {
+        return controlService.analogOutput.value.map {
+            return $0.values[Int(pin.rawValue)]
+        }.eraseToAnyPublisher()
+    }
+
+    private func makeAnalogPublisher(for pin: Analog.Pin) -> AnalogPublisher {
+        return (
+            input: analogInputPublisher(for: pin),
+            output: analogOutputPublisher(for: pin)
+        )
     }
 
     /// A subject that sends value of AIO0.
-    var analog0: PassthroughSubject<Analog.InputValue, Never> {
-        return makeAnalogInputSubject(pin: .pin0)
+    var analog0: AnalogPublisher {
+        return makeAnalogPublisher(for: .pin0)
     }
 
     /// A subject that sends value of AIO1.
-    var analog1: PassthroughSubject<Analog.InputValue, Never> {
-        return makeAnalogInputSubject(pin: .pin1)
+    var analog1: AnalogPublisher {
+        return makeAnalogPublisher(for: .pin1)
     }
 
     /// A subject that sends value of AIO2.
-    var analog2: PassthroughSubject<Analog.InputValue, Never> {
-        return makeAnalogInputSubject(pin: .pin2)
+    var analog2: AnalogPublisher {
+        return makeAnalogPublisher(for: .pin2)
     }
 }
