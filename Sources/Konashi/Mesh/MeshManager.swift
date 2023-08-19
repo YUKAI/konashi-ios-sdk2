@@ -36,11 +36,8 @@ public final actor MeshManager: Loggable {
 
     public let logOutput = LogOutput()
 
-    nonisolated let didNetworkSaveSubject = PassthroughSubject<Void, StorageError>()
     public private(set) nonisolated lazy var didNetworkSavePublisher = didNetworkSaveSubject.eraseToAnyPublisher()
-    nonisolated let didSendMessageSubject = PassthroughSubject<SendMessage, Never>()
     public private(set) nonisolated lazy var didSendMessagePublisher = didSendMessageSubject.eraseToAnyPublisher()
-    nonisolated let didReceiveMessageSubject = PassthroughSubject<Result<ReceivedMessage, MessageTransmissionError>, Never>()
     public private(set) nonisolated lazy var didReceiveMessagePublisher = didReceiveMessageSubject.eraseToAnyPublisher()
     public private(set) var networkKey: NetworkKey?
     public private(set) var applicationKey: ApplicationKey?
@@ -168,12 +165,15 @@ public final actor MeshManager: Loggable {
 
     // MARK: Internal
 
-    internal let networkManager: MeshNetworkManager
+    nonisolated let didNetworkSaveSubject = PassthroughSubject<Void, StorageError>()
+    nonisolated let didSendMessageSubject = PassthroughSubject<SendMessage, Never>()
+    nonisolated let didReceiveMessageSubject = PassthroughSubject<Result<ReceivedMessage, MessageTransmissionError>, Never>()
+    let networkManager: MeshNetworkManager
     private(set) var connection: MeshNetworkConnection?
 
     private(set) var logger: LoggerDelegate?
 
-    internal nonisolated func node(for uuid: UUID) -> Node? {
+    nonisolated func node(for uuid: UUID) -> Node? {
         return networkManager.meshNetwork?.node(withUuid: uuid)
     }
 

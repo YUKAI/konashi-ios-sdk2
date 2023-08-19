@@ -1,5 +1,5 @@
 //
-//  SendMessage.swift
+//  PrirmaryModelDelegate.swift
 //  konashi-ios-sdk2
 //
 //  Created by Akira Matsuda on 2023/01/08.

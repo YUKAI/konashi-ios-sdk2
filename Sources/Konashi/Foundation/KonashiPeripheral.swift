@@ -70,15 +70,9 @@ public final class KonashiPeripheral: Peripheral {
         return connectionState == .connected && characteristicsState == .configured
     }.eraseToAnyPublisher()
 
-    public func recordError(_ error: Error) {
-        operationErrorSubject.send(error)
-    }
-
-    let operationErrorSubject = PassthroughSubject<Error, Never>()
     /// A publisher that sends any operation errors.
     public private(set) lazy var operationErrorPublisher = operationErrorSubject.eraseToAnyPublisher()
 
-    let didWriteValueSubject = PassthroughSubject<(uuid: CBUUID, error: Error?), Never>()
     /// A publisher that sends value that is written to af peripheral.
     public private(set) lazy var didWriteValuePublisher = didWriteValueSubject.eraseToAnyPublisher()
 
@@ -172,6 +166,10 @@ public final class KonashiPeripheral: Peripheral {
         return lhs == rhs.peripheral
     }
 
+    public func recordError(_ error: Error) {
+        operationErrorSubject.send(error)
+    }
+
     public func hash(into hasher: inout Hasher) {
         hasher.combine(peripheral)
     }
@@ -196,7 +194,7 @@ public final class KonashiPeripheral: Peripheral {
         characteristicsState = .invalidated
         discoveredServices.removeAll()
         configuredCharacteristics.removeAll()
-        try await withCheckedThrowingContinuation({ continuation in
+        try await withCheckedThrowingContinuation { continuation in
             isReady.sink { [weak self] ready in
                 guard let self else {
                     return
@@ -214,7 +212,7 @@ public final class KonashiPeripheral: Peripheral {
                 guard let self else {
                     return
                 }
-                if connectedPeripheral == self.peripheral {
+                if connectedPeripheral == peripheral {
                     NotificationCenter.default.post(
                         name: KonashiPeripheral.didConnect,
                         object: nil,
@@ -226,19 +224,19 @@ public final class KonashiPeripheral: Peripheral {
                 guard let self else {
                     return
                 }
-                if result.0 == self.peripheral, let error = result.1 {
+                if result.0 == peripheral, let error = result.1 {
                     NotificationCenter.default.post(
                         name: KonashiPeripheral.didFailedToConnect,
                         object: nil,
                         userInfo: [KonashiPeripheral.instanceKey: self]
                     )
-                    self.currentConnectionState = .error(error)
-                    self.operationErrorSubject.send(error)
+                    currentConnectionState = .error(error)
+                    operationErrorSubject.send(error)
                     continuation.resume(throwing: error)
                 }
             }.store(in: &cancellable)
             CentralManager.shared.connect(peripheral)
-        })
+        }
     }
 
     // TODO: Make async function
@@ -249,9 +247,9 @@ public final class KonashiPeripheral: Peripheral {
             log(.debug("Peripheral is already disconnected: \(debugName)"))
             return
         }
-        CentralManager.shared.disconnect(self.peripheral)
+        CentralManager.shared.disconnect(peripheral)
         _ = try await CentralManager.shared.didDisconnectSubject
-            .tryFilter({ peripheral, error in
+            .tryFilter { peripheral, error in
                 if let error {
                     NotificationCenter.default.post(
                         name: KonashiPeripheral.didFailedToDisconnect,
@@ -264,7 +262,7 @@ public final class KonashiPeripheral: Peripheral {
                     throw error
                 }
                 return self.peripheral == peripheral
-            })
+            }
             .timeout(.seconds(timeoutInterval), scheduler: DispatchQueue.global())
             .eraseToAnyPublisher()
             .konashi_makeAsync()
@@ -292,7 +290,7 @@ public final class KonashiPeripheral: Peripheral {
                 guard let self else {
                     return
                 }
-                self.readRSSI()
+                readRSSI()
             }
         }
         else {
@@ -318,7 +316,7 @@ public final class KonashiPeripheral: Peripheral {
         type writeType: CBCharacteristicWriteType = .withResponse
     ) async throws {
         log(.trace("Write value: \(debugName), characteristic: \(characteristic), command: \(command) \([UInt8](command.compose()).toHexString())"))
-        return try await withCheckedThrowingContinuation({ continuation in
+        return try await withCheckedThrowingContinuation { continuation in
             var cancellable = Set<AnyCancellable>()
             guard let characteristic = self.peripheral.services?.find(characteristic: characteristic) else {
                 self.operationErrorSubject.send(PeripheralOperationError.couldNotFindCharacteristic)
@@ -332,7 +330,7 @@ public final class KonashiPeripheral: Peripheral {
                     }
                     if uuid == characteristic.uuid {
                         if let error {
-                            self.operationErrorSubject.send(error)
+                            operationErrorSubject.send(error)
                             continuation.resume(throwing: error)
                         }
                         else {
@@ -345,7 +343,7 @@ public final class KonashiPeripheral: Peripheral {
             if writeType == .withoutResponse {
                 continuation.resume()
             }
-        })
+        }
     }
 
     /// Retrieves the value of a specified characteristic.
@@ -353,26 +351,26 @@ public final class KonashiPeripheral: Peripheral {
     /// - Returns: A promise object of read value.
     public func read<Value: CharacteristicValue>(characteristic: ReadableCharacteristic<Value>) async throws -> Value {
         log(.trace("Read value: \(debugName), characteristic: \(characteristic)"))
-        guard let targetCharacteristic = self.peripheral.services?.find(characteristic: characteristic) else {
+        guard let targetCharacteristic = peripheral.services?.find(characteristic: characteristic) else {
             operationErrorSubject.send(PeripheralOperationError.couldNotFindCharacteristic)
             throw PeripheralOperationError.couldNotFindCharacteristic
         }
         peripheral.readValue(for: targetCharacteristic)
-        let updatedCharacteristic = try await didUpdateValueSubject.filter({ updatedCharacteristic, error in
+        let updatedCharacteristic = try await didUpdateValueSubject.filter { updatedCharacteristic, _ in
             updatedCharacteristic != targetCharacteristic
-        }).tryFilter({ _, error in
+        }.tryFilter { _, error in
             if let error {
                 self.operationErrorSubject.send(error)
                 throw error
             }
             return true
-        }).map({ characteristic, _ in
+        }.map { characteristic, _ in
             return characteristic
-        }).eraseToAnyPublisher()
+        }.eraseToAnyPublisher()
             .konashi_makeAsync()
         guard let value = updatedCharacteristic.value else {
             operationErrorSubject.send(PeripheralOperationError.invalidReadValue)
-                throw PeripheralOperationError.invalidReadValue
+            throw PeripheralOperationError.invalidReadValue
         }
         switch characteristic.parse(data: value) {
         case let .success(value):
@@ -458,7 +456,7 @@ public final class KonashiPeripheral: Peripheral {
                     guard let self else {
                         return
                     }
-                    self.currentProvisioningState = newState
+                    currentProvisioningState = newState
                 }
                 log(.trace("Wait for provision: \(debugName)"))
                 try await MeshProvisionQueue.waitForProvision(provisioner)
@@ -507,34 +505,36 @@ public final class KonashiPeripheral: Peripheral {
         case configured
     }
 
-    internal let didUpdateValueSubject = PassthroughSubject<(characteristic: CBCharacteristic, error: Error?), Never>()
-    internal var discoveredServices = [CBService]()
-    internal var configuredCharacteristics = [CBCharacteristic]()
+    let operationErrorSubject = PassthroughSubject<Error, Never>()
+    let didWriteValueSubject = PassthroughSubject<(uuid: CBUUID, error: Error?), Never>()
+    let didUpdateValueSubject = PassthroughSubject<(characteristic: CBCharacteristic, error: Error?), Never>()
+    var discoveredServices = [CBService]()
+    var configuredCharacteristics = [CBCharacteristic]()
 
     var debugName: String {
         return "\(name ?? "Unknown"): \(peripheral.identifier)"
     }
 
-    internal var unprovisionedDevice: UnprovisionedDevice? {
+    var unprovisionedDevice: UnprovisionedDevice? {
         didSet {
             lastUpdatedDate = Date()
         }
     }
 
-    @Published internal var characteristicsState: CharacteristicsConfigurationState = .invalidated {
+    @Published var characteristicsState: CharacteristicsConfigurationState = .invalidated {
         didSet {
             log(.trace("Update characteristics state: \(debugName), state: \(characteristicsState)"))
         }
     }
 
-    internal func discoverCharacteristics(for service: CBService) {
+    func discoverCharacteristics(for service: CBService) {
         if let foundService = services.find(service: service) {
             log(.trace("Discover characteristics: \(debugName), service: \(service.uuid)"))
             peripheral.discoverCharacteristics(foundService.characteristics.map(\.characteristicUUID), for: service)
         }
     }
 
-    internal func store(characteristic: CBCharacteristic) {
+    func store(characteristic: CBCharacteristic) {
         services.find(characteristic: characteristic)?.update(data: characteristic.value)
     }
 
@@ -620,7 +620,7 @@ public final class KonashiPeripheral: Peripheral {
                 return
             }
             if peripheral == self.peripheral {
-                self.reset()
+                reset()
             }
         }.store(in: &internalCancellable)
         $currentConnectionState.removeDuplicates().sink { [weak self] status in
@@ -628,7 +628,7 @@ public final class KonashiPeripheral: Peripheral {
                 return
             }
             if status == .connected {
-                self.discoverServices()
+                discoverServices()
             }
         }.store(in: &internalCancellable)
         $characteristicsState.removeDuplicates().sink { [weak self] state in
@@ -636,7 +636,7 @@ public final class KonashiPeripheral: Peripheral {
                 return
             }
             if state == .discovered {
-                self.configureCharacteristics()
+                configureCharacteristics()
             }
         }.store(in: &internalCancellable)
         isReady.removeDuplicates().sink { [weak self] ready in
@@ -644,10 +644,10 @@ public final class KonashiPeripheral: Peripheral {
                 return
             }
             if ready {
-                self.log(.trace("Ready: \(self.debugName)"))
+                log(.trace("Ready: \(debugName)"))
             }
             else {
-                self.log(.trace("Pending: \(self.debugName)"))
+                log(.trace("Pending: \(debugName)"))
             }
         }.store(in: &internalCancellable)
     }
@@ -663,13 +663,13 @@ public final class KonashiPeripheral: Peripheral {
                 }
                 switch state {
                 case .connected:
-                    self.currentConnectionState = .connected
+                    currentConnectionState = .connected
                 case .connecting:
-                    self.currentConnectionState = .connecting
+                    currentConnectionState = .connecting
                 case .disconnected:
-                    self.currentConnectionState = .disconnected
+                    currentConnectionState = .disconnected
                 case .disconnecting:
-                    self.currentConnectionState = .disconnecting
+                    currentConnectionState = .disconnecting
                 @unknown default:
                     break
                 }

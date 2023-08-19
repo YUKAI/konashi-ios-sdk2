@@ -310,7 +310,8 @@ public extension KonashiPeripheral {
                         readLength: readLength,
                         writeData: []
                     )
-                } catch {
+                }
+                catch {
                     continuation.resume(with: .failure(error))
                 }
             }

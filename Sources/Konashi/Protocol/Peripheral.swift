@@ -8,8 +8,8 @@
 import Combine
 import CombineExt
 import CoreBluetooth
-import nRFMeshProvision
 import Foundation
+import nRFMeshProvision
 
 extension Peripheral {
     static func == (lhs: any Peripheral, rhs: any Peripheral) -> Bool {

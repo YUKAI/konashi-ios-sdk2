@@ -58,8 +58,8 @@ public final class KonashiUI {
             guard let self else {
                 return
             }
-            self.discoveredPeripherals.removeAll()
-            self.hudCancellable.removeAll()
+            discoveredPeripherals.removeAll()
+            hudCancellable.removeAll()
             guard let window = UIApplication.shared.windows.first else {
                 return
             }
@@ -70,6 +70,19 @@ public final class KonashiUI {
     }
 
     // MARK: Public
+
+    public enum ScanError: LocalizedError {
+        case peripheralNotFound
+
+        // MARK: Public
+
+        public var errorDescription: String? {
+            switch self {
+            case .peripheralNotFound:
+                return "Could not find peripherals."
+            }
+        }
+    }
 
     public static let shared = KonashiUI()
     public static let defaultRSSIThreshold: NSNumber = -80
@@ -86,17 +99,6 @@ public final class KonashiUI {
     // MARK: Private
 
     private var cancellable = Set<AnyCancellable>()
-
-    public enum ScanError: LocalizedError {
-        case peripheralNotFound
-
-        public var errorDescription: String? {
-            switch self {
-            case .peripheralNotFound:
-                return "Could not find peripherals."
-            }
-        }
-    }
 }
 
 // MARK: - UIViewController + AlertPresentable
@@ -112,7 +114,8 @@ extension UIViewController: AlertPresentable {
             var peripheral: (any Peripheral)?
             do {
                 peripheral = try await CentralManager.shared.find(name: name, timeoutInterval: timeoutInterval)
-            } catch {
+            }
+            catch {
                 CentralManager.shared.stopScan()
             }
             guard let peripheral else {
@@ -151,7 +154,8 @@ extension UIViewController: AlertPresentable {
                             do {
                                 try await peripheral.connect(timeoutInterval: 15)
                                 self.presentConnectedAlertController(name: peripheral.name)
-                            } catch {
+                            }
+                            catch {
                                 self.presentAlertViewController(
                                     AlertContext(
                                         title: NSLocalizedString("接続できませんでした", comment: ""),
@@ -225,7 +229,8 @@ extension UIViewController: AlertPresentable {
                                     try await peripheral.connect()
                                     continuation.resume(returning: peripheral)
                                     self.presentConnectedAlertController(name: peripheral.name)
-                                } catch {
+                                }
+                                catch {
                                     continuation.resume(throwing: error)
                                     self.presentAlertViewController(
                                         AlertContext(

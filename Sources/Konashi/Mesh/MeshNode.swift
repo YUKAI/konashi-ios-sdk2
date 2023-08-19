@@ -27,7 +27,7 @@ public final class MeshNode: NodeCompatible, Loggable {
                 guard let self else {
                     return
                 }
-                self.receivedMessageSubject.send(message)
+                receivedMessageSubject.send(message)
             }.store(in: &cancellable)
     }
 
@@ -208,7 +208,6 @@ public final class MeshNode: NodeCompatible, Loggable {
 
     public let logOutput = LogOutput()
 
-    var receivedMessageSubject = PassthroughSubject<Result<ReceivedMessage, MessageTransmissionError>, Never>()
     public private(set) lazy var receivedMessagePublisher = receivedMessageSubject.eraseToAnyPublisher()
 
     public private(set) var node: Node
@@ -431,6 +430,7 @@ public final class MeshNode: NodeCompatible, Loggable {
 
     // MARK: Internal
 
+    var receivedMessageSubject = PassthroughSubject<Result<ReceivedMessage, MessageTransmissionError>, Never>()
     private(set) var manager: MeshManager
 
     // MARK: Private

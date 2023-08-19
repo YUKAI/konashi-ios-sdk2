@@ -23,13 +23,13 @@ public final class CentralManager: NSObject, Loggable {
             guard let self else {
                 return
             }
-            self.numberOfConnectingPeripherals += 1
+            numberOfConnectingPeripherals += 1
         }.store(in: &cancellable)
         didFailedToConnectSubject.sink { [weak self] _ in
             guard let self else {
                 return
             }
-            self.numberOfConnectingPeripherals -= 1
+            numberOfConnectingPeripherals -= 1
         }.store(in: &cancellable)
     }
 
@@ -49,23 +49,18 @@ public final class CentralManager: NSObject, Loggable {
     // TODO: Add document
     public var discoversUniquePeripherals = true
 
-    let operationErrorSubject = PassthroughSubject<Error, Never>()
     /// A publisher that sends any operation errors.
     public private(set) lazy var operationErrorPublisher = operationErrorSubject.eraseToAnyPublisher()
 
-    let didDiscoverSubject = PassthroughSubject<any Peripheral, Never>()
     /// A publisher that sends discovered peripheral and advertisement datas.
     public private(set) lazy var didDiscoverPublisher = didDiscoverSubject.eraseToAnyPublisher()
 
-    let didConnectSubject = PassthroughSubject<CBPeripheral, Never>()
     /// A publisher that sends a peripheral that is connected.
     public private(set) lazy var didConnectPublisher = didConnectSubject.eraseToAnyPublisher()
 
-    let didDisconnectSubject = PassthroughSubject<(CBPeripheral, Error?), Never>()
     /// A publisher that sends a peripheral when a peripheral is disconnected.
     public private(set) lazy var didDisconnectPublisher = didDisconnectSubject.eraseToAnyPublisher()
 
-    let didFailedToConnectSubject = PassthroughSubject<(CBPeripheral, Error?), Never>()
     /// A publisher that sends a peripheral when failed to connect.
     public private(set) lazy var didFailedToConnectPublisher = didFailedToConnectSubject.eraseToAnyPublisher()
 
@@ -99,7 +94,7 @@ public final class CentralManager: NSObject, Loggable {
                 MeshProvisioningService.uuid
             ],
             options: [
-                CBCentralManagerScanOptionAllowDuplicatesKey: !self.discoversUniquePeripherals
+                CBCentralManagerScanOptionAllowDuplicatesKey: !discoversUniquePeripherals
             ]
         )
     }
@@ -112,13 +107,13 @@ public final class CentralManager: NSObject, Loggable {
     /// - Returns: Found peripheral
     public func find(name: String, timeoutInterval: TimeInterval = 5, target: ScanTarget = .all) async throws -> (any Peripheral)? {
         log(.trace("Start find \(name), timeout: \(timeoutInterval)"))
-        if let foundPeripheral = self.foundPeripherals.first(where: { $0.name == name }) {
-            self.log(.debug("Peripheral is already found \(name)"))
+        if let foundPeripheral = foundPeripherals.first(where: { $0.name == name }) {
+            log(.debug("Peripheral is already found \(name)"))
             return foundPeripheral
         }
         try await scan()
-        try await Task.sleep(nanoseconds: UInt64(timeoutInterval * 1_000_000_000))
-        guard let foundPeripheral = self.foundPeripherals.filter({
+        try await Task.sleep(nanoseconds: UInt64(timeoutInterval * 1000000000))
+        guard let foundPeripheral = foundPeripherals.filter({
             if target == .meshNode {
                 return $0.isProvisionable
             }
@@ -157,6 +152,12 @@ public final class CentralManager: NSObject, Loggable {
     }
 
     // MARK: Internal
+
+    let operationErrorSubject = PassthroughSubject<Error, Never>()
+    let didDiscoverSubject = PassthroughSubject<any Peripheral, Never>()
+    let didConnectSubject = PassthroughSubject<CBPeripheral, Never>()
+    let didDisconnectSubject = PassthroughSubject<(CBPeripheral, Error?), Never>()
+    let didFailedToConnectSubject = PassthroughSubject<(CBPeripheral, Error?), Never>()
 
     /// Connect to peripheral.
     /// - Parameter peripheral: A peripheral to connect.

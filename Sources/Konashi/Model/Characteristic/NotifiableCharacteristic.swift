@@ -23,9 +23,7 @@ public class NotifiableCharacteristic<Value: CharacteristicValue>: Characteristi
 
     public let serviceUUID: UUID
     public let uuid: UUID
-    var valueSubject = PassthroughSubject<Value, Never>()
     public private(set) lazy var value = valueSubject.eraseToAnyPublisher()
-    var parseErrorSubject = PassthroughSubject<Never, Error>()
     public private(set) lazy var parseErrorPublisher = parseErrorSubject.eraseToAnyPublisher()
 
     public func update(data: Data?) {
@@ -34,11 +32,16 @@ public class NotifiableCharacteristic<Value: CharacteristicValue>: Characteristi
         }
         switch parse(data: data) {
         case let .success(value):
-            self.valueSubject.send(value)
+            valueSubject.send(value)
         case let .failure(error):
             parseErrorSubject.send(completion: .failure(error))
         }
     }
+
+    // MARK: Internal
+
+    var valueSubject = PassthroughSubject<Value, Never>()
+    var parseErrorSubject = PassthroughSubject<Never, Error>()
 }
 
 public extension NotifiableCharacteristic {

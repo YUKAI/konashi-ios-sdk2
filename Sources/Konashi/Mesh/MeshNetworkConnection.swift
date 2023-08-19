@@ -58,12 +58,6 @@ final class MeshNetworkConnection: NSObject, Bearer {
         UserDefaults.standard.register(defaults: [connectionModeKey: true])
     }
 
-    // MARK: Public
-
-    var supportedPduTypes: PduTypes {
-        return [.networkPdu, .meshBeacon, .proxyConfiguration]
-    }
-
     // MARK: Internal
 
     /// Maximum number of connections that `NetworkConnection` can
@@ -77,6 +71,10 @@ final class MeshNetworkConnection: NSObject, Bearer {
 
     weak var delegate: BearerDelegate?
     weak var dataDelegate: BearerDataDelegate?
+
+    var supportedPduTypes: PduTypes {
+        return [.networkPdu, .meshBeacon, .proxyConfiguration]
+    }
 
     weak var logger: LoggerDelegate? {
         didSet {

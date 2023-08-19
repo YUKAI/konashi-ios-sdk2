@@ -21,7 +21,7 @@ public protocol Service {
 
 public extension Service {
     static var serviceUUID: CBUUID {
-        return CBUUID(nsuuid: Self.uuid)
+        return CBUUID(nsuuid: uuid)
     }
 
     var uuid: UUID {

@@ -11,8 +11,8 @@ import Foundation
 public final actor MeshProvisionQueue {
     // MARK: Public
 
-    static var isProvisioningSubject = CurrentValueSubject<Bool, Never>(false)
     public static var isProvisioningPublisher = isProvisioningSubject.eraseToAnyPublisher()
+
     public static var isProvisioning: Bool {
         return isProvisioningSubject.value
     }
@@ -52,6 +52,10 @@ public final actor MeshProvisionQueue {
             }
         }
     }
+
+    // MARK: Internal
+
+    static var isProvisioningSubject = CurrentValueSubject<Bool, Never>(false)
 
     // MARK: Private
 

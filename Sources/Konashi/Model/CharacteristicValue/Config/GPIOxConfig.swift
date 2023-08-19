@@ -1,5 +1,5 @@
 //
-//  GPIOConfig.swift
+//  GPIOxConfig.swift
 //  konashi-ios-sdk2
 //
 //  Created by Akira Matsuda on 2021/08/12.

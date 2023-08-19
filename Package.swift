@@ -43,7 +43,7 @@ let package = Package(
             name: "Konashi",
             dependencies: [
                 "CombineExt",
-                "NordicMesh",
+                "NordicMesh"
             ],
             path: "Sources/Konashi"
         ),
