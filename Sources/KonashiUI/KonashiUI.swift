@@ -180,7 +180,7 @@ extension UIViewController: AlertPresentable {
         rssiThreshold: NSNumber = KonashiUI.defaultRSSIThreshold
     ) async throws -> (any Peripheral)? {
         KonashiUI.shared.rssiThreshold = rssiThreshold
-        try awaitPromise(CentralManager.shared.scan().delay(scanDuration))
+        try await CentralManager.shared.scan(timeoutInterval: scanDuration)
         CentralManager.shared.stopScan()
 
         if KonashiUI.shared.discoveredPeripherals.isEmpty {

@@ -82,34 +82,27 @@ public final class CentralManager: NSObject, Loggable {
 
     // TODO: Make async function
     /// Attempt to scan available peripherals.
-    /// - Returns: A promise object for this method.
-    public func scan() -> Promise<Void> {
+    public func scan(timeoutInterval: TimeInterval = 5) async throws {
         log(.trace("Start scan"))
 
-        if manager.state == .poweredOn {
-            statePromise.fulfill(())
+        if manager.state != .poweredOn {
+            // Wait until the state of manager becomes power on
+            _ = try await manager.publisher(for: \.state)
+                .timeout(.seconds(timeoutInterval), scheduler: DispatchQueue.global())
+                .filter { $0 == .poweredOn }
+                .eraseToAnyPublisher()
+                .konashi_makeAsync()
         }
-        return Promise<Void> { [weak self] resolve, _ in
-            guard let self else {
-                return
-            }
-            self.statePromise.then { [weak self] _ in
-                guard let self else {
-                    return
-                }
-                self.isScanning = true
-                self.manager.scanForPeripherals(
-                    withServices: [
-                        SettingsService.serviceUUID,
-                        MeshProvisioningService.uuid
-                    ],
-                    options: [
-                        CBCentralManagerScanOptionAllowDuplicatesKey: !self.discoversUniquePeripherals
-                    ]
-                )
-                resolve(())
-            }
-        }
+        isScanning = true
+        manager.scanForPeripherals(
+            withServices: [
+                SettingsService.serviceUUID,
+                MeshProvisioningService.uuid
+            ],
+            options: [
+                CBCentralManagerScanOptionAllowDuplicatesKey: !self.discoversUniquePeripherals
+            ]
+        )
     }
 
     /// Attempt to find a peripheral.
@@ -124,7 +117,7 @@ public final class CentralManager: NSObject, Loggable {
             self.log(.debug("Peripheral is already found \(name)"))
             return foundPeripheral
         }
-        await scan()
+        try await scan()
         try await Task.sleep(nanoseconds: UInt64(timeoutInterval * 1_000_000_000))
         guard let foundPeripheral = self.foundPeripherals.filter({
             if target == .meshNode {
