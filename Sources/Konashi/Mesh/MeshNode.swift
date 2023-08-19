@@ -298,7 +298,7 @@ public final class MeshNode: NodeCompatible, Loggable {
             }
             network.remove(node: node)
             try await manager.save()
-            try await peripheral?.disconnect()
+            try await peripheral?.disconnect(timeoutInterval: 15)
         }
         catch {
             log(.error("Failed to remove node: \(debugName), from network: \(debugName)"))

@@ -8,31 +8,6 @@
 import CoreBluetooth
 
 public extension Peripheral {
-    // MARK: - Connection
-
-    /// Connects to a peripheral.
-    @discardableResult
-    func connect(timeoutInterval: TimeInterval = 15) async throws -> any Peripheral {
-        return try await withCheckedThrowingContinuation { continuation in
-            connect().timeout(timeoutInterval).then {
-                continuation.resume(returning: $0)
-            }.catch { error in
-                continuation.resume(throwing: error)
-            }
-        }
-    }
-
-    /// Disconnects from a peripheral.
-    func disconnect(timeoutInterval: TimeInterval = 15) async throws {
-        try await withCheckedThrowingContinuation { continuation in
-            disconnect().timeout(timeoutInterval).then {
-                continuation.resume(returning: $0)
-            }.catch { error in
-                continuation.resume(throwing: error)
-            }
-        }
-    }
-
     // MARK: - Write/Read Command
 
     /// Writes command to the characteristic

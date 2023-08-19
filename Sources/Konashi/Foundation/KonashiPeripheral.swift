@@ -181,24 +181,23 @@ public final class KonashiPeripheral: Peripheral {
 
     // TODO: Make async function
     /// Connects to a peripheral.
-    @discardableResult
-    public func connect() -> Promise<any Peripheral> {
+    public func connect(timeoutInterval: TimeInterval = 15) async throws {
         log(.trace("Connecting: \(debugName)"))
         if currentConnectionState.isConnectable == false {
             if currentConnectionState == .connected {
                 log(.debug("Peripheral is already connected: \(debugName)"))
-                return Promise<any Peripheral>(self)
+                return
             }
             if currentConnectionState == .connecting {
                 log(.debug("Peripheral is currently connecting: \(debugName)"))
-                return Promise<any Peripheral>(self)
+                return
             }
         }
         var cancellable = Set<AnyCancellable>()
         characteristicsState = .invalidated
         discoveredServices.removeAll()
         configuredCharacteristics.removeAll()
-        return Promise<any Peripheral> { [unowned self] resolve, reject in
+        try await withCheckedThrowingContinuation({ continuation in
             isReady.sink { [weak self] ready in
                 guard let self else {
                     return
@@ -209,7 +208,7 @@ public final class KonashiPeripheral: Peripheral {
                         object: nil,
                         userInfo: [KonashiPeripheral.instanceKey: self]
                     )
-                    resolve(self)
+                    continuation.resume()
                 }
             }.store(in: &cancellable)
             CentralManager.shared.didConnectSubject.sink { [weak self] connectedPeripheral in
@@ -236,66 +235,48 @@ public final class KonashiPeripheral: Peripheral {
                     )
                     self.currentConnectionState = .error(error)
                     self.operationErrorSubject.send(error)
-                    reject(error)
+                    continuation.resume(throwing: error)
                 }
             }.store(in: &cancellable)
             CentralManager.shared.connect(peripheral)
-        }.always {
-            cancellable.removeAll()
-        }
+        })
     }
 
     // TODO: Make async function
     /// Disconnects from a peripheral.
-    @discardableResult
-    public func disconnect() -> Promise<Void> {
+    public func disconnect(timeoutInterval: TimeInterval = 15) async throws {
         log(.trace("Disconnecting: \(debugName)"))
         if currentConnectionState == .disconnected {
             log(.debug("Peripheral is already disconnected: \(debugName)"))
-            return Promise<Void>(())
+            return
         }
-
-        var cancellable = Set<AnyCancellable>()
-        return Promise<Void> { [weak self] resolve, reject in
-            guard let self else {
-                return
-            }
-            self.readyPromise = Promise<Void>.pending()
-            CentralManager.shared.didDisconnectSubject.sink { [weak self] result in
-                guard let self else {
-                    return
+        CentralManager.shared.disconnect(self.peripheral)
+        _ = try await CentralManager.shared.didDisconnectSubject
+            .tryFilter({ peripheral, error in
+                if let error {
+                    NotificationCenter.default.post(
+                        name: KonashiPeripheral.didFailedToDisconnect,
+                        object: nil,
+                        userInfo: [KonashiPeripheral.instanceKey: self]
+                    )
+                    self.currentProvisioningState = nil
+                    self.currentConnectionState = .error(error)
+                    self.operationErrorSubject.send(error)
+                    throw error
                 }
-                if result.0 == self.peripheral {
-                    if let error = result.1 {
-                        NotificationCenter.default.post(
-                            name: KonashiPeripheral.didFailedToDisconnect,
-                            object: nil,
-                            userInfo: [KonashiPeripheral.instanceKey: self]
-                        )
-                        reject(error)
-                        self.currentProvisioningState = nil
-                        self.currentConnectionState = .error(error)
-                        self.operationErrorSubject.send(error)
-                    }
-                    else {
-                        NotificationCenter.default.post(
-                            name: KonashiPeripheral.didDisconnect,
-                            object: nil,
-                            userInfo: [KonashiPeripheral.instanceKey: self]
-                        )
-                        self.currentProvisioningState = nil
-                        self.currentConnectionState = .disconnected
-                        resolve(())
-                    }
-                }
-            }.store(in: &cancellable)
-            CentralManager.shared.disconnect(self.peripheral)
-        }.always { [weak self] in
-            if let self {
-                self.readRssiTimer?.invalidate()
-            }
-            cancellable.removeAll()
-        }
+                return self.peripheral == peripheral
+            })
+            .timeout(.seconds(timeoutInterval), scheduler: DispatchQueue.global())
+            .eraseToAnyPublisher()
+            .konashi_makeAsync()
+        NotificationCenter.default.post(
+            name: KonashiPeripheral.didDisconnect,
+            object: nil,
+            userInfo: [KonashiPeripheral.instanceKey: self]
+        )
+        currentProvisioningState = nil
+        currentConnectionState = .disconnected
+        readRssiTimer?.invalidate()
     }
 
     // MARK: - RSSI

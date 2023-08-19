@@ -9,6 +9,7 @@ import Combine
 import CombineExt
 import CoreBluetooth
 import nRFMeshProvision
+import Foundation
 import Promises
 
 extension Peripheral {
@@ -45,15 +46,11 @@ public protocol Peripheral: Hashable, AnyObject, Loggable {
 
     func recordError(_ error: Error)
 
-    // TODO: Make async function
     /// Connects to a peripheral.
-    @discardableResult
-    func connect() -> Promise<any Peripheral>
+    func connect(timeoutInterval: TimeInterval) async throws
 
-    // TODO: Make async function
     /// Disconnects from a peripheral.
-    @discardableResult
-    func disconnect() -> Promise<Void>
+    func disconnect(timeoutInterval: TimeInterval) async throws
 
     // MARK: - Write/Read Command
 

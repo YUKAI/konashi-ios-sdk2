@@ -150,7 +150,7 @@ extension UIViewController: AlertPresentable {
                     handler: { _ in
                         Task {
                             do {
-                                try await peripheral.connect()
+                                try await peripheral.connect(timeoutInterval: 15)
                                 self.presentConnectedAlertController(name: peripheral.name)
                             } catch {
                                 self.presentAlertViewController(
