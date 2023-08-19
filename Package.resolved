@@ -45,15 +45,6 @@
           "revision": "78d7cd35f1d90ff74fd82e486f2cbe4b24be8cf9",
           "version": "2.2.0"
         }
-      },
-      {
-        "package": "Promises",
-        "repositoryURL": "https://github.com/google/promises.git",
-        "state": {
-          "branch": null,
-          "revision": "3e4e743631e86c8c70dbc6efdc7beaa6e90fd3bb",
-          "version": "2.1.1"
-        }
       }
     ]
   },

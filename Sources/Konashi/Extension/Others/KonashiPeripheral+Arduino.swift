@@ -7,7 +7,6 @@
 
 import Combine
 import Foundation
-import Promises
 
 public extension KonashiPeripheral {
     enum PinMode {
@@ -42,7 +41,7 @@ public extension KonashiPeripheral {
             }
             return .none
         }
-        try await asyncWrite(
+        try await write(
             characteristic: ConfigService.configCommand,
             command: .gpio([
                 GPIO.PinConfig(
@@ -60,7 +59,7 @@ public extension KonashiPeripheral {
     /// - Parameter pin: A GPIO to read value.
     /// - Returns: An input value of GPIO.
     func digitalRead(_ pin: GPIO.Pin) async throws -> Level {
-        let readValue = try await asyncRead(characteristic: ControlService.gpioInput)
+        let readValue = try await read(characteristic: ControlService.gpioInput)
         let value = readValue.values.first { val in
             return val.pin == pin
         }
@@ -78,7 +77,7 @@ public extension KonashiPeripheral {
     ///   - pin: A GPIO to write value.
     ///   - level: A value of level.
     func digitalWrite(_ pin: GPIO.Pin, value: Level) async throws {
-        try await asyncWrite(
+        try await write(
             characteristic: ControlService.controlCommand,
             command: .gpio(
                 [GPIO.ControlPayload(pin: pin, level: value)]
@@ -91,7 +90,7 @@ public extension KonashiPeripheral {
     ///   - pin: An AIO to configure.
     ///   - config: A configuration of AIO.
     func analogBegin(pin: Analog.Pin, config: Analog.ConfigPayload) async throws {
-        try await asyncWrite(
+        try await write(
             characteristic: ConfigService.configCommand,
             command: .analog(config: config)
         )
@@ -103,7 +102,7 @@ public extension KonashiPeripheral {
     ///   - config: A configuration of AIO.
     /// - Returns: An input value of AIO
     func analogRead(_ pin: Analog.Pin) async throws -> Analog.InputValue {
-        let readValue = try await asyncRead(characteristic: ControlService.analogInput)
+        let readValue = try await read(characteristic: ControlService.analogInput)
         let value = readValue.values.first { val in
             return val.pin == pin
         }
@@ -122,7 +121,7 @@ public extension KonashiPeripheral {
     ///   - value: A value that is written.
     ///   - transitionDuration: A duration for transitioning current value to specified value.
     func analogWrite(_ pin: Analog.Pin, value: UInt16, transitionDuration: UInt32 = 0) async throws {
-        try await asyncWrite(
+        try await write(
             characteristic: ControlService.controlCommand,
             command: .analog(
                 [Analog.ControlPayload(
@@ -139,7 +138,7 @@ public extension KonashiPeripheral {
     ///   - pin: A software PWM to configure.
     ///   - config: A configuration of software PWM.
     func softwarePWMMode(pin: PWM.Pin, config: PWM.Software.DriveConfig) async throws {
-        try await asyncWrite(
+        try await write(
             characteristic: ConfigService.configCommand,
             command: .softwarePWM(
                 [PWM.Software.PinConfig(
@@ -156,7 +155,7 @@ public extension KonashiPeripheral {
     ///   - value: A value of software PWM.
     ///   - transitionDuration: A duration for transitioning current value to specified value.
     func softwarePWMDrive(pin: PWM.Pin, value: PWM.Software.ControlValue, transitionDuration: UInt32 = 0) async throws {
-        try await asyncWrite(
+        try await write(
             characteristic: ControlService.controlCommand,
             command: .softwarePWM(
                 [PWM.Software.ControlPayload(
@@ -175,7 +174,7 @@ public extension KonashiPeripheral {
     ///   - prescaler: The clock prescaler for the PWM timer
     ///   - value: A value of hardware PWM.
     func hardwarePWMMode(pin: PWM.Pin, clock: PWM.Hardware.Clock, prescaler: PWM.Hardware.Prescaler, value: UInt16) async throws {
-        try await asyncWrite(
+        try await write(
             characteristic: ConfigService.configCommand,
             command: .hardwarePWM(
                 config: PWM.Hardware.ConfigPayload(
@@ -199,7 +198,7 @@ public extension KonashiPeripheral {
     ///   - value: A value of hardware PWM.
     ///   - transitionDuration: A duration for transitioning current value to specified value.
     func hardwarePWMDrive(pin: PWM.Pin, value: UInt16, transitionDuration: UInt32 = 0) async throws {
-        try await asyncWrite(
+        try await write(
             characteristic: ControlService.controlCommand,
             command: .hardwarePWM(
                 [PWM.Hardware.ControlPayload(
@@ -217,7 +216,7 @@ public extension KonashiPeripheral {
     ///   - parity: The UART parity.
     ///   - stopBit: The UART number of stop bits.
     func serialBegin(baudrate: UInt32, parity: UART.Parity = .none, stopBit: UART.StopBit = ._0_5) async throws {
-        try await asyncWrite(
+        try await write(
             characteristic: ConfigService.configCommand,
             command: .uart(
                 config: UART.Config.enable(
@@ -233,7 +232,7 @@ public extension KonashiPeripheral {
     /// - Parameters:
     ///   - data: The data to send (length range is [1,127]).
     func serialWrite(data: [UInt8]) async throws {
-        try await asyncWrite(
+        try await write(
             characteristic: ControlService.controlCommand,
             command: .uartSend(
                 UART.SendControlPayload(data: data)
@@ -247,7 +246,7 @@ public extension KonashiPeripheral {
     ///   - endian: An endian of data.
     ///   - mode: SPI mode.
     func spiBegin(bitrate: UInt32, endian: SPI.Endian = .lsbFirst, mode: SPI.Mode = .mode0) async throws {
-        try await asyncWrite(
+        try await write(
             characteristic: ConfigService.configCommand,
             command: .spi(
                 config: SPI.Config.enable(
@@ -262,7 +261,7 @@ public extension KonashiPeripheral {
     /// Attempt to transfer data through SPI bus.
     /// - Parameter data: The data to send (length range is [1,127]).
     func spiTransfer(data: [UInt8]) async throws {
-        try await asyncWrite(
+        try await write(
             characteristic: ControlService.controlCommand,
             command: .spiTransfer(
                 SPI.TransferControlPayload(data: data)
@@ -274,7 +273,7 @@ public extension KonashiPeripheral {
     /// - Parameters:
     ///   - mode: I2C mode.
     func i2cBegin(_ mode: I2C.Mode) async throws {
-        try await asyncWrite(
+        try await write(
             characteristic: ConfigService.configCommand,
             command: .i2c(
                 config: I2C.Config.enable(mode: mode)
@@ -334,7 +333,7 @@ public extension KonashiPeripheral {
         if writeData.count > 124 {
             throw I2C.OperationError.badWriteLength
         }
-        try await asyncWrite(
+        try await write(
             characteristic: ControlService.controlCommand,
             command: .i2cTransfer(
                 I2C.TransferControlPayload(

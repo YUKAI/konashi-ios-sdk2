@@ -34,11 +34,6 @@ let package = Package(
             from: "3.2.0"
         ),
         .package(
-            name: "Promises",
-            url: "https://github.com/google/promises.git",
-            from: "2.1.0"
-        ),
-        .package(
             url: "https://github.com/JonasGessner/JGProgressHUD.git",
             from: "2.0.0"
         )
@@ -49,7 +44,6 @@ let package = Package(
             dependencies: [
                 "CombineExt",
                 "NordicMesh",
-                "Promises"
             ],
             path: "Sources/Konashi"
         ),

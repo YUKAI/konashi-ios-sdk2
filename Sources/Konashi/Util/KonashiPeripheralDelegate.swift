@@ -32,7 +32,6 @@ extension KonashiPeripheralDelegate: CBPeripheralDelegate {
     func peripheral(_ peripheral: CBPeripheral, didDiscoverServices error: Error?) {
         if let error {
             log(.error("Failed to discover services: \(peripheral.konashi_debugName), error: \(error.localizedDescription)"))
-            parentPeripheral.readyPromise.reject(error)
             parentPeripheral.operationErrorSubject.send(error)
             return
         }
@@ -43,7 +42,6 @@ extension KonashiPeripheralDelegate: CBPeripheralDelegate {
     func peripheral(_ peripheral: CBPeripheral, didDiscoverCharacteristicsFor service: CBService, error: Error?) {
         if let error {
             log(.error("Failed to discover characteristic: \(peripheral.konashi_debugName), service: \(service.uuid), error: \(error.localizedDescription)"))
-            parentPeripheral.readyPromise.reject(error)
             parentPeripheral.operationErrorSubject.send(error)
             return
         }
@@ -84,7 +82,6 @@ extension KonashiPeripheralDelegate: CBPeripheralDelegate {
     public func peripheral(_ peripheral: CBPeripheral, didUpdateNotificationStateFor characteristic: CBCharacteristic, error: Error?) {
         if let error {
             log(.error("Failed to update notification state: \(peripheral.konashi_debugName), characteristic: \(characteristic.uuid), error: \(error.localizedDescription)"))
-            parentPeripheral.readyPromise.reject(error)
             parentPeripheral.operationErrorSubject.send(error)
             return
         }

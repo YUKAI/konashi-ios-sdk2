@@ -10,7 +10,6 @@ import CombineExt
 import CoreBluetooth
 import Foundation
 import nRFMeshProvision
-import Promises
 
 public extension KonashiPeripheral {
     /// A string key to retrieve a peripheral instance from a notification userInfo.
@@ -308,122 +307,80 @@ public final class KonashiPeripheral: Peripheral {
 
     // MARK: - Write/Read Command
 
-    // TODO: Make async function
     /// Writes command to the characteristic
     /// - Parameters:
     ///   - characteristic: The characteristic containing the value to write.
     ///   - command: The command to write.
     ///   - type: The type of write to execute. For a list of the possible types of writes to a characteristic’s value, see CBCharacteristicWriteType.
-    @discardableResult
     public func write<WriteCommand: Command>(
         characteristic: WriteableCharacteristic<WriteCommand>,
         command: WriteCommand,
         type writeType: CBCharacteristicWriteType = .withResponse
-    ) -> Promise<any Peripheral> {
+    ) async throws {
         log(.trace("Write value: \(debugName), characteristic: \(characteristic), command: \(command) \([UInt8](command.compose()).toHexString())"))
-        var cancellable = Set<AnyCancellable>()
-        let promise = Promise<any Peripheral>.pending()
-        readyPromise.then { [weak self] _ in
-            guard let self else {
-                return
-            }
-            if let characteristic = self.peripheral.services?.find(characteristic: characteristic) {
-                if writeType == .withResponse {
-                    self.didWriteValueSubject.sink { [weak self] uuid, error in
-                        guard let self else {
-                            return
-                        }
-                        if uuid == characteristic.uuid {
-                            if let error {
-                                promise.reject(error)
-                                self.operationErrorSubject.send(error)
-                            }
-                            else {
-                                promise.fulfill(self)
-                            }
-                        }
-                    }.store(in: &cancellable)
-                }
-                self.peripheral.writeValue(command.compose(), for: characteristic, type: writeType)
-                if writeType == .withoutResponse {
-                    promise.fulfill(self)
-                }
-            }
-            else {
-                promise.reject(PeripheralOperationError.couldNotFindCharacteristic)
+        return try await withCheckedThrowingContinuation({ continuation in
+            var cancellable = Set<AnyCancellable>()
+            guard let characteristic = self.peripheral.services?.find(characteristic: characteristic) else {
                 self.operationErrorSubject.send(PeripheralOperationError.couldNotFindCharacteristic)
-            }
-        }.catch { [weak self] error in
-            promise.reject(error)
-            guard let self else {
+                continuation.resume(throwing: PeripheralOperationError.couldNotFindCharacteristic)
                 return
             }
-            self.log(.error(error.localizedDescription))
-            self.operationErrorSubject.send(error)
-        }
-        promise.always {
-            cancellable.removeAll()
-        }
-        return promise
-    }
-
-    // TODO: Make async function
-    /// Retrieves the value of a specified characteristic.
-    /// - Parameter characteristic: The characteristic whose value you want to read.
-    /// - Returns: A promise object of read value.
-    @discardableResult
-    public func read<Value: CharacteristicValue>(characteristic: ReadableCharacteristic<Value>) -> Promise<Value> {
-        log(.trace("Read value: \(debugName), characteristic: \(characteristic)"))
-        var cancellable = Set<AnyCancellable>()
-        let promise = Promise<Value>.pending()
-        readyPromise.then { [weak self] _ in
-            guard let self else {
-                return
-            }
-            if let targetCharacteristic = self.peripheral.services?.find(characteristic: characteristic) {
-                self.didUpdateValueSubject.sink { [weak self] updatedCharacteristic, error in
+            if writeType == .withResponse {
+                self.didWriteValueSubject.sink { [weak self] uuid, error in
                     guard let self else {
                         return
                     }
-                    if updatedCharacteristic != targetCharacteristic {
-                        return
-                    }
-                    if let error {
-                        promise.reject(error)
-                        self.operationErrorSubject.send(error)
-                        return
-                    }
-                    guard let value = updatedCharacteristic.value else {
-                        promise.reject(PeripheralOperationError.invalidReadValue)
-                        self.operationErrorSubject.send(PeripheralOperationError.invalidReadValue)
-                        return
-                    }
-                    switch characteristic.parse(data: value) {
-                    case let .success(value):
-                        promise.fulfill(value)
-                    case let .failure(error):
-                        promise.reject(error)
-                        self.operationErrorSubject.send(error)
+                    if uuid == characteristic.uuid {
+                        if let error {
+                            self.operationErrorSubject.send(error)
+                            continuation.resume(throwing: error)
+                        }
+                        else {
+                            continuation.resume()
+                        }
                     }
                 }.store(in: &cancellable)
-                self.peripheral.readValue(for: targetCharacteristic)
             }
-            else {
-                promise.reject(PeripheralOperationError.couldNotFindCharacteristic)
-                self.operationErrorSubject.send(PeripheralOperationError.couldNotFindCharacteristic)
+            self.peripheral.writeValue(command.compose(), for: characteristic, type: writeType)
+            if writeType == .withoutResponse {
+                continuation.resume()
             }
-        }.catch { [weak self] error in
-            promise.reject(error)
-            guard let self else {
-                return
-            }
-            self.log(.error(error.localizedDescription))
-            self.operationErrorSubject.send(error)
+        })
+    }
+
+    /// Retrieves the value of a specified characteristic.
+    /// - Parameter characteristic: The characteristic whose value you want to read.
+    /// - Returns: A promise object of read value.
+    public func read<Value: CharacteristicValue>(characteristic: ReadableCharacteristic<Value>) async throws -> Value {
+        log(.trace("Read value: \(debugName), characteristic: \(characteristic)"))
+        guard let targetCharacteristic = self.peripheral.services?.find(characteristic: characteristic) else {
+            operationErrorSubject.send(PeripheralOperationError.couldNotFindCharacteristic)
+            throw PeripheralOperationError.couldNotFindCharacteristic
         }
-        promise.always {
-            cancellable.removeAll()
+        peripheral.readValue(for: targetCharacteristic)
+        let updatedCharacteristic = try await didUpdateValueSubject.filter({ updatedCharacteristic, error in
+            updatedCharacteristic != targetCharacteristic
+        }).tryFilter({ _, error in
+            if let error {
+                self.operationErrorSubject.send(error)
+                throw error
+            }
+            return true
+        }).map({ characteristic, _ in
+            return characteristic
+        }).eraseToAnyPublisher()
+            .konashi_makeAsync()
+        guard let value = updatedCharacteristic.value else {
+            operationErrorSubject.send(PeripheralOperationError.invalidReadValue)
+                throw PeripheralOperationError.invalidReadValue
         }
-        return promise
+        switch characteristic.parse(data: value) {
+        case let .success(value):
+            return value
+        case let .failure(error):
+            operationErrorSubject.send(error)
+            throw error
+        }
     }
 
     // MARK: - Mesh
@@ -434,13 +391,13 @@ public final class KonashiPeripheral: Peripheral {
             if currentConnectionState != .connected {
                 throw PeripheralOperationError.noConnection
             }
-            try await asyncWrite(
+            try await write(
                 characteristic: SettingsService.settingsCommand,
                 command: .system(
                     payload: .nvmUseSet(enabled: enabled)
                 )
             )
-            try await asyncWrite(
+            try await write(
                 characteristic: SettingsService.settingsCommand,
                 command: .bluetooth(
                     payload: SettingsService.BluetoothSettingPayload(
@@ -551,7 +508,6 @@ public final class KonashiPeripheral: Peripheral {
     }
 
     internal let didUpdateValueSubject = PassthroughSubject<(characteristic: CBCharacteristic, error: Error?), Never>()
-    internal var readyPromise = Promise<Void>.pending()
     internal var discoveredServices = [CBService]()
     internal var configuredCharacteristics = [CBCharacteristic]()
 
@@ -689,11 +645,9 @@ public final class KonashiPeripheral: Peripheral {
             }
             if ready {
                 self.log(.trace("Ready: \(self.debugName)"))
-                self.readyPromise.fulfill(())
             }
             else {
                 self.log(.trace("Pending: \(self.debugName)"))
-                self.readyPromise = Promise<Void>.pending()
             }
         }.store(in: &internalCancellable)
     }

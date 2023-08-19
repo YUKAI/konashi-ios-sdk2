@@ -10,7 +10,6 @@ import CombineExt
 import CoreBluetooth
 import nRFMeshProvision
 import Foundation
-import Promises
 
 extension Peripheral {
     static func == (lhs: any Peripheral, rhs: any Peripheral) -> Bool {
@@ -54,21 +53,17 @@ public protocol Peripheral: Hashable, AnyObject, Loggable {
 
     // MARK: - Write/Read Command
 
-    // TODO: Make async function
     /// Writes command to the characteristic
     /// - Parameters:
     ///   - characteristic: The characteristic containing the value to write.
     ///   - command: The command to write.
     ///   - type: The type of write to execute. For a list of the possible types of writes to a characteristic’s value, see CBCharacteristicWriteType.
-    @discardableResult
-    func write<WriteCommand: Command>(characteristic: WriteableCharacteristic<WriteCommand>, command: WriteCommand, type writeType: CBCharacteristicWriteType) -> Promise<any Peripheral>
+    func write<WriteCommand: Command>(characteristic: WriteableCharacteristic<WriteCommand>, command: WriteCommand, type writeType: CBCharacteristicWriteType) async throws
 
-    // TODO: Make async function
     /// Retrieves the value of a specified characteristic.
     /// - Parameter characteristic: The characteristic whose value you want to read.
-    /// - Returns: A promise object of read value.
-    @discardableResult
-    func read<Value: CharacteristicValue>(characteristic: ReadableCharacteristic<Value>) -> Promise<Value>
+    /// - Returns: Value of characteristic
+    func read<Value: CharacteristicValue>(characteristic: ReadableCharacteristic<Value>) async throws -> Value
 
     // TODO: Add document
     func setMeshEnabled(_ enabled: Bool) async throws

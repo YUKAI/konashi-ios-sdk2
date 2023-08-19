@@ -8,7 +8,6 @@
 import Combine
 import JGProgressHUD
 import Konashi
-import Promises
 import UIKit
 
 // MARK: - KonashiUI
