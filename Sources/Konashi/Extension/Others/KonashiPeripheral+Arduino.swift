@@ -21,9 +21,7 @@ public extension KonashiPeripheral {
     ///   - pin: A GPIO to change pin mode.
     ///   - mode: A pin mode of GPIO.
     ///   - wiredFunction: A wired function mode of GPIO.
-    /// - Returns: A peripheral this method call.
-    @discardableResult
-    func pinMode(_ pin: GPIO.Pin, mode: PinMode, wiredFunction: GPIO.WiredFunction = .disabled) -> Promise<any Peripheral> {
+    func pinMode(_ pin: GPIO.Pin, mode: PinMode, wiredFunction: GPIO.WiredFunction = .disabled) async throws {
         var direction: Direction {
             switch mode {
             case .input, .inputPullUp:
@@ -44,7 +42,7 @@ public extension KonashiPeripheral {
             }
             return .none
         }
-        return write(
+        try await asyncWrite(
             characteristic: ConfigService.configCommand,
             command: .gpio([
                 GPIO.PinConfig(
@@ -60,40 +58,27 @@ public extension KonashiPeripheral {
 
     /// Reads the value from a specified GPIO.
     /// - Parameter pin: A GPIO to read value.
-    /// - Returns: A value of GPIO.
-    @discardableResult
-    func digitalRead(_ pin: GPIO.Pin) -> Promise<Level> {
-        return Promise<Level> { [weak self] resolve, reject in
-            guard let self else {
-                return
-            }
-            self.read(characteristic: ControlService.gpioInput).then { readValue in
-                let value = readValue.values.first { val in
-                    return val.pin == pin
-                }
-                guard let value else {
-                    reject(PeripheralOperationError.couldNotReadValue)
-                    return
-                }
-                if value.isValid == false {
-                    reject(PeripheralOperationError.invalidReadValue)
-                    return
-                }
-                resolve(value.level)
-            }.catch { error in
-                reject(error)
-            }
+    /// - Returns: An input value of GPIO.
+    func digitalRead(_ pin: GPIO.Pin) async throws -> Level {
+        let readValue = try await asyncRead(characteristic: ControlService.gpioInput)
+        let value = readValue.values.first { val in
+            return val.pin == pin
         }
+        guard let value else {
+            throw PeripheralOperationError.couldNotReadValue
+        }
+        if value.isValid == false {
+            throw PeripheralOperationError.invalidReadValue
+        }
+        return value.level
     }
 
     /// Writes a level value to a GPIO.
     /// - Parameters:
     ///   - pin: A GPIO to write value.
     ///   - level: A value of level.
-    /// - Returns: A peripheral this method call.
-    @discardableResult
-    func digitalWrite(_ pin: GPIO.Pin, value: Level) -> Promise<any Peripheral> {
-        return write(
+    func digitalWrite(_ pin: GPIO.Pin, value: Level) async throws {
+        try await asyncWrite(
             characteristic: ControlService.controlCommand,
             command: .gpio(
                 [GPIO.ControlPayload(pin: pin, level: value)]
@@ -105,10 +90,8 @@ public extension KonashiPeripheral {
     /// - Parameters:
     ///   - pin: An AIO to configure.
     ///   - config: A configuration of AIO.
-    /// - Returns: A peripheral this method call.
-    @discardableResult
-    func analogBegin(pin: Analog.Pin, config: Analog.ConfigPayload) -> Promise<any Peripheral> {
-        return write(
+    func analogBegin(pin: Analog.Pin, config: Analog.ConfigPayload) async throws {
+        try await asyncWrite(
             characteristic: ConfigService.configCommand,
             command: .analog(config: config)
         )
@@ -118,30 +101,19 @@ public extension KonashiPeripheral {
     /// - Parameters:
     ///   - pin: An AIO to read value.
     ///   - config: A configuration of AIO.
-    /// - Returns: A peripheral this method call.
-    @discardableResult
-    func analogRead(_ pin: Analog.Pin) -> Promise<Analog.InputValue> {
-        return Promise<Analog.InputValue> { [weak self] resolve, reject in
-            guard let self else {
-                return
-            }
-            self.read(characteristic: ControlService.analogInput).then { readValue in
-                let value = readValue.values.first { val in
-                    return val.pin == pin
-                }
-                guard let value else {
-                    reject(PeripheralOperationError.couldNotReadValue)
-                    return
-                }
-                if value.isValid == false {
-                    reject(PeripheralOperationError.invalidReadValue)
-                    return
-                }
-                resolve(value)
-            }.catch { error in
-                reject(error)
-            }
+    /// - Returns: An input value of AIO
+    func analogRead(_ pin: Analog.Pin) async throws -> Analog.InputValue {
+        let readValue = try await asyncRead(characteristic: ControlService.analogInput)
+        let value = readValue.values.first { val in
+            return val.pin == pin
         }
+        guard let value else {
+            throw PeripheralOperationError.couldNotReadValue
+        }
+        if value.isValid == false {
+            throw PeripheralOperationError.invalidReadValue
+        }
+        return value
     }
 
     /// Writes value of AIO.
@@ -149,10 +121,8 @@ public extension KonashiPeripheral {
     ///   - pin: An AIO to read value.
     ///   - value: A value that is written.
     ///   - transitionDuration: A duration for transitioning current value to specified value.
-    /// - Returns: A peripheral this method call.
-    @discardableResult
-    func analogWrite(_ pin: Analog.Pin, value: UInt16, transitionDuration: UInt32 = 0) -> Promise<any Peripheral> {
-        return write(
+    func analogWrite(_ pin: Analog.Pin, value: UInt16, transitionDuration: UInt32 = 0) async throws {
+        try await asyncWrite(
             characteristic: ControlService.controlCommand,
             command: .analog(
                 [Analog.ControlPayload(
@@ -168,10 +138,8 @@ public extension KonashiPeripheral {
     /// - Parameters:
     ///   - pin: A software PWM to configure.
     ///   - config: A configuration of software PWM.
-    /// - Returns: A peripheral this method call.
-    @discardableResult
-    func softwarePWMMode(pin: PWM.Pin, config: PWM.Software.DriveConfig) -> Promise<any Peripheral> {
-        return write(
+    func softwarePWMMode(pin: PWM.Pin, config: PWM.Software.DriveConfig) async throws {
+        try await asyncWrite(
             characteristic: ConfigService.configCommand,
             command: .softwarePWM(
                 [PWM.Software.PinConfig(
@@ -187,10 +155,8 @@ public extension KonashiPeripheral {
     ///   - pin: A software PWM to drive.
     ///   - value: A value of software PWM.
     ///   - transitionDuration: A duration for transitioning current value to specified value.
-    /// - Returns: A peripheral this method call.
-    @discardableResult
-    func softwarePWMDrive(pin: PWM.Pin, value: PWM.Software.ControlValue, transitionDuration: UInt32 = 0) -> Promise<any Peripheral> {
-        return write(
+    func softwarePWMDrive(pin: PWM.Pin, value: PWM.Software.ControlValue, transitionDuration: UInt32 = 0) async throws {
+        try await asyncWrite(
             characteristic: ControlService.controlCommand,
             command: .softwarePWM(
                 [PWM.Software.ControlPayload(
@@ -208,10 +174,8 @@ public extension KonashiPeripheral {
     ///   - clock: The clock source for the PWM timer
     ///   - prescaler: The clock prescaler for the PWM timer
     ///   - value: A value of hardware PWM.
-    /// - Returns: A peripheral this method call.
-    @discardableResult
-    func hardwarePWMMode(pin: PWM.Pin, clock: PWM.Hardware.Clock, prescaler: PWM.Hardware.Prescaler, value: UInt16) -> Promise<any Peripheral> {
-        return write(
+    func hardwarePWMMode(pin: PWM.Pin, clock: PWM.Hardware.Clock, prescaler: PWM.Hardware.Prescaler, value: UInt16) async throws {
+        try await asyncWrite(
             characteristic: ConfigService.configCommand,
             command: .hardwarePWM(
                 config: PWM.Hardware.ConfigPayload(
@@ -234,10 +198,8 @@ public extension KonashiPeripheral {
     ///   - pin: A hardware PWM to drive.
     ///   - value: A value of hardware PWM.
     ///   - transitionDuration: A duration for transitioning current value to specified value.
-    /// - Returns: A peripheral this method call.
-    @discardableResult
-    func hardwarePWMDrive(pin: PWM.Pin, value: UInt16, transitionDuration: UInt32 = 0) -> Promise<any Peripheral> {
-        return write(
+    func hardwarePWMDrive(pin: PWM.Pin, value: UInt16, transitionDuration: UInt32 = 0) async throws {
+        try await asyncWrite(
             characteristic: ControlService.controlCommand,
             command: .hardwarePWM(
                 [PWM.Hardware.ControlPayload(
@@ -254,10 +216,8 @@ public extension KonashiPeripheral {
     ///   - baudrate: The UART baudrate.
     ///   - parity: The UART parity.
     ///   - stopBit: The UART number of stop bits.
-    /// - Returns: A peripheral this method call.
-    @discardableResult
-    func serialBegin(baudrate: UInt32, parity: UART.Parity = .none, stopBit: UART.StopBit = ._0_5) -> Promise<any Peripheral> {
-        return write(
+    func serialBegin(baudrate: UInt32, parity: UART.Parity = .none, stopBit: UART.StopBit = ._0_5) async throws {
+        try await asyncWrite(
             characteristic: ConfigService.configCommand,
             command: .uart(
                 config: UART.Config.enable(
@@ -272,10 +232,8 @@ public extension KonashiPeripheral {
     /// Attempt to send UART data.
     /// - Parameters:
     ///   - data: The data to send (length range is [1,127]).
-    /// - Returns: A peripheral this method call.
-    @discardableResult
-    func serialWrite(data: [UInt8]) -> Promise<any Peripheral> {
-        return write(
+    func serialWrite(data: [UInt8]) async throws {
+        try await asyncWrite(
             characteristic: ControlService.controlCommand,
             command: .uartSend(
                 UART.SendControlPayload(data: data)
@@ -288,10 +246,8 @@ public extension KonashiPeripheral {
     ///   - bitrate: SPI bitrate.
     ///   - endian: An endian of data.
     ///   - mode: SPI mode.
-    /// - Returns: A peripheral this method call.
-    @discardableResult
-    func spiBegin(bitrate: UInt32, endian: SPI.Endian = .lsbFirst, mode: SPI.Mode = .mode0) -> Promise<any Peripheral> {
-        return write(
+    func spiBegin(bitrate: UInt32, endian: SPI.Endian = .lsbFirst, mode: SPI.Mode = .mode0) async throws {
+        try await asyncWrite(
             characteristic: ConfigService.configCommand,
             command: .spi(
                 config: SPI.Config.enable(
@@ -305,10 +261,8 @@ public extension KonashiPeripheral {
 
     /// Attempt to transfer data through SPI bus.
     /// - Parameter data: The data to send (length range is [1,127]).
-    /// - Returns: A peripheral this method call.
-    @discardableResult
-    func spiTransfer(data: [UInt8]) -> Promise<any Peripheral> {
-        return write(
+    func spiTransfer(data: [UInt8]) async throws {
+        try await asyncWrite(
             characteristic: ControlService.controlCommand,
             command: .spiTransfer(
                 SPI.TransferControlPayload(data: data)
@@ -319,10 +273,8 @@ public extension KonashiPeripheral {
     /// Attempt to configure I2C mode.
     /// - Parameters:
     ///   - mode: I2C mode.
-    /// - Returns: A peripheral this method call.
-    @discardableResult
-    func i2cBegin(_ mode: I2C.Mode) -> Promise<any Peripheral> {
-        return write(
+    func i2cBegin(_ mode: I2C.Mode) async throws {
+        try await asyncWrite(
             characteristic: ConfigService.configCommand,
             command: .i2c(
                 config: I2C.Config.enable(mode: mode)
@@ -334,10 +286,8 @@ public extension KonashiPeripheral {
     /// - Parameters:
     ///   - address: The I2C slave address (address range is 0x00 to 0x7F).
     ///   - writeData: The data to write (valid length 0 to 124 bytes).
-    /// - Returns: A peripheral this method call.
-    @discardableResult
-    func i2cWrite(address: UInt8, writeData: [UInt8]) -> Promise<any Peripheral> {
-        return i2cTransfer(address: address, operation: .write, readLength: 0, writeData: writeData)
+    func i2cWrite(address: UInt8, writeData: [UInt8]) async throws {
+        try await i2cTransfer(address: address, operation: .write, readLength: 0, writeData: writeData)
     }
 
     /// Attempt to read data from I2C slave.
@@ -345,28 +295,26 @@ public extension KonashiPeripheral {
     ///   - address: The I2C slave address (address range is 0x00 to 0x7F).
     ///   - readLength: The length of the data to read (0 to 126 bytes).
     /// - Returns: Byte arrey of read from I2C slave.
-    @discardableResult
-    func i2cRead(address: UInt8, readLength: UInt8) -> Promise<[UInt8]> {
-        var cancellable = Set<AnyCancellable>()
-        return Promise<[UInt8]> { [weak self] resolve, reject in
-            guard let self else {
-                return
-            }
-            self.controlService.i2cDataInput.value.sink { readValue in
-                if readValue.address == address {
-                    resolve(readValue.readBytes)
+    func i2cRead(address: UInt8, readLength: UInt8) async throws -> [UInt8] {
+        return try await withCheckedThrowingContinuation { continuation in
+            Task {
+                var cancellable = Set<AnyCancellable>()
+                self.controlService.i2cDataInput.value.sink { readValue in
+                    if readValue.address == address {
+                        continuation.resume(with: .success(readValue.readBytes))
+                    }
+                }.store(in: &cancellable)
+                do {
+                    try await self.i2cTransfer(
+                        address: address,
+                        operation: .read,
+                        readLength: readLength,
+                        writeData: []
+                    )
+                } catch {
+                    continuation.resume(with: .failure(error))
                 }
-            }.store(in: &cancellable)
-            self.i2cTransfer(
-                address: address,
-                operation: .read,
-                readLength: readLength,
-                writeData: []
-            ).catch { error in
-                reject(error)
             }
-        }.always {
-            cancellable.removeAll()
         }
     }
 
@@ -376,40 +324,26 @@ public extension KonashiPeripheral {
     ///   - operation: The transaction operation.
     ///   - readLength: The length of the data to read (0 to 126 bytes).
     ///   - writeData: The data to write (valid length 0 to 124 bytes).
-    /// - Returns: A peripheral this method call.
-    @discardableResult
-    func i2cTransfer(address: UInt8, operation: I2C.Operation, readLength: UInt8, writeData: [UInt8]) -> Promise<any Peripheral> {
-        return Promise<any Peripheral> { [weak self] resolve, reject in
-            guard let self else {
-                return
-            }
-            if address > 0x7F {
-                reject(I2C.OperationError.invalidSlaveAddress)
-                return
-            }
-            if readLength > 126 {
-                reject(I2C.OperationError.badReadLength)
-                return
-            }
-            if writeData.count > 124 {
-                reject(I2C.OperationError.badWriteLength)
-                return
-            }
-            self.write(
-                characteristic: ControlService.controlCommand,
-                command: .i2cTransfer(
-                    I2C.TransferControlPayload(
-                        operation: operation,
-                        readLength: readLength,
-                        address: address,
-                        writeData: writeData
-                    )
-                )
-            ).then { peripheral in
-                resolve(peripheral)
-            }.catch { error in
-                reject(error)
-            }
+    func i2cTransfer(address: UInt8, operation: I2C.Operation, readLength: UInt8, writeData: [UInt8]) async throws {
+        if address > 0x7F {
+            throw I2C.OperationError.invalidSlaveAddress
         }
+        if readLength > 126 {
+            throw I2C.OperationError.badReadLength
+        }
+        if writeData.count > 124 {
+            throw I2C.OperationError.badWriteLength
+        }
+        try await asyncWrite(
+            characteristic: ControlService.controlCommand,
+            command: .i2cTransfer(
+                I2C.TransferControlPayload(
+                    operation: operation,
+                    readLength: readLength,
+                    address: address,
+                    writeData: writeData
+                )
+            )
+        )
     }
 }
