@@ -13,6 +13,10 @@ let package = Package(
         .library(
             name: "Konashi",
             targets: ["Konashi"]
+        ),
+        .library(
+            name: "KonashiUI",
+            targets: ["KonashiUI"]
         )
     ],
     dependencies: [
@@ -33,6 +37,10 @@ let package = Package(
             name: "Promises",
             url: "https://github.com/google/promises.git",
             from: "2.1.0"
+        ),
+        .package(
+            url: "https://github.com/JonasGessner/JGProgressHUD.git",
+            from: "2.0.0"
         )
     ],
     targets: [
@@ -43,18 +51,28 @@ let package = Package(
                 "NordicMesh",
                 "Promises"
             ],
-            path: "Sources"
+            path: "Sources/Konashi"
         ),
         .testTarget(
             name: "KonashiTests",
             dependencies: [
                 "Konashi",
-                "CombineExt",
-                "Difference",
-                "NordicMesh",
-                "Promises"
+                "Difference"
             ],
-            path: "Tests"
+            path: "Tests/KonashiTests"
+        ),
+        .target(
+            name: "KonashiUI",
+            dependencies: [
+                "Konashi",
+                "JGProgressHUD"
+            ],
+            path: "Sources/KonashiUI"
+        ),
+        .testTarget(
+            name: "KonashiUITests",
+            dependencies: ["KonashiUI"],
+            path: "Tests/KonashiUITests"
         )
     ]
 )

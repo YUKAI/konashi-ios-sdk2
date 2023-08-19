@@ -11,7 +11,7 @@ import Foundation
 // MARK: - AsyncError
 
 // https://medium.com/geekculture/from-combine-to-async-await-c08bf1d15b77
-enum AsyncError: Error, LocalizedError {
+enum AsyncError: LocalizedError {
     case timeout
 
     // MARK: Internal

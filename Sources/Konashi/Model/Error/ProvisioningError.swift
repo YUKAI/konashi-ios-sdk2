@@ -7,7 +7,7 @@
 
 import Foundation
 
-public enum ProvisioningError: Error, LocalizedError {
+public enum ProvisioningError: LocalizedError {
     case unknown
     case invalidUnicastAddress
     case invalidCapability

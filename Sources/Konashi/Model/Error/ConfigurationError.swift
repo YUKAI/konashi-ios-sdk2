@@ -8,7 +8,7 @@
 import Foundation
 
 public extension MeshManager {
-    enum ConfigurationError: Error, LocalizedError {
+    enum ConfigurationError: LocalizedError {
         case invalidUnprovisionedDevice
         case invalidNetworkKey
         case invalidApplicationKey

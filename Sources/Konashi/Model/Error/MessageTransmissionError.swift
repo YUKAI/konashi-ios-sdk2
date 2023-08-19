@@ -7,7 +7,7 @@
 
 import Foundation
 
-public struct MessageTransmissionError: Error, LocalizedError {
+public struct MessageTransmissionError: LocalizedError {
     public let error: Error
     public let message: SendMessage
 

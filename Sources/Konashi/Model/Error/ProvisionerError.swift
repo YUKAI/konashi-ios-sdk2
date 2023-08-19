@@ -7,7 +7,7 @@
 
 import Foundation
 
-enum ProvisionerError: Error, LocalizedError {
+enum ProvisionerError: LocalizedError {
     case connectionError
 
     // MARK: Internal

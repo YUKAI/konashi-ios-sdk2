@@ -8,7 +8,7 @@
 import Foundation
 import nRFMeshProvision
 
-public enum NodeOperationError: Error, LocalizedError {
+public enum NodeOperationError: LocalizedError {
     case invalidNode
     case invalidParentElement(modelIdentifier: UInt16)
     case elementNotFound(_ address: NodeElement)
