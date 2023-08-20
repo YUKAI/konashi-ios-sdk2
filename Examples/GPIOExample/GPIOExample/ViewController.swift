@@ -28,6 +28,7 @@ class ViewController: UIViewController {
     @IBOutlet private var blinkButton: UIButton!
     private var cancellable: AnyCancellable?
     @IBOutlet private var peripheralControlStackView: UIStackView!
+
     private var connectedPeripheral: KonashiPeripheral? {
         didSet {
             peripheralControlStackView.isHidden = connectedPeripheral == nil
