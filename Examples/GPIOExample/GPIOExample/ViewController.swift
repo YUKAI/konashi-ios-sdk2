@@ -6,18 +6,12 @@
 //
 
 import Combine
-import UIKit
 import Konashi
 import KonashiUI
+import UIKit
 
 class ViewController: UIViewController {
-    @IBOutlet private var connectedPeripheralLabel: UILabel!
-    @IBOutlet private var connectButton: UIButton!
-    @IBOutlet private var buttonStateStackView: UIStackView!
-    @IBOutlet private var buttonStateLabel: UILabel!
-    @IBOutlet private var toggleGPIO1Button: UIButton!
-    private var cancellable: AnyCancellable?
-    private var connectedPeripheral: KonashiPeripheral?
+    // MARK: Internal
 
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -25,6 +19,16 @@ class ViewController: UIViewController {
         connectButton.configuration?.imagePadding = 8
         toggleGPIO1Button.configuration?.imagePadding = 8
     }
+
+    // MARK: Private
+
+    @IBOutlet private var connectedPeripheralLabel: UILabel!
+    @IBOutlet private var connectButton: UIButton!
+    @IBOutlet private var buttonStateStackView: UIStackView!
+    @IBOutlet private var buttonStateLabel: UILabel!
+    @IBOutlet private var toggleGPIO1Button: UIButton!
+    private var cancellable: AnyCancellable?
+    private var connectedPeripheral: KonashiPeripheral?
 
     private func setupPeripheral(_ peripheral: KonashiPeripheral) async throws {
         // Configure GPIO0 as input.
@@ -41,7 +45,7 @@ class ViewController: UIViewController {
         // Turn LED on.
         try await peripheral.digitalWrite(.pin1, value: .high)
     }
-    
+
     private func toggleGPIO1(_ peripheral: KonashiPeripheral) async throws {
         // Blink LED
         try await peripheral.digitalWrite(.pin1, value: .low)
@@ -69,7 +73,8 @@ class ViewController: UIViewController {
                 buttonStateStackView.isHidden = false
                 connectedPeripheralLabel.text = peripheral.name
                 try await setupPeripheral(peripheral)
-            } catch {
+            }
+            catch {
                 connectedPeripheralLabel.text = error.localizedDescription
             }
         }

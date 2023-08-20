@@ -17,6 +17,7 @@ format: # Format code
 	mint run swiftformat ./Sources/
 	mint run swiftformat ./Tests/
 	mint run swiftformat Package.swift
+	mint run swiftformat ./Examples/
 
 .PHONY: lint
 lint: # Lint code
