@@ -16,20 +16,17 @@
                         <rect key="frame" x="0.0" y="0.0" width="393" height="852"/>
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                         <subviews>
+                            <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="" textAlignment="center" lineBreakMode="tailTruncation" numberOfLines="0" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="UHZ-Xd-EsB">
+                                <rect key="frame" x="196.66666666666666" y="339.66666666666669" width="0.0" height="0.0"/>
+                                <fontDescription key="fontDescription" type="boldSystem" pointSize="17"/>
+                                <nil key="textColor"/>
+                                <nil key="highlightedColor"/>
+                            </label>
                             <stackView opaque="NO" contentMode="scaleToFill" axis="vertical" alignment="center" spacing="26" translatesAutoresizingMaskIntoConstraints="NO" id="5EZ-CU-xvI">
-                                <rect key="frame" x="152.33333333333334" y="331.66666666666669" width="88.666666666666657" height="189.00000000000006"/>
+                                <rect key="frame" x="152.33333333333334" y="355.66666666666669" width="88.666666666666657" height="141"/>
                                 <subviews>
-                                    <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="" textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="UHZ-Xd-EsB">
-                                        <rect key="frame" x="19.333333333333314" y="0.0" width="50" height="22"/>
-                                        <constraints>
-                                            <constraint firstAttribute="height" constant="22" id="D3p-tm-ppD"/>
-                                        </constraints>
-                                        <fontDescription key="fontDescription" type="boldSystem" pointSize="17"/>
-                                        <nil key="textColor"/>
-                                        <nil key="highlightedColor"/>
-                                    </label>
                                     <stackView opaque="NO" contentMode="scaleToFill" spacing="8" translatesAutoresizingMaskIntoConstraints="NO" id="sAL-KI-muq">
-                                        <rect key="frame" x="0.33333333333331439" y="48" width="87.666666666666671" height="20.333333333333329"/>
+                                        <rect key="frame" x="0.33333333333331439" y="0.0" width="87.666666666666671" height="20.333333333333332"/>
                                         <subviews>
                                             <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Button:" textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="qIX-o6-FUZ">
                                                 <rect key="frame" x="0.0" y="0.0" width="55.333333333333336" height="20.333333333333332"/>
@@ -46,7 +43,7 @@
                                         </subviews>
                                     </stackView>
                                     <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="system" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="ls0-vO-Qp7">
-                                        <rect key="frame" x="13.999999999999996" y="94.333333333333314" width="60.666666666666657" height="34.333333333333343"/>
+                                        <rect key="frame" x="13.999999999999996" y="46.333333333333314" width="60.666666666666657" height="34.333333333333343"/>
                                         <state key="normal" title="Button"/>
                                         <buttonConfiguration key="configuration" style="tinted" title="Blink"/>
                                         <connections>
@@ -54,7 +51,7 @@
                                         </connections>
                                     </button>
                                     <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="system" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="YjD-th-WwS">
-                                        <rect key="frame" x="0.0" y="154.66666666666663" width="88.666666666666671" height="34.333333333333343"/>
+                                        <rect key="frame" x="0.0" y="106.66666666666663" width="88.666666666666671" height="34.333333333333343"/>
                                         <state key="normal" title="Button"/>
                                         <buttonConfiguration key="configuration" style="filled" title="Connect"/>
                                         <connections>
@@ -67,8 +64,12 @@
                         <viewLayoutGuide key="safeArea" id="6Tk-OE-BBY"/>
                         <color key="backgroundColor" systemColor="systemBackgroundColor"/>
                         <constraints>
+                            <constraint firstItem="UHZ-Xd-EsB" firstAttribute="leading" relation="greaterThanOrEqual" secondItem="6Tk-OE-BBY" secondAttribute="leading" constant="16" id="KaQ-fO-gHN"/>
+                            <constraint firstItem="6Tk-OE-BBY" firstAttribute="trailing" relation="greaterThanOrEqual" secondItem="UHZ-Xd-EsB" secondAttribute="trailing" constant="16" id="LEZ-7S-JO2"/>
                             <constraint firstItem="5EZ-CU-xvI" firstAttribute="centerX" secondItem="8bC-Xf-vdC" secondAttribute="centerX" id="Qjh-X2-mD4"/>
                             <constraint firstItem="5EZ-CU-xvI" firstAttribute="centerY" secondItem="8bC-Xf-vdC" secondAttribute="centerY" id="YPi-Bg-Ha5"/>
+                            <constraint firstItem="UHZ-Xd-EsB" firstAttribute="centerX" secondItem="8bC-Xf-vdC" secondAttribute="centerX" id="YaU-Tr-qTo"/>
+                            <constraint firstItem="5EZ-CU-xvI" firstAttribute="top" secondItem="UHZ-Xd-EsB" secondAttribute="bottom" constant="16" id="uKp-zM-l4h"/>
                         </constraints>
                     </view>
                     <connections>
