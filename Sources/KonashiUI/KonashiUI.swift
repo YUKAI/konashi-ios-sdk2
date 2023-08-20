@@ -89,6 +89,19 @@ public final class KonashiUI {
             }
         }
     }
+    
+    public enum OperationError: LocalizedError {
+        case cancelled
+
+        // MARK: Public
+
+        public var errorDescription: String? {
+            switch self {
+            case .cancelled:
+                return "Operation cancelled."
+            }
+        }
+    }
 
     public static let shared = KonashiUI()
     public static let defaultRSSIThreshold: NSNumber = -80
@@ -256,7 +269,9 @@ extension UIViewController: AlertPresentable {
                 UIAlertAction(
                     title: NSLocalizedString("キャンセル", comment: ""),
                     style: .cancel,
-                    handler: nil
+                    handler: { _ in
+                        continuation.resume(throwing: KonashiUI.OperationError.cancelled)
+                    }
                 )
             )
             present(alertController, animated: true, completion: nil)
