@@ -26,6 +26,29 @@ class ViewController: UIViewController {
         toggleGPIO1Button.configuration?.imagePadding = 8
     }
 
+    private func setupPeripheral(_ peripheral: KonashiPeripheral) async throws {
+        // Configure GPIO0 as input.
+        try await peripheral.pinMode(.pin0, mode: .inputPullUp)
+        // Receive button input(GPIO0).
+        cancellable = peripheral.gpio0.input
+            .receive(on: DispatchQueue.main)
+            .sink { value in
+                self.buttonStateLabel.text = value.level == .high ? "On" : "Off"
+            }
+
+        // Configure GPIO1 as output.
+        try await peripheral.pinMode(.pin1, mode: .output)
+        // Turn LED on.
+        try await peripheral.digitalWrite(.pin1, value: .high)
+    }
+    
+    private func toggleGPIO1(_ peripheral: KonashiPeripheral) async throws {
+        // Blink LED
+        try await peripheral.digitalWrite(.pin1, value: .low)
+        try await Task.sleep(for: .seconds(0.5))
+        try await peripheral.digitalWrite(.pin1, value: .high)
+    }
+
     @IBAction private func didConnectButtonPress(_ sender: Any) {
         Task {
             defer {
@@ -45,13 +68,7 @@ class ViewController: UIViewController {
                 connectedPeripheral = peripheral
                 buttonStateStackView.isHidden = false
                 connectedPeripheralLabel.text = peripheral.name
-
-                try await peripheral.pinMode(.pin0, mode: .inputPullUp)
-                cancellable = peripheral.gpio0.input.sink { value in
-                    self.buttonStateLabel.text = value.level == .high ? "On" : "Off"
-                }
-                try await peripheral.pinMode(.pin1, mode: .output)
-                try await peripheral.digitalWrite(.pin1, value: .high)
+                try await setupPeripheral(peripheral)
             } catch {
                 connectedPeripheralLabel.text = error.localizedDescription
             }
@@ -69,9 +86,7 @@ class ViewController: UIViewController {
             guard let peripheral = connectedPeripheral else {
                 return
             }
-            try await peripheral.digitalWrite(.pin1, value: .low)
-            try await Task.sleep(for: .seconds(0.5))
-            try await peripheral.digitalWrite(.pin1, value: .high)
+            try await toggleGPIO1(peripheral)
         }
     }
 }
