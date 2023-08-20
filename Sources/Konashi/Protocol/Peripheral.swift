@@ -58,12 +58,20 @@ public protocol Peripheral: Hashable, AnyObject, Loggable {
     ///   - characteristic: The characteristic containing the value to write.
     ///   - command: The command to write.
     ///   - type: The type of write to execute. For a list of the possible types of writes to a characteristic’s value, see CBCharacteristicWriteType.
-    func write<WriteCommand: Command>(characteristic: WriteableCharacteristic<WriteCommand>, command: WriteCommand, type writeType: CBCharacteristicWriteType) async throws
+    func write<WriteCommand: Command>(
+        characteristic: WriteableCharacteristic<WriteCommand>,
+        command: WriteCommand,
+        type writeType: CBCharacteristicWriteType,
+        timeoutInterval: TimeInterval
+    ) async throws
 
     /// Retrieves the value of a specified characteristic.
     /// - Parameter characteristic: The characteristic whose value you want to read.
     /// - Returns: Value of characteristic
-    func read<Value: CharacteristicValue>(characteristic: ReadableCharacteristic<Value>) async throws -> Value
+    func read<Value: CharacteristicValue>(
+        characteristic: ReadableCharacteristic<Value>,
+        timeoutInterval: TimeInterval
+    ) async throws -> Value
 
     // TODO: Add document
     func setMeshEnabled(_ enabled: Bool) async throws
@@ -79,7 +87,7 @@ public extension Peripheral {
     var completeName: String {
         return "\(name ?? "Unknown"): \(identifier)"
     }
-    
+
     /// Connects to a peripheral.
     func connect() async throws {
         try await connect(timeoutInterval: 15)
@@ -89,5 +97,4 @@ public extension Peripheral {
     func disconnect() async throws {
         try await disconnect(timeoutInterval: 15)
     }
-
 }

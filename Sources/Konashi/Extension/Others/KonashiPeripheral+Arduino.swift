@@ -20,7 +20,13 @@ public extension KonashiPeripheral {
     ///   - pin: A GPIO to change pin mode.
     ///   - mode: A pin mode of GPIO.
     ///   - wiredFunction: A wired function mode of GPIO.
-    func pinMode(_ pin: GPIO.Pin, mode: PinMode, wiredFunction: GPIO.WiredFunction = .disabled) async throws {
+    ///   - timeoutInterval: Number of seconds before timeout.
+    func pinMode(
+        _ pin: GPIO.Pin,
+        mode: PinMode,
+        wiredFunction: GPIO.WiredFunction = .disabled,
+        timeoutInterval: TimeInterval = 15
+    ) async throws {
         var direction: Direction {
             switch mode {
             case .input, .inputPullUp:
@@ -51,15 +57,24 @@ public extension KonashiPeripheral {
                     notifyOnInputChange: notifyOnInputChange,
                     function: .gpio
                 )
-            ])
+            ]),
+            timeoutInterval: timeoutInterval
         )
     }
 
     /// Reads the value from a specified GPIO.
-    /// - Parameter pin: A GPIO to read value.
+    /// - Parameters:
+    ///   - pin: A GPIO to read value.
+    ///   - timeoutInterval: Number of seconds before timeout.
     /// - Returns: An input value of GPIO.
-    func digitalRead(_ pin: GPIO.Pin) async throws -> Level {
-        let readValue = try await read(characteristic: ControlService.gpioInput)
+    func digitalRead(
+        _ pin: GPIO.Pin,
+        timeoutInterval: TimeInterval = 15
+    ) async throws -> Level {
+        let readValue = try await read(
+            characteristic: ControlService.gpioInput,
+            timeoutInterval: timeoutInterval
+        )
         let value = readValue.values.first { val in
             return val.pin == pin
         }
@@ -76,12 +91,18 @@ public extension KonashiPeripheral {
     /// - Parameters:
     ///   - pin: A GPIO to write value.
     ///   - level: A value of level.
-    func digitalWrite(_ pin: GPIO.Pin, value: Level) async throws {
+    ///   - timeoutInterval: Number of seconds before timeout.
+    func digitalWrite(
+        _ pin: GPIO.Pin,
+        value: Level,
+        timeoutInterval: TimeInterval = 15
+    ) async throws {
         try await write(
             characteristic: ControlService.controlCommand,
             command: .gpio(
                 [GPIO.ControlPayload(pin: pin, level: value)]
-            )
+            ),
+            timeoutInterval: timeoutInterval
         )
     }
 
@@ -89,10 +110,16 @@ public extension KonashiPeripheral {
     /// - Parameters:
     ///   - pin: An AIO to configure.
     ///   - config: A configuration of AIO.
-    func analogBegin(pin: Analog.Pin, config: Analog.ConfigPayload) async throws {
+    ///   - timeoutInterval: Number of seconds before timeout.
+    func analogBegin(
+        pin: Analog.Pin,
+        config: Analog.ConfigPayload,
+        timeoutInterval: TimeInterval = 15
+    ) async throws {
         try await write(
             characteristic: ConfigService.configCommand,
-            command: .analog(config: config)
+            command: .analog(config: config),
+            timeoutInterval: timeoutInterval
         )
     }
 
@@ -100,9 +127,16 @@ public extension KonashiPeripheral {
     /// - Parameters:
     ///   - pin: An AIO to read value.
     ///   - config: A configuration of AIO.
+    ///   - timeoutInterval: Number of seconds before timeout.
     /// - Returns: An input value of AIO
-    func analogRead(_ pin: Analog.Pin) async throws -> Analog.InputValue {
-        let readValue = try await read(characteristic: ControlService.analogInput)
+    func analogRead(
+        _ pin: Analog.Pin
+        , timeoutInterval: TimeInterval = 15
+    ) async throws -> Analog.InputValue {
+        let readValue = try await read(
+            characteristic: ControlService.analogInput,
+            timeoutInterval: timeoutInterval
+        )
         let value = readValue.values.first { val in
             return val.pin == pin
         }
@@ -120,7 +154,13 @@ public extension KonashiPeripheral {
     ///   - pin: An AIO to read value.
     ///   - value: A value that is written.
     ///   - transitionDuration: A duration for transitioning current value to specified value.
-    func analogWrite(_ pin: Analog.Pin, value: UInt16, transitionDuration: UInt32 = 0) async throws {
+    ///   - timeoutInterval: Number of seconds before timeout.
+    func analogWrite(
+        _ pin: Analog.Pin,
+        value: UInt16,
+        transitionDuration: UInt32 = 0,
+        timeoutInterval: TimeInterval = 15
+    ) async throws {
         try await write(
             characteristic: ControlService.controlCommand,
             command: .analog(
@@ -129,7 +169,8 @@ public extension KonashiPeripheral {
                     stepValue: value,
                     transitionDurationMillisec: transitionDuration
                 )]
-            )
+            ),
+            timeoutInterval: timeoutInterval
         )
     }
 
@@ -137,7 +178,8 @@ public extension KonashiPeripheral {
     /// - Parameters:
     ///   - pin: A software PWM to configure.
     ///   - config: A configuration of software PWM.
-    func softwarePWMMode(pin: PWM.Pin, config: PWM.Software.DriveConfig) async throws {
+    ///   - timeoutInterval: Number of seconds before timeout.
+    func softwarePWMMode(pin: PWM.Pin, config: PWM.Software.DriveConfig, timeoutInterval: TimeInterval = 15) async throws {
         try await write(
             characteristic: ConfigService.configCommand,
             command: .softwarePWM(
@@ -145,7 +187,8 @@ public extension KonashiPeripheral {
                     pin: pin,
                     driveConfig: config
                 )]
-            )
+            ),
+            timeoutInterval: timeoutInterval
         )
     }
 
@@ -154,7 +197,13 @@ public extension KonashiPeripheral {
     ///   - pin: A software PWM to drive.
     ///   - value: A value of software PWM.
     ///   - transitionDuration: A duration for transitioning current value to specified value.
-    func softwarePWMDrive(pin: PWM.Pin, value: PWM.Software.ControlValue, transitionDuration: UInt32 = 0) async throws {
+    ///   - timeoutInterval: Number of seconds before timeout.
+    func softwarePWMDrive(
+        pin: PWM.Pin,
+        value: PWM.Software.ControlValue,
+        transitionDuration: UInt32 = 0,
+        timeoutInterval: TimeInterval = 15
+    ) async throws {
         try await write(
             characteristic: ControlService.controlCommand,
             command: .softwarePWM(
@@ -163,7 +212,8 @@ public extension KonashiPeripheral {
                     value: value,
                     transitionDuration: transitionDuration
                 )]
-            )
+            ),
+            timeoutInterval: timeoutInterval
         )
     }
 
@@ -173,7 +223,14 @@ public extension KonashiPeripheral {
     ///   - clock: The clock source for the PWM timer
     ///   - prescaler: The clock prescaler for the PWM timer
     ///   - value: A value of hardware PWM.
-    func hardwarePWMMode(pin: PWM.Pin, clock: PWM.Hardware.Clock, prescaler: PWM.Hardware.Prescaler, value: UInt16) async throws {
+    ///   - timeoutInterval: Number of seconds before timeout.
+    func hardwarePWMMode(
+        pin: PWM.Pin,
+        clock: PWM.Hardware.Clock,
+        prescaler: PWM.Hardware.Prescaler,
+        value: UInt16,
+        timeoutInterval: TimeInterval = 15
+    ) async throws {
         try await write(
             characteristic: ConfigService.configCommand,
             command: .hardwarePWM(
@@ -188,7 +245,8 @@ public extension KonashiPeripheral {
                         timerValue: value
                     )
                 )
-            )
+            ),
+            timeoutInterval: timeoutInterval
         )
     }
 
@@ -197,7 +255,13 @@ public extension KonashiPeripheral {
     ///   - pin: A hardware PWM to drive.
     ///   - value: A value of hardware PWM.
     ///   - transitionDuration: A duration for transitioning current value to specified value.
-    func hardwarePWMDrive(pin: PWM.Pin, value: UInt16, transitionDuration: UInt32 = 0) async throws {
+    ///   - timeoutInterval: Number of seconds before timeout.
+    func hardwarePWMDrive(
+        pin: PWM.Pin,
+        value: UInt16,
+        transitionDuration: UInt32 = 0,
+        timeoutInterval: TimeInterval = 15
+    ) async throws {
         try await write(
             characteristic: ControlService.controlCommand,
             command: .hardwarePWM(
@@ -206,7 +270,8 @@ public extension KonashiPeripheral {
                     controlValue: value,
                     transitionDurationMillisec: transitionDuration
                 )]
-            )
+            ),
+            timeoutInterval: timeoutInterval
         )
     }
 
@@ -215,7 +280,13 @@ public extension KonashiPeripheral {
     ///   - baudrate: The UART baudrate.
     ///   - parity: The UART parity.
     ///   - stopBit: The UART number of stop bits.
-    func serialBegin(baudrate: UInt32, parity: UART.Parity = .none, stopBit: UART.StopBit = ._0_5) async throws {
+    ///   - timeoutInterval: Number of seconds before timeout.
+    func serialBegin(
+        baudrate: UInt32,
+        parity: UART.Parity = .none,
+        stopBit: UART.StopBit = ._0_5,
+        timeoutInterval: TimeInterval = 15
+    ) async throws {
         try await write(
             characteristic: ConfigService.configCommand,
             command: .uart(
@@ -224,19 +295,22 @@ public extension KonashiPeripheral {
                     stopBit: stopBit,
                     baudrate: baudrate
                 )
-            )
+            ),
+            timeoutInterval: timeoutInterval
         )
     }
 
     /// Attempt to send UART data.
     /// - Parameters:
     ///   - data: The data to send (length range is [1,127]).
-    func serialWrite(data: [UInt8]) async throws {
+    ///   - timeoutInterval: Number of seconds before timeout.
+    func serialWrite(data: [UInt8], timeoutInterval: TimeInterval = 15) async throws {
         try await write(
             characteristic: ControlService.controlCommand,
             command: .uartSend(
                 UART.SendControlPayload(data: data)
-            )
+            ),
+            timeoutInterval: timeoutInterval
         )
     }
 
@@ -245,7 +319,13 @@ public extension KonashiPeripheral {
     ///   - bitrate: SPI bitrate.
     ///   - endian: An endian of data.
     ///   - mode: SPI mode.
-    func spiBegin(bitrate: UInt32, endian: SPI.Endian = .lsbFirst, mode: SPI.Mode = .mode0) async throws {
+    ///   - timeoutInterval: Number of seconds before timeout.
+    func spiBegin(
+        bitrate: UInt32,
+        endian: SPI.Endian = .lsbFirst,
+        mode: SPI.Mode = .mode0,
+        timeoutInterval: TimeInterval = 15
+    ) async throws {
         try await write(
             characteristic: ConfigService.configCommand,
             command: .spi(
@@ -254,30 +334,34 @@ public extension KonashiPeripheral {
                     endian: endian,
                     mode: mode
                 )
-            )
+            ),
+            timeoutInterval: timeoutInterval
         )
     }
 
     /// Attempt to transfer data through SPI bus.
     /// - Parameter data: The data to send (length range is [1,127]).
-    func spiTransfer(data: [UInt8]) async throws {
+    func spiTransfer(data: [UInt8], timeoutInterval: TimeInterval = 15) async throws {
         try await write(
             characteristic: ControlService.controlCommand,
             command: .spiTransfer(
                 SPI.TransferControlPayload(data: data)
-            )
+            ),
+            timeoutInterval: timeoutInterval
         )
     }
 
     /// Attempt to configure I2C mode.
     /// - Parameters:
     ///   - mode: I2C mode.
-    func i2cBegin(_ mode: I2C.Mode) async throws {
+    ///   - timeoutInterval: Number of seconds before timeout.
+    func i2cBegin(_ mode: I2C.Mode, timeoutInterval: TimeInterval = 15) async throws {
         try await write(
             characteristic: ConfigService.configCommand,
             command: .i2c(
                 config: I2C.Config.enable(mode: mode)
-            )
+            ),
+            timeoutInterval: timeoutInterval
         )
     }
 
@@ -285,16 +369,24 @@ public extension KonashiPeripheral {
     /// - Parameters:
     ///   - address: The I2C slave address (address range is 0x00 to 0x7F).
     ///   - writeData: The data to write (valid length 0 to 124 bytes).
-    func i2cWrite(address: UInt8, writeData: [UInt8]) async throws {
-        try await i2cTransfer(address: address, operation: .write, readLength: 0, writeData: writeData)
+    ///   - timeoutInterval: Number of seconds before timeout.
+    func i2cWrite(address: UInt8, writeData: [UInt8], timeoutInterval: TimeInterval = 15) async throws {
+        try await i2cTransfer(
+            address: address,
+            operation: .write,
+            readLength: 0,
+            writeData: writeData,
+            timeoutInterval: timeoutInterval
+        )
     }
 
     /// Attempt to read data from I2C slave.
     /// - Parameters:
     ///   - address: The I2C slave address (address range is 0x00 to 0x7F).
     ///   - readLength: The length of the data to read (0 to 126 bytes).
+    ///   - timeoutInterval: Number of seconds before timeout.
     /// - Returns: Byte arrey of read from I2C slave.
-    func i2cRead(address: UInt8, readLength: UInt8) async throws -> [UInt8] {
+    func i2cRead(address: UInt8, readLength: UInt8, timeoutInterval: TimeInterval = 15) async throws -> [UInt8] {
         return try await withCheckedThrowingContinuation { continuation in
             Task {
                 var cancellable = Set<AnyCancellable>()
@@ -308,7 +400,8 @@ public extension KonashiPeripheral {
                         address: address,
                         operation: .read,
                         readLength: readLength,
-                        writeData: []
+                        writeData: [],
+                        timeoutInterval: timeoutInterval
                     )
                 }
                 catch {
@@ -324,7 +417,8 @@ public extension KonashiPeripheral {
     ///   - operation: The transaction operation.
     ///   - readLength: The length of the data to read (0 to 126 bytes).
     ///   - writeData: The data to write (valid length 0 to 124 bytes).
-    func i2cTransfer(address: UInt8, operation: I2C.Operation, readLength: UInt8, writeData: [UInt8]) async throws {
+    ///   - timeoutInterval: Number of seconds before timeout.
+    func i2cTransfer(address: UInt8, operation: I2C.Operation, readLength: UInt8, writeData: [UInt8], timeoutInterval: TimeInterval = 15) async throws {
         if address > 0x7F {
             throw I2C.OperationError.invalidSlaveAddress
         }
@@ -343,7 +437,8 @@ public extension KonashiPeripheral {
                     address: address,
                     writeData: writeData
                 )
-            )
+            ),
+            timeoutInterval: timeoutInterval
         )
     }
 }

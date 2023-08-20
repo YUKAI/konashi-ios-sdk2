@@ -313,7 +313,8 @@ public final class KonashiPeripheral: Peripheral {
     public func write<WriteCommand: Command>(
         characteristic: WriteableCharacteristic<WriteCommand>,
         command: WriteCommand,
-        type writeType: CBCharacteristicWriteType = .withResponse
+        type writeType: CBCharacteristicWriteType = .withResponse,
+        timeoutInterval: TimeInterval = 15
     ) async throws {
         log(.trace("Write value: \(debugName), characteristic: \(characteristic), command: \(command) \([UInt8](command.compose()).toHexString())"))
         guard let characteristic = self.peripheral.services?.find(characteristic: characteristic) else {
@@ -331,14 +332,20 @@ public final class KonashiPeripheral: Peripheral {
                     return true
                 }
                 return false
-            }).eraseToAnyPublisher().konashi_makeAsync()
+            })
+            .timeout(.seconds(timeoutInterval), scheduler: DispatchQueue.global())
+            .eraseToAnyPublisher()
+            .konashi_makeAsync()
         }
     }
 
     /// Retrieves the value of a specified characteristic.
     /// - Parameter characteristic: The characteristic whose value you want to read.
     /// - Returns: A promise object of read value.
-    public func read<Value: CharacteristicValue>(characteristic: ReadableCharacteristic<Value>) async throws -> Value {
+    public func read<Value: CharacteristicValue>(
+        characteristic: ReadableCharacteristic<Value>,
+        timeoutInterval: TimeInterval = 15
+    ) async throws -> Value {
         log(.trace("Read value: \(debugName), characteristic: \(characteristic)"))
         guard let targetCharacteristic = peripheral.services?.find(characteristic: characteristic) else {
             operationErrorSubject.send(PeripheralOperationError.couldNotFindCharacteristic)
@@ -346,7 +353,7 @@ public final class KonashiPeripheral: Peripheral {
         }
         peripheral.readValue(for: targetCharacteristic)
         let updatedCharacteristic = try await didUpdateValueSubject.filter { updatedCharacteristic, _ in
-            updatedCharacteristic != targetCharacteristic
+            updatedCharacteristic == targetCharacteristic
         }.tryFilter { _, error in
             if let error {
                 self.operationErrorSubject.send(error)
@@ -355,15 +362,16 @@ public final class KonashiPeripheral: Peripheral {
             return true
         }.map { characteristic, _ in
             return characteristic
-        }.eraseToAnyPublisher()
+        }.timeout(.seconds(timeoutInterval), scheduler: DispatchQueue.global())
+            .eraseToAnyPublisher()
             .konashi_makeAsync()
         guard let value = updatedCharacteristic.value else {
             operationErrorSubject.send(PeripheralOperationError.invalidReadValue)
             throw PeripheralOperationError.invalidReadValue
         }
         switch characteristic.parse(data: value) {
-        case let .success(value):
-            return value
+        case let .success(result):
+            return result
         case let .failure(error):
             operationErrorSubject.send(error)
             throw error
