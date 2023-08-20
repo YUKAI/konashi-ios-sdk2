@@ -46,7 +46,7 @@ class ViewController: UIViewController {
         try await peripheral.digitalWrite(.pin1, value: .high)
     }
 
-    private func toggleGPIO1(_ peripheral: KonashiPeripheral) async throws {
+    private func blinkGPIO1(_ peripheral: KonashiPeripheral) async throws {
         // Blink LED
         try await peripheral.digitalWrite(.pin1, value: .low)
         try await Task.sleep(for: .seconds(0.5))
@@ -91,7 +91,7 @@ class ViewController: UIViewController {
             guard let peripheral = connectedPeripheral else {
                 return
             }
-            try await toggleGPIO1(peripheral)
+            try await blinkGPIO1(peripheral)
         }
     }
 }

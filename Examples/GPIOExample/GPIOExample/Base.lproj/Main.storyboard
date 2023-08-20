@@ -53,7 +53,7 @@
                                                 <state key="normal" title="Button"/>
                                                 <buttonConfiguration key="configuration" style="tinted" title="Toggle GPIO1"/>
                                                 <connections>
-                                                    <action selector="toggleGPIO1:" destination="BYZ-38-t0r" eventType="touchUpInside" id="tU6-Fn-JVx"/>
+                                                    <action selector="blinkGPIO1:" destination="BYZ-38-t0r" eventType="touchUpInside" id="tU6-Fn-JVx"/>
                                                 </connections>
                                             </button>
                                         </subviews>
