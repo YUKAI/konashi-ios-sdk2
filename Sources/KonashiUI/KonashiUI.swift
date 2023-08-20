@@ -89,7 +89,7 @@ public final class KonashiUI {
             }
         }
     }
-    
+
     public enum OperationError: LocalizedError {
         case cancelled
 
