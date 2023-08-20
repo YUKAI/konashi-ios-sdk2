@@ -38,6 +38,13 @@ public protocol Peripheral: Hashable, AnyObject, Loggable {
     var isOutdated: Bool { get }
     var isProvisionable: Bool { get }
 
+    /// A service of a peripheral's setting.
+    var settingsService: SettingsService { get }
+    /// A service of a peripheral's config.
+    var configService: ConfigService { get }
+    /// A service to control a peripheral.
+    var controlService: ControlService { get }
+
     // TODO: Add document
     var meshNode: (any NodeCompatible)? { get }
 

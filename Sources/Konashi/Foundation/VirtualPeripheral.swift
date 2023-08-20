@@ -30,6 +30,13 @@ public class VirtualPeripheral: Peripheral {
     public lazy var operationErrorPublisher: AnyPublisher<Error, Never> = operationErrorSubject.eraseToAnyPublisher()
     public private(set) var meshNode: NodeCompatible?
 
+    /// A service of a peripheral's setting.
+    public let settingsService = SettingsService()
+    /// A service of a peripheral's config.
+    public let configService = ConfigService()
+    /// A service to control a peripheral.
+    public let controlService = ControlService()
+
     public var logOutput = LogOutput()
 
     public var name: String? {
