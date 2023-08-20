@@ -80,7 +80,7 @@ class ViewController: UIViewController {
         }
     }
 
-    @IBAction private func toggleGPIO2(_ sender: Any) {
+    @IBAction private func toggleGPIO1(_ sender: Any) {
         Task {
             defer {
                 toggleGPIO1Button.isEnabled = true
