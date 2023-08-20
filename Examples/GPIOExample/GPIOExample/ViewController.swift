@@ -15,18 +15,16 @@ class ViewController: UIViewController {
 
     override func viewDidLoad() {
         super.viewDidLoad()
-        buttonStateStackView.isHidden = true
         connectButton.configuration?.imagePadding = 8
-        toggleGPIO1Button.configuration?.imagePadding = 8
+        blinkButton.configuration?.imagePadding = 8
     }
 
     // MARK: Private
 
     @IBOutlet private var connectedPeripheralLabel: UILabel!
     @IBOutlet private var connectButton: UIButton!
-    @IBOutlet private var buttonStateStackView: UIStackView!
     @IBOutlet private var buttonStateLabel: UILabel!
-    @IBOutlet private var toggleGPIO1Button: UIButton!
+    @IBOutlet private var blinkButton: UIButton!
     private var cancellable: AnyCancellable?
     private var connectedPeripheral: KonashiPeripheral?
 
@@ -70,7 +68,6 @@ class ViewController: UIViewController {
                     return
                 }
                 connectedPeripheral = peripheral
-                buttonStateStackView.isHidden = false
                 connectedPeripheralLabel.text = peripheral.name
                 try await setupPeripheral(peripheral)
             }
@@ -80,14 +77,14 @@ class ViewController: UIViewController {
         }
     }
 
-    @IBAction private func toggleGPIO1(_ sender: Any) {
+    @IBAction private func didBlinkButtonPress(_ sender: Any) {
         Task {
             defer {
-                toggleGPIO1Button.isEnabled = true
-                toggleGPIO1Button.configuration?.showsActivityIndicator = false
+                blinkButton.isEnabled = true
+                blinkButton.configuration?.showsActivityIndicator = false
             }
-            toggleGPIO1Button.isEnabled = false
-            toggleGPIO1Button.configuration?.showsActivityIndicator = true
+            blinkButton.isEnabled = false
+            blinkButton.configuration?.showsActivityIndicator = true
             guard let peripheral = connectedPeripheral else {
                 return
             }

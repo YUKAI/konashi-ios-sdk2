@@ -17,49 +17,44 @@
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                         <subviews>
                             <stackView opaque="NO" contentMode="scaleToFill" axis="vertical" alignment="center" spacing="26" translatesAutoresizingMaskIntoConstraints="NO" id="5EZ-CU-xvI">
-                                <rect key="frame" x="85.333333333333329" y="354.66666666666669" width="222.33333333333337" height="142.66666666666669"/>
+                                <rect key="frame" x="152.33333333333334" y="331.66666666666669" width="88.666666666666657" height="189.00000000000006"/>
                                 <subviews>
                                     <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="" textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="UHZ-Xd-EsB">
-                                        <rect key="frame" x="86.333333333333329" y="0.0" width="49.999999999999986" height="22"/>
+                                        <rect key="frame" x="19.333333333333314" y="0.0" width="50" height="22"/>
                                         <constraints>
                                             <constraint firstAttribute="height" constant="22" id="D3p-tm-ppD"/>
                                         </constraints>
-                                        <fontDescription key="fontDescription" type="system" pointSize="17"/>
+                                        <fontDescription key="fontDescription" type="boldSystem" pointSize="17"/>
                                         <nil key="textColor"/>
                                         <nil key="highlightedColor"/>
                                     </label>
-                                    <stackView opaque="NO" contentMode="scaleToFill" spacing="8" translatesAutoresizingMaskIntoConstraints="NO" id="ebe-pK-1P6">
-                                        <rect key="frame" x="0.0" y="48" width="222.33333333333334" height="34.333333333333343"/>
+                                    <stackView opaque="NO" contentMode="scaleToFill" spacing="8" translatesAutoresizingMaskIntoConstraints="NO" id="sAL-KI-muq">
+                                        <rect key="frame" x="0.33333333333331439" y="48" width="87.666666666666671" height="20.333333333333329"/>
                                         <subviews>
-                                            <stackView opaque="NO" contentMode="scaleToFill" spacing="8" translatesAutoresizingMaskIntoConstraints="NO" id="sAL-KI-muq">
-                                                <rect key="frame" x="0.0" y="0.0" width="87.666666666666671" height="34.333333333333336"/>
-                                                <subviews>
-                                                    <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Button:" textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="qIX-o6-FUZ">
-                                                        <rect key="frame" x="0.0" y="0.0" width="55.333333333333336" height="34.333333333333336"/>
-                                                        <fontDescription key="fontDescription" type="system" pointSize="17"/>
-                                                        <nil key="textColor"/>
-                                                        <nil key="highlightedColor"/>
-                                                    </label>
-                                                    <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Off" textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="iBk-SD-LgI">
-                                                        <rect key="frame" x="63.333333333333336" y="0.0" width="24.333333333333336" height="34.333333333333336"/>
-                                                        <fontDescription key="fontDescription" type="system" pointSize="17"/>
-                                                        <nil key="textColor"/>
-                                                        <nil key="highlightedColor"/>
-                                                    </label>
-                                                </subviews>
-                                            </stackView>
-                                            <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="system" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="ls0-vO-Qp7">
-                                                <rect key="frame" x="95.666666666666657" y="0.0" width="126.66666666666666" height="34.333333333333336"/>
-                                                <state key="normal" title="Button"/>
-                                                <buttonConfiguration key="configuration" style="tinted" title="Toggle GPIO1"/>
-                                                <connections>
-                                                    <action selector="blinkGPIO1:" destination="BYZ-38-t0r" eventType="touchUpInside" id="tU6-Fn-JVx"/>
-                                                </connections>
-                                            </button>
+                                            <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Button:" textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="qIX-o6-FUZ">
+                                                <rect key="frame" x="0.0" y="0.0" width="55.333333333333336" height="20.333333333333332"/>
+                                                <fontDescription key="fontDescription" type="system" pointSize="17"/>
+                                                <nil key="textColor"/>
+                                                <nil key="highlightedColor"/>
+                                            </label>
+                                            <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Off" textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="iBk-SD-LgI">
+                                                <rect key="frame" x="63.33333333333335" y="0.0" width="24.333333333333336" height="20.333333333333332"/>
+                                                <fontDescription key="fontDescription" type="system" pointSize="17"/>
+                                                <nil key="textColor"/>
+                                                <nil key="highlightedColor"/>
+                                            </label>
                                         </subviews>
                                     </stackView>
+                                    <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="system" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="ls0-vO-Qp7">
+                                        <rect key="frame" x="13.999999999999996" y="94.333333333333314" width="60.666666666666657" height="34.333333333333343"/>
+                                        <state key="normal" title="Button"/>
+                                        <buttonConfiguration key="configuration" style="tinted" title="Blink"/>
+                                        <connections>
+                                            <action selector="didBlinkButtonPress:" destination="BYZ-38-t0r" eventType="touchUpInside" id="OzM-3T-aDI"/>
+                                        </connections>
+                                    </button>
                                     <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="system" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="YjD-th-WwS">
-                                        <rect key="frame" x="67" y="108.33333333333331" width="88.666666666666686" height="34.333333333333343"/>
+                                        <rect key="frame" x="0.0" y="154.66666666666663" width="88.666666666666671" height="34.333333333333343"/>
                                         <state key="normal" title="Button"/>
                                         <buttonConfiguration key="configuration" style="filled" title="Connect"/>
                                         <connections>
@@ -77,11 +72,10 @@
                         </constraints>
                     </view>
                     <connections>
+                        <outlet property="blinkButton" destination="ls0-vO-Qp7" id="Y68-FY-PuR"/>
                         <outlet property="buttonStateLabel" destination="iBk-SD-LgI" id="x7a-ou-Xje"/>
-                        <outlet property="buttonStateStackView" destination="ebe-pK-1P6" id="x4B-FS-Cow"/>
                         <outlet property="connectButton" destination="YjD-th-WwS" id="9oF-sz-0nv"/>
                         <outlet property="connectedPeripheralLabel" destination="UHZ-Xd-EsB" id="f0H-KS-K4g"/>
-                        <outlet property="toggleGPIO1Button" destination="ls0-vO-Qp7" id="Y68-FY-PuR"/>
                     </connections>
                 </viewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="dkx-z0-nzr" sceneMemberID="firstResponder"/>
