@@ -316,33 +316,22 @@ public final class KonashiPeripheral: Peripheral {
         type writeType: CBCharacteristicWriteType = .withResponse
     ) async throws {
         log(.trace("Write value: \(debugName), characteristic: \(characteristic), command: \(command) \([UInt8](command.compose()).toHexString())"))
-        return try await withCheckedThrowingContinuation { continuation in
-            var cancellable = Set<AnyCancellable>()
-            guard let characteristic = self.peripheral.services?.find(characteristic: characteristic) else {
-                self.operationErrorSubject.send(PeripheralOperationError.couldNotFindCharacteristic)
-                continuation.resume(throwing: PeripheralOperationError.couldNotFindCharacteristic)
-                return
-            }
-            if writeType == .withResponse {
-                self.didWriteValueSubject.sink { [weak self] uuid, error in
-                    guard let self else {
-                        return
+        guard let characteristic = self.peripheral.services?.find(characteristic: characteristic) else {
+            operationErrorSubject.send(PeripheralOperationError.couldNotFindCharacteristic)
+            throw PeripheralOperationError.couldNotFindCharacteristic
+        }
+        peripheral.writeValue(command.compose(), for: characteristic, type: writeType)
+        if writeType == .withResponse {
+            _ = try await didWriteValueSubject.tryFilter({ uuid, error in
+                if uuid == characteristic.uuid {
+                    if let error {
+                        self.operationErrorSubject.send(error)
+                        throw error
                     }
-                    if uuid == characteristic.uuid {
-                        if let error {
-                            operationErrorSubject.send(error)
-                            continuation.resume(throwing: error)
-                        }
-                        else {
-                            continuation.resume()
-                        }
-                    }
-                }.store(in: &cancellable)
-            }
-            self.peripheral.writeValue(command.compose(), for: characteristic, type: writeType)
-            if writeType == .withoutResponse {
-                continuation.resume()
-            }
+                    return true
+                }
+                return false
+            }).eraseToAnyPublisher().konashi_makeAsync()
         }
     }
 

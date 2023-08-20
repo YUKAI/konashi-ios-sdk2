@@ -37,7 +37,9 @@ public final class CentralManager: NSObject, Loggable {
 
     public enum OperationError: LocalizedError {
         case invalidManagerState
-        
+
+        // MARK: Public
+
         public var errorDescription: String? {
             switch self {
             case .invalidManagerState:
@@ -98,7 +100,8 @@ public final class CentralManager: NSObject, Loggable {
                     .filter { $0 == .poweredOn }
                     .eraseToAnyPublisher()
                     .konashi_makeAsync()
-            } catch {
+            }
+            catch {
                 operationErrorSubject.send(OperationError.invalidManagerState)
                 throw OperationError.invalidManagerState
             }
@@ -113,6 +116,7 @@ public final class CentralManager: NSObject, Loggable {
                 CBCentralManagerScanOptionAllowDuplicatesKey: !discoversUniquePeripherals
             ]
         )
+        try await Task.sleep(nanoseconds: UInt64(timeoutInterval * 1000000000))
     }
 
     /// Attempt to find a peripheral.
