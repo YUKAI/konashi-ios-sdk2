@@ -24,49 +24,55 @@ public final class KonashiUI {
                 weakSelf.discoveredPeripherals.insert(peripheral)
             }
         }.store(in: &cancellable)
-        CentralManager.shared.$isScanning.sink { scanning in
-            guard let window = UIApplication.shared.windows.first else {
-                return
-            }
-            if scanning {
-                let hud = JGProgressHUD()
-                hud.textLabel.text = "Scanning"
-                hud.show(in: window)
-            }
-            else {
+        CentralManager.shared.$isScanning
+            .receive(on: DispatchQueue.main)
+            .sink { scanning in
+                guard let window = UIApplication.shared.windows.first else {
+                    return
+                }
+                if scanning {
+                    let hud = JGProgressHUD()
+                    hud.textLabel.text = "Scanning"
+                    hud.show(in: window)
+                }
+                else {
+                    JGProgressHUD.allProgressHUDs(in: window).forEach { hud in
+                        hud.dismiss()
+                    }
+                }
+            }.store(in: &cancellable)
+        CentralManager.shared.$isConnecting
+            .receive(on: DispatchQueue.main)
+            .sink { connecting in
+                guard let window = UIApplication.shared.windows.first else {
+                    return
+                }
+                if connecting {
+                    let hud = JGProgressHUD()
+                    hud.textLabel.text = "Connecting"
+                    hud.show(in: window)
+                }
+                else {
+                    JGProgressHUD.allProgressHUDs(in: window).forEach { hud in
+                        hud.dismiss()
+                    }
+                }
+            }.store(in: &cancellable)
+        CentralManager.shared.didDisconnectPublisher
+            .receive(on: DispatchQueue.main)
+            .sink { [weak self] _ in
+                guard let self else {
+                    return
+                }
+                discoveredPeripherals.removeAll()
+                hudCancellable.removeAll()
+                guard let window = UIApplication.shared.windows.first else {
+                    return
+                }
                 JGProgressHUD.allProgressHUDs(in: window).forEach { hud in
                     hud.dismiss()
                 }
-            }
-        }.store(in: &cancellable)
-        CentralManager.shared.$isConnecting.sink { connecting in
-            guard let window = UIApplication.shared.windows.first else {
-                return
-            }
-            if connecting {
-                let hud = JGProgressHUD()
-                hud.textLabel.text = "Connecting"
-                hud.show(in: window)
-            }
-            else {
-                JGProgressHUD.allProgressHUDs(in: window).forEach { hud in
-                    hud.dismiss()
-                }
-            }
-        }.store(in: &cancellable)
-        CentralManager.shared.didDisconnectPublisher.sink { [weak self] _ in
-            guard let self else {
-                return
-            }
-            discoveredPeripherals.removeAll()
-            hudCancellable.removeAll()
-            guard let window = UIApplication.shared.windows.first else {
-                return
-            }
-            JGProgressHUD.allProgressHUDs(in: window).forEach { hud in
-                hud.dismiss()
-            }
-        }.store(in: &cancellable)
+            }.store(in: &cancellable)
     }
 
     // MARK: Public
@@ -210,21 +216,23 @@ extension UIViewController: AlertPresentable {
                         handler: { _ in
                             Task {
                                 KonashiUI.shared.hudCancellable.removeAll()
-                                peripheral.isReady.sink { ready in
-                                    guard let window = UIApplication.shared.windows.first else {
-                                        return
-                                    }
-                                    if ready == false {
-                                        let hud = JGProgressHUD()
-                                        hud.textLabel.text = "Preparing..."
-                                        hud.show(in: window)
-                                    }
-                                    else {
-                                        JGProgressHUD.allProgressHUDs(in: window).forEach { hud in
-                                            hud.dismiss()
+                                peripheral.isReady
+                                    .receive(on: DispatchQueue.main)
+                                    .sink { ready in
+                                        guard let window = UIApplication.shared.windows.first else {
+                                            return
                                         }
-                                    }
-                                }.store(in: &KonashiUI.shared.hudCancellable)
+                                        if ready == false {
+                                            let hud = JGProgressHUD()
+                                            hud.textLabel.text = "Preparing..."
+                                            hud.show(in: window)
+                                        }
+                                        else {
+                                            JGProgressHUD.allProgressHUDs(in: window).forEach { hud in
+                                                hud.dismiss()
+                                            }
+                                        }
+                                    }.store(in: &KonashiUI.shared.hudCancellable)
                                 do {
                                     try await peripheral.connect()
                                     continuation.resume(returning: peripheral)
