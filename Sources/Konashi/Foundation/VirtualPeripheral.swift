@@ -61,7 +61,7 @@ public class VirtualPeripheral: Peripheral {
     }
 
     public var isProvisionable: Bool {
-        return false
+        return true
     }
 
     public static func == (lhs: VirtualPeripheral, rhs: VirtualPeripheral) -> Bool {
@@ -94,8 +94,20 @@ public class VirtualPeripheral: Peripheral {
     }
 
     public func setMeshEnabled(_ enabled: Bool) async throws {}
-    public func provision(for manager: MeshManager) async throws -> NodeCompatible {
-        return MockNode()
+
+    public func provision(for manager: Konashi.MeshManager) async throws -> NodeCompatible {
+        let provisioner = MockProvisioner()
+        let cancellable = provisioner.state.sink { [weak self] newState in
+            guard let self else {
+                return
+            }
+            currentProvisioningState = newState
+        }
+        try await MeshProvisionQueue.waitForProvision(provisioner)
+        cancellable.cancel()
+        let node = MockNode()
+        meshNode = node
+        return node
     }
 
     public func readRSSI(repeats: Bool = false, interval: TimeInterval = 1) {
