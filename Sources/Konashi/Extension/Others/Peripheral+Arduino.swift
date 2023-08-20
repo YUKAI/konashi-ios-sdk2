@@ -1,5 +1,5 @@
 //
-//  KonashiPeripheral+Arduino.swift
+//  Peripheral+Arduino.swift
 //  konashi-ios-sdk2
 //
 //  Created by Akira Matsuda on 2021/08/17.
@@ -8,13 +8,15 @@
 import Combine
 import Foundation
 
-public extension KonashiPeripheral {
-    enum PinMode {
-        case input
-        case output
-        case inputPullUp
-    }
+// MARK: - PinMode
 
+public enum PinMode {
+    case input
+    case output
+    case inputPullUp
+}
+
+public extension Peripheral {
     /// Configures the specified pin to behave either as an input or an output.
     /// - Parameters:
     ///   - pin: A GPIO to change pin mode.
@@ -57,7 +59,7 @@ public extension KonashiPeripheral {
                     notifyOnInputChange: notifyOnInputChange,
                     function: .gpio
                 )
-            ]),
+            ]), type: .withResponse,
             timeoutInterval: timeoutInterval
         )
     }
@@ -101,7 +103,7 @@ public extension KonashiPeripheral {
             characteristic: ControlService.controlCommand,
             command: .gpio(
                 [GPIO.ControlPayload(pin: pin, level: value)]
-            ),
+            ), type: .withResponse,
             timeoutInterval: timeoutInterval
         )
     }
@@ -119,6 +121,7 @@ public extension KonashiPeripheral {
         try await write(
             characteristic: ConfigService.configCommand,
             command: .analog(config: config),
+            type: .withResponse,
             timeoutInterval: timeoutInterval
         )
     }
@@ -170,6 +173,7 @@ public extension KonashiPeripheral {
                     transitionDurationMillisec: transitionDuration
                 )]
             ),
+            type: .withResponse,
             timeoutInterval: timeoutInterval
         )
     }
@@ -188,6 +192,7 @@ public extension KonashiPeripheral {
                     driveConfig: config
                 )]
             ),
+            type: .withResponse,
             timeoutInterval: timeoutInterval
         )
     }
@@ -213,6 +218,7 @@ public extension KonashiPeripheral {
                     transitionDuration: transitionDuration
                 )]
             ),
+            type: .withResponse,
             timeoutInterval: timeoutInterval
         )
     }
@@ -246,6 +252,7 @@ public extension KonashiPeripheral {
                     )
                 )
             ),
+            type: .withResponse,
             timeoutInterval: timeoutInterval
         )
     }
@@ -271,6 +278,7 @@ public extension KonashiPeripheral {
                     transitionDurationMillisec: transitionDuration
                 )]
             ),
+            type: .withResponse,
             timeoutInterval: timeoutInterval
         )
     }
@@ -296,6 +304,7 @@ public extension KonashiPeripheral {
                     baudrate: baudrate
                 )
             ),
+            type: .withResponse,
             timeoutInterval: timeoutInterval
         )
     }
@@ -310,6 +319,7 @@ public extension KonashiPeripheral {
             command: .uartSend(
                 UART.SendControlPayload(data: data)
             ),
+            type: .withResponse,
             timeoutInterval: timeoutInterval
         )
     }
@@ -335,6 +345,7 @@ public extension KonashiPeripheral {
                     mode: mode
                 )
             ),
+            type: .withResponse,
             timeoutInterval: timeoutInterval
         )
     }
@@ -347,6 +358,7 @@ public extension KonashiPeripheral {
             command: .spiTransfer(
                 SPI.TransferControlPayload(data: data)
             ),
+            type: .withResponse,
             timeoutInterval: timeoutInterval
         )
     }
@@ -361,6 +373,7 @@ public extension KonashiPeripheral {
             command: .i2c(
                 config: I2C.Config.enable(mode: mode)
             ),
+            type: .withResponse,
             timeoutInterval: timeoutInterval
         )
     }
@@ -389,8 +402,13 @@ public extension KonashiPeripheral {
     func i2cRead(address: UInt8, readLength: UInt8, timeoutInterval: TimeInterval = 15) async throws -> [UInt8] {
         return try await withCheckedThrowingContinuation { continuation in
             Task {
+                // TODO: Remove workaround
+                guard let peripheral = self as? KonashiPeripheral else {
+                    continuation.resume(returning: [])
+                    return
+                }
                 var cancellable = Set<AnyCancellable>()
-                self.controlService.i2cDataInput.value.sink { readValue in
+                peripheral.controlService.i2cDataInput.value.sink { readValue in
                     if readValue.address == address {
                         continuation.resume(with: .success(readValue.readBytes))
                     }
@@ -437,7 +455,7 @@ public extension KonashiPeripheral {
                     address: address,
                     writeData: writeData
                 )
-            ),
+            ), type: .withResponse,
             timeoutInterval: timeoutInterval
         )
     }

@@ -114,7 +114,7 @@ public final class KonashiPeripheral: Peripheral {
     }
 
     // TODO: Add document
-    public var meshNode: NodeCompatible? {
+    public private(set) var meshNode: NodeCompatible? {
         didSet {
             guard let meshNode else {
                 return
@@ -212,7 +212,7 @@ public final class KonashiPeripheral: Peripheral {
                 guard let self else {
                     return
                 }
-                if connectedPeripheral == peripheral {
+                if connectedPeripheral.identifier == peripheral.identifier {
                     NotificationCenter.default.post(
                         name: KonashiPeripheral.didConnect,
                         object: nil,
@@ -261,7 +261,7 @@ public final class KonashiPeripheral: Peripheral {
                     self.operationErrorSubject.send(error)
                     throw error
                 }
-                return self.peripheral == peripheral
+                return self.identifier == peripheral.identifier
             }
             .timeout(.seconds(timeoutInterval), scheduler: DispatchQueue.global())
             .eraseToAnyPublisher()
@@ -616,7 +616,7 @@ public final class KonashiPeripheral: Peripheral {
             guard let self else {
                 return
             }
-            if peripheral == self.peripheral {
+            if peripheral.identifier == identifier {
                 reset()
             }
         }.store(in: &internalCancellable)

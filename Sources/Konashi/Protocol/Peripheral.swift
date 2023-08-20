@@ -79,6 +79,7 @@ public protocol Peripheral: Hashable, AnyObject, Loggable {
     @discardableResult
     func provision(for manager: MeshManager) async throws -> NodeCompatible
 
+    func readRSSI(repeats: Bool, interval: TimeInterval)
     func setRSSI(_ RSSI: NSNumber)
     func setAdvertisementData(_ advertisementData: [String: Any])
 }
