@@ -17,41 +17,46 @@
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                         <subviews>
                             <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="" textAlignment="center" lineBreakMode="tailTruncation" numberOfLines="0" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="UHZ-Xd-EsB">
-                                <rect key="frame" x="196.66666666666666" y="339.66666666666669" width="0.0" height="0.0"/>
+                                <rect key="frame" x="196.66666666666666" y="340" width="0.0" height="0.0"/>
                                 <fontDescription key="fontDescription" type="boldSystem" pointSize="17"/>
                                 <nil key="textColor"/>
                                 <nil key="highlightedColor"/>
                             </label>
                             <stackView opaque="NO" contentMode="scaleToFill" axis="vertical" alignment="center" spacing="26" translatesAutoresizingMaskIntoConstraints="NO" id="5EZ-CU-xvI">
-                                <rect key="frame" x="152.33333333333334" y="355.66666666666669" width="88.666666666666657" height="141"/>
+                                <rect key="frame" x="152.33333333333334" y="356" width="88.666666666666657" height="140"/>
                                 <subviews>
-                                    <stackView opaque="NO" contentMode="scaleToFill" spacing="8" translatesAutoresizingMaskIntoConstraints="NO" id="sAL-KI-muq">
-                                        <rect key="frame" x="0.33333333333331439" y="0.0" width="87.666666666666671" height="20.333333333333332"/>
+                                    <stackView opaque="NO" contentMode="scaleToFill" axis="vertical" spacing="25" translatesAutoresizingMaskIntoConstraints="NO" id="NW6-gW-b70">
+                                        <rect key="frame" x="0.33333333333331439" y="0.0" width="87.666666666666671" height="79.666666666666671"/>
                                         <subviews>
-                                            <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Button:" textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="qIX-o6-FUZ">
-                                                <rect key="frame" x="0.0" y="0.0" width="55.333333333333336" height="20.333333333333332"/>
-                                                <fontDescription key="fontDescription" type="system" pointSize="17"/>
-                                                <nil key="textColor"/>
-                                                <nil key="highlightedColor"/>
-                                            </label>
-                                            <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Off" textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="iBk-SD-LgI">
-                                                <rect key="frame" x="63.33333333333335" y="0.0" width="24.333333333333336" height="20.333333333333332"/>
-                                                <fontDescription key="fontDescription" type="system" pointSize="17"/>
-                                                <nil key="textColor"/>
-                                                <nil key="highlightedColor"/>
-                                            </label>
+                                            <stackView opaque="NO" contentMode="scaleToFill" spacing="8" translatesAutoresizingMaskIntoConstraints="NO" id="sAL-KI-muq">
+                                                <rect key="frame" x="0.0" y="0.0" width="87.666666666666671" height="20.333333333333332"/>
+                                                <subviews>
+                                                    <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Button:" textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="qIX-o6-FUZ">
+                                                        <rect key="frame" x="0.0" y="0.0" width="55.333333333333336" height="20.333333333333332"/>
+                                                        <fontDescription key="fontDescription" type="system" pointSize="17"/>
+                                                        <nil key="textColor"/>
+                                                        <nil key="highlightedColor"/>
+                                                    </label>
+                                                    <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Off" textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="iBk-SD-LgI">
+                                                        <rect key="frame" x="63.33333333333335" y="0.0" width="24.333333333333336" height="20.333333333333332"/>
+                                                        <fontDescription key="fontDescription" type="system" pointSize="17"/>
+                                                        <nil key="textColor"/>
+                                                        <nil key="highlightedColor"/>
+                                                    </label>
+                                                </subviews>
+                                            </stackView>
+                                            <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="system" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="ls0-vO-Qp7">
+                                                <rect key="frame" x="0.0" y="45.333333333333314" width="87.666666666666671" height="34.333333333333343"/>
+                                                <state key="normal" title="Button"/>
+                                                <buttonConfiguration key="configuration" style="tinted" title="Blink"/>
+                                                <connections>
+                                                    <action selector="didBlinkButtonPress:" destination="BYZ-38-t0r" eventType="touchUpInside" id="OzM-3T-aDI"/>
+                                                </connections>
+                                            </button>
                                         </subviews>
                                     </stackView>
-                                    <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="system" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="ls0-vO-Qp7">
-                                        <rect key="frame" x="13.999999999999996" y="46.333333333333314" width="60.666666666666657" height="34.333333333333343"/>
-                                        <state key="normal" title="Button"/>
-                                        <buttonConfiguration key="configuration" style="tinted" title="Blink"/>
-                                        <connections>
-                                            <action selector="didBlinkButtonPress:" destination="BYZ-38-t0r" eventType="touchUpInside" id="OzM-3T-aDI"/>
-                                        </connections>
-                                    </button>
                                     <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="system" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="YjD-th-WwS">
-                                        <rect key="frame" x="0.0" y="106.66666666666663" width="88.666666666666671" height="34.333333333333343"/>
+                                        <rect key="frame" x="0.0" y="105.66666666666669" width="88.666666666666671" height="34.333333333333343"/>
                                         <state key="normal" title="Button"/>
                                         <buttonConfiguration key="configuration" style="filled" title="Connect"/>
                                         <connections>
@@ -77,6 +82,7 @@
                         <outlet property="buttonStateLabel" destination="iBk-SD-LgI" id="x7a-ou-Xje"/>
                         <outlet property="connectButton" destination="YjD-th-WwS" id="9oF-sz-0nv"/>
                         <outlet property="connectedPeripheralLabel" destination="UHZ-Xd-EsB" id="f0H-KS-K4g"/>
+                        <outlet property="peripheralControlStackView" destination="NW6-gW-b70" id="JJN-Ni-pVg"/>
                     </connections>
                 </viewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="dkx-z0-nzr" sceneMemberID="firstResponder"/>

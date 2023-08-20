@@ -15,6 +15,7 @@ class ViewController: UIViewController {
 
     override func viewDidLoad() {
         super.viewDidLoad()
+        peripheralControlStackView.isHidden = true
         connectButton.configuration?.imagePadding = 8
         blinkButton.configuration?.imagePadding = 8
     }
@@ -26,7 +27,12 @@ class ViewController: UIViewController {
     @IBOutlet private var buttonStateLabel: UILabel!
     @IBOutlet private var blinkButton: UIButton!
     private var cancellable: AnyCancellable?
-    private var connectedPeripheral: KonashiPeripheral?
+    @IBOutlet private var peripheralControlStackView: UIStackView!
+    private var connectedPeripheral: KonashiPeripheral? {
+        didSet {
+            peripheralControlStackView.isHidden = connectedPeripheral == nil
+        }
+    }
 
     private func setupPeripheral(_ peripheral: KonashiPeripheral) async throws {
         // Configure GPIO0 as input.
@@ -63,6 +69,7 @@ class ViewController: UIViewController {
                 if let connectedPeripheral {
                     try await connectedPeripheral.disconnect()
                 }
+                connectedPeripheral = nil
                 cancellable = nil
                 guard let peripheral = try await presentKonashiListViewController() as? KonashiPeripheral else {
                     return
