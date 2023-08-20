@@ -130,8 +130,8 @@ public extension KonashiPeripheral {
     ///   - timeoutInterval: Number of seconds before timeout.
     /// - Returns: An input value of AIO
     func analogRead(
-        _ pin: Analog.Pin
-        , timeoutInterval: TimeInterval = 15
+        _ pin: Analog.Pin,
+        timeoutInterval: TimeInterval = 15
     ) async throws -> Analog.InputValue {
         let readValue = try await read(
             characteristic: ControlService.analogInput,

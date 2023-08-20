@@ -317,13 +317,13 @@ public final class KonashiPeripheral: Peripheral {
         timeoutInterval: TimeInterval = 15
     ) async throws {
         log(.trace("Write value: \(debugName), characteristic: \(characteristic), command: \(command) \([UInt8](command.compose()).toHexString())"))
-        guard let characteristic = self.peripheral.services?.find(characteristic: characteristic) else {
+        guard let characteristic = peripheral.services?.find(characteristic: characteristic) else {
             operationErrorSubject.send(PeripheralOperationError.couldNotFindCharacteristic)
             throw PeripheralOperationError.couldNotFindCharacteristic
         }
         peripheral.writeValue(command.compose(), for: characteristic, type: writeType)
         if writeType == .withResponse {
-            _ = try await didWriteValueSubject.tryFilter({ uuid, error in
+            _ = try await didWriteValueSubject.tryFilter { uuid, error in
                 if uuid == characteristic.uuid {
                     if let error {
                         self.operationErrorSubject.send(error)
@@ -332,7 +332,7 @@ public final class KonashiPeripheral: Peripheral {
                     return true
                 }
                 return false
-            })
+            }
             .timeout(.seconds(timeoutInterval), scheduler: DispatchQueue.global())
             .eraseToAnyPublisher()
             .konashi_makeAsync()
