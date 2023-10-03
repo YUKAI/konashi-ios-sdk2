@@ -13,7 +13,7 @@ import nRFMeshProvision
 public class VirtualPeripheral: Peripheral {
     // MARK: Lifecycle
 
-    init() {
+    public init() {
         currentRSSI = -10
     }
 
@@ -30,6 +30,11 @@ public class VirtualPeripheral: Peripheral {
     public lazy var operationErrorPublisher: AnyPublisher<Error, Never> = operationErrorSubject.eraseToAnyPublisher()
     public private(set) var meshNode: NodeCompatible?
 
+    public func changeConnectionState(_ connectionState: ConnectionState) -> Self {
+        currentConnectionState = connectionState
+        return self
+    }
+    
     /// A service of a peripheral's setting.
     public let settingsService = SettingsService()
     /// A service of a peripheral's config.
