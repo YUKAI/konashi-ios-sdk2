@@ -29,13 +29,13 @@ class ViewController: UIViewController {
     private var cancellable: AnyCancellable?
     @IBOutlet private var peripheralControlStackView: UIStackView!
 
-    private var connectedPeripheral: KonashiPeripheral? {
+    private var connectedPeripheral: (any Peripheral)? = nil {
         didSet {
             peripheralControlStackView.isHidden = connectedPeripheral == nil
         }
     }
 
-    private func setupPeripheral(_ peripheral: KonashiPeripheral) async throws {
+    private func setupPeripheral(_ peripheral: any Peripheral) async throws {
         // Configure GPIO0 as input.
         try await peripheral.pinMode(.pin0, mode: .inputPullUp)
         // Receive button input(GPIO0).
@@ -51,7 +51,7 @@ class ViewController: UIViewController {
         try await peripheral.digitalWrite(.pin1, value: .high)
     }
 
-    private func blinkGPIO1(_ peripheral: KonashiPeripheral) async throws {
+    private func blinkGPIO1(_ peripheral: any Peripheral) async throws {
         // Blink LED
         try await peripheral.digitalWrite(.pin1, value: .low)
         try await Task.sleep(for: .seconds(0.5))

@@ -9,6 +9,29 @@ import Combine
 import CoreBluetooth
 import nRFMeshProvision
 
+// MARK: - PeripheralConnectivity
+
+protocol PeripheralConnectivity: NSObject {
+    var isScanning: Bool { get }
+    var state: CBManagerState { get }
+
+    init(delegate: CBCentralManagerDelegate?, queue: DispatchQueue?)
+    func setManager(_ manager: CentralManager)
+    func retrievePeripherals(withIdentifiers identifiers: [UUID]) -> [CBPeripheral]
+    func retrieveConnectedPeripherals(withServices serviceUUIDs: [CBUUID]) -> [CBPeripheral]
+    func scanForPeripherals(withServices serviceUUIDs: [CBUUID]?, options: [String: Any]?)
+    func stopScan()
+    func connect(_ peripheral: CBPeripheral, options: [String: Any]?)
+    func cancelPeripheralConnection(_ peripheral: CBPeripheral)
+    func registerForConnectionEvents(options: [CBConnectionEventMatchingOption: Any]?)
+}
+
+// MARK: - CBCentralManager + PeripheralConnectivity
+
+extension CBCentralManager: PeripheralConnectivity {
+    func setManager(_ manager: CentralManager) {}
+}
+
 // MARK: - CentralManager
 
 // TODO: actorにしたい
@@ -17,8 +40,11 @@ import nRFMeshProvision
 public final class CentralManager: NSObject, Loggable {
     // MARK: Lifecycle
 
-    override private init() {
+    private init(_ P: PeripheralConnectivity.Type) {
         super.init()
+        // swiftformat:disable:next all
+        connectivity = P.init(delegate: self, queue: nil)
+        connectivity.setManager(self)
         didConnectSubject.sink { [weak self] _ in
             guard let self else {
                 return
@@ -54,8 +80,15 @@ public final class CentralManager: NSObject, Loggable {
     }
 
     public static let sharedLogOutput = LogOutput()
+
     /// A shared instance of CentralManager.
-    public static let shared = CentralManager()
+    public static var shared: CentralManager {
+        #if targetEnvironment(simulator)
+            return virtual
+        #else
+            return device
+        #endif
+    }
 
     public let logOutput = LogOutput()
 
@@ -82,9 +115,13 @@ public final class CentralManager: NSObject, Loggable {
     /// This value indicates that a centeral manager is connecting a peripheral.
     @Published public private(set) var isConnecting = false
 
+    public var isVirtual: Bool {
+        return connectivity is CBCentralManager
+    }
+
     /// Represents the current state of a CBManager.
     public var state: CBManagerState {
-        return manager.state
+        return connectivity.state
     }
 
     // TODO: Make async function
@@ -92,22 +129,12 @@ public final class CentralManager: NSObject, Loggable {
     public func scan(timeoutInterval: TimeInterval = 5) async throws {
         log(.trace("Start scan"))
 
-        if manager.state != .poweredOn {
-            // Wait until the state of manager becomes power on
-            do {
-                _ = try await manager.publisher(for: \.state)
-                    .timeout(.seconds(timeoutInterval), scheduler: DispatchQueue.global())
-                    .filter { $0 == .poweredOn }
-                    .eraseToAnyPublisher()
-                    .konashi_makeAsync()
-            }
-            catch {
-                operationErrorSubject.send(OperationError.invalidManagerState)
-                throw OperationError.invalidManagerState
-            }
+        if connectivity.state != .poweredOn {
+            operationErrorSubject.send(OperationError.invalidManagerState)
+            throw OperationError.invalidManagerState
         }
         isScanning = true
-        manager.scanForPeripherals(
+        connectivity.scanForPeripherals(
             withServices: [
                 SettingsService.serviceUUID,
                 MeshProvisioningService.uuid
@@ -150,7 +177,7 @@ public final class CentralManager: NSObject, Loggable {
     public func stopScan() {
         log(.trace("Stop scan"))
         isScanning = false
-        manager.stopScan()
+        connectivity.stopScan()
     }
 
     @discardableResult
@@ -175,8 +202,8 @@ public final class CentralManager: NSObject, Loggable {
 
     let operationErrorSubject = PassthroughSubject<Error, Never>()
     let didDiscoverSubject = PassthroughSubject<any Peripheral, Never>()
-    let didConnectSubject = PassthroughSubject<CBPeripheral, Never>()
-    let didDisconnectSubject = PassthroughSubject<(CBPeripheral, Error?), Never>()
+    let didConnectSubject = PassthroughSubject<any Peripheral, Never>()
+    let didDisconnectSubject = PassthroughSubject<(any Peripheral, Error?), Never>()
     let didFailedToConnectSubject = PassthroughSubject<(CBPeripheral, Error?), Never>()
 
     /// Connect to peripheral.
@@ -184,7 +211,7 @@ public final class CentralManager: NSObject, Loggable {
     func connect(_ peripheral: CBPeripheral) {
         log(.trace("Connect to \(peripheral.konashi_debugName): \(peripheral.identifier)"))
         numberOfConnectingPeripherals += 1
-        manager.connect(peripheral, options: nil)
+        connectivity.connect(peripheral, options: nil)
     }
 
     /// Disconnect peripheral.
@@ -192,13 +219,22 @@ public final class CentralManager: NSObject, Loggable {
     func disconnect(_ peripheral: CBPeripheral) {
         log(.trace("Disconnect to \(peripheral.konashi_debugName): \(peripheral.identifier)"))
 
-        manager.cancelPeripheralConnection(peripheral)
+        connectivity.cancelPeripheralConnection(peripheral)
     }
 
     func clearFoundPeripheralsIfNeeded() {
         log(.trace("Clear outdated peripherals"))
         foundPeripherals.removeAll(where: \.isOutdated)
     }
+
+    func didFoundPeripheral(_ peripheral: any Peripheral) {
+        foundPeripherals.append(peripheral)
+        didDiscoverSubject.send(peripheral)
+        // TODO: clear found peripherals
+        // clearFoundPeripheralsIfNeeded()
+    }
+
+    func didConnect(_ peripheral: any Peripheral) {}
 
     // MARK: Fileprivate
 
@@ -215,10 +251,13 @@ public final class CentralManager: NSObject, Loggable {
 
     // MARK: Private
 
+    private static let device = CentralManager(CBCentralManager.self)
+    private static let virtual = CentralManager(VirtualManager.self)
+
     private var foundPeripherals = [any Peripheral]()
 
     private var cancellable = Set<AnyCancellable>()
-    private lazy var manager = CBCentralManager(delegate: self, queue: nil)
+    private var connectivity: (any PeripheralConnectivity)!
 }
 
 // MARK: CBCentralManagerDelegate
@@ -248,15 +287,15 @@ extension CentralManager: CBCentralManagerDelegate {
             existingPeripheral.setAdvertisementData(advertisementData)
             return existingPeripheral
         }()
-        foundPeripherals.append(result)
-        didDiscoverSubject.send(result)
-        // TODO: clear found peripherals
-        // clearFoundPeripheralsIfNeeded()
+        didFoundPeripheral(result)
     }
 
     public func centralManager(_ central: CBCentralManager, didConnect peripheral: CBPeripheral) {
         log(.trace("Did connect: \(peripheral.konashi_debugName)"))
-        didConnectSubject.send(peripheral)
+        guard let connectedPeripheral = foundPeripherals.first(where: { $0.identifier == peripheral.identifier }) else {
+            return
+        }
+        didConnectSubject.send(connectedPeripheral)
     }
 
     public func centralManager(_ central: CBCentralManager, didDisconnectPeripheral peripheral: CBPeripheral, error: Error?) {
@@ -270,8 +309,11 @@ extension CentralManager: CBCentralManagerDelegate {
         else {
             log(.trace("Did disconnect: \(peripheral.konashi_debugName)"))
         }
+        guard let disconnectedPeripheral = foundPeripherals.first(where: { $0.identifier == peripheral.identifier }) else {
+            return
+        }
         didDisconnectSubject.send(
-            (peripheral, error)
+            (disconnectedPeripheral, error)
         )
         foundPeripherals.removeAll { $0.identifier == peripheral.identifier }
     }

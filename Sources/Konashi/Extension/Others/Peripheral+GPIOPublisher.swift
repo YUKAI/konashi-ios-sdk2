@@ -1,5 +1,5 @@
 //
-//  KonashiPeripheral+GPIOPublisher.swift
+//  Peripheral+GPIOPublisher.swift
 //  konashi-ios-sdk2
 //
 //  Created by Akira Matsuda on 2021/08/18.
@@ -8,7 +8,7 @@
 import Combine
 import Foundation
 
-public extension KonashiPeripheral {
+public extension Peripheral {
     typealias GPIOPublisher = (input: AnyPublisher<GPIO.Value, Never>, output: AnyPublisher<GPIO.Value, Never>)
 
     private func gpioInputPublisher(for pin: GPIO.Pin) -> AnyPublisher<GPIO.Value, Never> {

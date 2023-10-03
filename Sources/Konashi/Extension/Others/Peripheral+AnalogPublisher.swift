@@ -1,5 +1,5 @@
 //
-//  KonashiPeripheral+AnalogPublisher.swift
+//  Peripheral+AnalogPublisher.swift
 //  konashi-ios-sdk2
 //
 //  Created by Akira Matsuda on 2021/08/18.
@@ -8,7 +8,7 @@
 import Combine
 import Foundation
 
-public extension KonashiPeripheral {
+public extension Peripheral {
     typealias AnalogPublisher = (input: AnyPublisher<Analog.InputValue, Never>, output: AnyPublisher<Analog.OutputValue, Never>)
 
     private func analogInputPublisher(for pin: Analog.Pin) -> AnyPublisher<Analog.InputValue, Never> {
