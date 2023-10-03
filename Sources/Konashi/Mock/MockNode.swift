@@ -17,6 +17,9 @@ class MockNode: NodeCompatible, ModelDelegate {
     }
 
     var isConfigured = false
+    var feature: MeshNodeFeature { 
+        return MeshNodeFeature()
+    }
 
     weak var peripheral: (any Peripheral)?
 

@@ -44,7 +44,7 @@ class MockProvisioner: Provisionable {
             internalState = .complete
         }
         else {
-            internalState = .fail(MockError.someError)
+            internalState = .failed(MockError.someError)
             throw MockError.someError
         }
     }
