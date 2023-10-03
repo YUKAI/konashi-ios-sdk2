@@ -28,6 +28,7 @@ public protocol NodeCompatible {
     var elements: [nRFMeshProvision.Element] { get }
     var receivedMessagePublisher: AnyPublisher<Result<ReceivedMessage, MessageTransmissionError>, Never> { get }
     var isConfigured: Bool { get set }
+    var feature: MeshNodeFeature { get }
 
     func updateName(_ name: String?) async throws
     @discardableResult
