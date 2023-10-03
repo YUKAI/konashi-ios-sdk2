@@ -225,7 +225,7 @@ public final class MeshNode: NodeCompatible, Loggable {
             }
         }
     }
-    
+
     public var feature: MeshNodeFeature {
         guard let featuresState = node.features else {
             return MeshNodeFeature()

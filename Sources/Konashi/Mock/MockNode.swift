@@ -10,22 +10,15 @@ import Foundation
 import nRFMeshProvision
 
 public class MockNode: NodeCompatible, ModelDelegate {
-    // MARK: Internal
+    // MARK: Lifecycle
 
-    enum MockNodeError: Error {
-        case noOperation
-    }
-    
     public init() {}
 
-    public var isConfigured = false
-    public var feature: MeshNodeFeature {
-        return MeshNodeFeature()
-    }
+    // MARK: Public
 
+    public var isConfigured = false
     public weak var peripheral: (any Peripheral)?
 
-    var receivedMessageSubject = PassthroughSubject<Result<ReceivedMessage, MessageTransmissionError>, Never>()
     public private(set) lazy var receivedMessagePublisher: AnyPublisher<
         Result<ReceivedMessage, MessageTransmissionError>, Never
     > = receivedMessageSubject.eraseToAnyPublisher()
@@ -37,6 +30,10 @@ public class MockNode: NodeCompatible, ModelDelegate {
     public var messageTypes = [UInt32: nRFMeshProvision.MeshMessage.Type]()
     public var isSubscriptionSupported = false
     public var publicationMessageComposer: MessageComposer?
+
+    public var feature: MeshNodeFeature {
+        return MeshNodeFeature()
+    }
 
     public var isProvisioner: Bool {
         return false
@@ -140,6 +137,14 @@ public class MockNode: NodeCompatible, ModelDelegate {
         toAcknowledgedMessage request: nRFMeshProvision.AcknowledgedMeshMessage,
         from source: nRFMeshProvision.Address
     ) {}
+
+    // MARK: Internal
+
+    enum MockNodeError: Error {
+        case noOperation
+    }
+
+    var receivedMessageSubject = PassthroughSubject<Result<ReceivedMessage, MessageTransmissionError>, Never>()
 
     // MARK: Private
 

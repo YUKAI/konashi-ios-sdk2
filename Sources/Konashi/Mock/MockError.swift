@@ -10,7 +10,7 @@ import Foundation
 public enum MockError: Error, LocalizedError {
     case someError
 
-    // MARK: Internal
+    // MARK: Public
 
     public var errorDescription: String? {
         switch self {

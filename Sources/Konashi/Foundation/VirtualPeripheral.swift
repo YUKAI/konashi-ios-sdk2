@@ -30,11 +30,6 @@ public class VirtualPeripheral: Peripheral {
     public lazy var operationErrorPublisher: AnyPublisher<Error, Never> = operationErrorSubject.eraseToAnyPublisher()
     public private(set) var meshNode: NodeCompatible?
 
-    public func changeConnectionState(_ connectionState: ConnectionState) -> Self {
-        currentConnectionState = connectionState
-        return self
-    }
-    
     /// A service of a peripheral's setting.
     public let settingsService = SettingsService()
     /// A service of a peripheral's config.
@@ -78,6 +73,11 @@ public class VirtualPeripheral: Peripheral {
 
     public static func == (lhs: VirtualPeripheral, rhs: VirtualPeripheral) -> Bool {
         return lhs.hashValue == rhs.hashValue
+    }
+
+    public func changeConnectionState(_ connectionState: ConnectionState) -> Self {
+        currentConnectionState = connectionState
+        return self
     }
 
     public func hash(into hasher: inout Hasher) {
