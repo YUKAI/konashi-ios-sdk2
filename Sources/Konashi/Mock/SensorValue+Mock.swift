@@ -9,8 +9,8 @@ import Foundation
 import nRFMeshProvision
 
 // swiftlint:disable number_separator
-enum MockValue {
-    static func sensorValues() -> [SensorValue] {
+public enum MockValue {
+    public static func sensorValues() -> [SensorValue] {
         return [
             (
                 property: .presenceDetected,
