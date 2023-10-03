@@ -54,6 +54,6 @@ public struct SendHandler {
 
 extension SendHandler {
     func isEqualTo(_ message: SendMessage) -> Bool {
-        return opCode == message.body.opCode && source == message.from.parentNode?.unicastAddress && destination == message.destination
+        return opCode == message.body.opCode && source == message.from.parentNode?.primaryUnicastAddress && destination == message.destination
     }
 }
