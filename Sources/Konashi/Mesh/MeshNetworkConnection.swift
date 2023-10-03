@@ -200,8 +200,8 @@ extension MeshNetworkConnection: CBCentralManagerDelegate {
         rssi RSSI: NSNumber
     ) {
         // Is it a Network ID beacon?
-        if let networkId = advertisementData.networkId {
-            guard meshNetwork.matches(networkId: networkId) else {
+        if let networkIdentity = advertisementData.networkIdentity {
+            guard meshNetwork.matches(networkIdentity: networkIdentity) else {
                 // A Node from another mesh network.
                 return
             }
@@ -209,7 +209,7 @@ extension MeshNetworkConnection: CBCentralManagerDelegate {
         else {
             // Is it a Node Identity beacon?
             guard let nodeIdentity = advertisementData.nodeIdentity,
-                  meshNetwork.matches(hash: nodeIdentity.hash, random: nodeIdentity.random) else {
+                  meshNetwork.matches(nodeIdentity: nodeIdentity) else {
                 // A Node from another mesh network.
                 return
             }
