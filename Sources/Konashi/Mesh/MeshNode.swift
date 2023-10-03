@@ -226,6 +226,13 @@ public final class MeshNode: NodeCompatible, Loggable {
             }
         }
     }
+    
+    public var feature: MeshNodeFeature {
+        guard let featuresState = node.features else {
+            return MeshNodeFeature()
+        }
+        return MeshNodeFeature.convert(featuresState)
+    }
 
     public var unicastAddress: Address? {
         return node.primaryUnicastAddress
