@@ -7,12 +7,12 @@
 
 import Foundation
 
-enum MockError: Error, LocalizedError {
+public enum MockError: Error, LocalizedError {
     case someError
 
     // MARK: Internal
 
-    var errorDescription: String? {
+    public var errorDescription: String? {
         switch self {
         case .someError:
             return "something wrong"
