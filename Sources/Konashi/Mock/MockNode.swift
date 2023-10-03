@@ -15,6 +15,8 @@ public class MockNode: NodeCompatible, ModelDelegate {
     enum MockNodeError: Error {
         case noOperation
     }
+    
+    public init() {}
 
     public var isConfigured = false
     public var feature: MeshNodeFeature {
