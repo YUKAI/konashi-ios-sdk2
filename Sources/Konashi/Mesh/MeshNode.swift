@@ -309,7 +309,7 @@ public final class MeshNode: NodeCompatible, Loggable {
     @discardableResult
     public func send(message: nRFMeshProvision.MeshMessage, to model: nRFMeshProvision.Model) async throws -> SendHandler {
         do {
-            log(.trace("Send mesh message from \(debugName), to model: \(model), message: 0x\(message.opCode.byteArray().toHexString())"))
+            log(.trace("Send mesh message from \(debugName), to model: \(model), message: \(message)"))
             try await checkOperationAvailability()
             if node.isCompositionDataReceived == false {
                 throw NodeOperationError.noCompositionData
@@ -325,7 +325,7 @@ public final class MeshNode: NodeCompatible, Loggable {
     @discardableResult
     public func send(config: nRFMeshProvision.ConfigMessage) async throws -> SendHandler {
         do {
-            log(.trace("Send config message to \(debugName), message: 0x\(config.opCode.byteArray().toHexString())"))
+            log(.trace("Send config message to \(debugName), message: \(config)"))
             try await checkOperationAvailability()
             return try SendHandler(node: self, handle: manager.networkManager.send(config, to: node))
         }
